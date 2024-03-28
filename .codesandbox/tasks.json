@@ -12,32 +12,30 @@
     "start": {
       "name": "start",
       "command": "yarn start",
-      "runAtStart": true
+      "runAtStart": true,
+      "preview": {
+        "port": 5000
+      }
     },
     "build": {
       "name": "build",
-      "command": "yarn build",
-      "runAtStart": false
+      "command": "yarn build"
     },
     "lint": {
       "name": "lint",
-      "command": "yarn lint",
-      "runAtStart": false
+      "command": "yarn lint"
     },
     "lint:ci": {
       "name": "lint:ci",
-      "command": "yarn lint:ci",
-      "runAtStart": false
+      "command": "yarn lint:ci"
     },
     "preview": {
       "name": "preview",
-      "command": "yarn preview",
-      "runAtStart": false
+      "command": "yarn preview"
     },
     "typecheck": {
       "name": "typecheck",
-      "command": "yarn typecheck",
-      "runAtStart": false
+      "command": "yarn typecheck"
     },
     "format": {
       "name": "format",
