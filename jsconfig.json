@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "node16",
+    "target": "ESNext",
+    "checkJs": true,
+    "strict": true,
+    "lib": ["es6", "dom", "ESNext"],
+    "types": ["w3c-web-hid"]
+  },
+  "include": ["**/*"]
+}

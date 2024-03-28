@@ -1,0 +1,45 @@
+name: Status Checks
+on:
+  push:
+
+jobs:
+  biome:
+    runs-on: ubuntu-latest
+    name: Biome Lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+      - run: yarn --immutable
+
+      - name: Biome Lint/Format
+        run: yarn lint:ci
+  tsc:
+    runs-on: ubuntu-latest
+    name: Typescript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+      - run: yarn --immutable
+
+      - name: Typescript
+        run: yarn typecheck
+  build:
+    runs-on: ubuntu-latest
+    name: Vite Build
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+      - run: yarn --immutable
+
+      - name: Vite Build
+        run: yarn build
+
