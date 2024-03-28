@@ -24,7 +24,7 @@
     "struct-buffer": "https://github.com/noahm/struct-buffer.git#commit=af2e9c9f0a42e7c16cfefb87cecb0f72228d085d"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.6.2",
+    "@biomejs/biome": "1.6.3",
     "@types/react": "^18.2.70",
     "@types/react-dom": "^18.2.22",
     "@types/w3c-web-hid": "1.0.6",
