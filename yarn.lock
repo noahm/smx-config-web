@@ -578,6 +578,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@nmann/struct-buffer@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@nmann/struct-buffer@npm:5.3.0"
+  checksum: 10c0/952e3ce914ed7514bd32cb50fd8f26f7b88d8bc12ef46c23e40336f517336f8bee8de18b0697d069559980420a84e5ba5e454e8f5866030d674f07fac98d6b9a
+  languageName: node
+  linkType: hard
+
 "@npmcli/agent@npm:^2.0.0":
   version: 2.2.1
   resolution: "@npmcli/agent@npm:2.2.1"
@@ -1834,13 +1841,13 @@ __metadata:
   resolution: "smx-config-web@workspace:."
   dependencies:
     "@biomejs/biome": "npm:1.6.3"
+    "@nmann/struct-buffer": "npm:^5.3.0"
     "@types/react": "npm:^18.2.70"
     "@types/react-dom": "npm:^18.2.22"
     "@types/w3c-web-hid": "npm:1.0.6"
     "@vitejs/plugin-react": "npm:^4.2.1"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    struct-buffer: "https://github.com/noahm/struct-buffer.git#commit=af2e9c9f0a42e7c16cfefb87cecb0f72228d085d"
     typescript: "npm:^5.4.3"
     vite: "npm:^5.2.6"
   languageName: unknown
@@ -1927,13 +1934,6 @@ __metadata:
   dependencies:
     ansi-regex: "npm:^6.0.1"
   checksum: 10c0/a198c3762e8832505328cbf9e8c8381de14a4fa50a4f9b2160138158ea88c0f5549fb50cb13c651c3088f47e63a108b34622ec18c0499b6c8c3a5ddf6b305ac4
-  languageName: node
-  linkType: hard
-
-"struct-buffer@https://github.com/noahm/struct-buffer.git#commit=af2e9c9f0a42e7c16cfefb87cecb0f72228d085d":
-  version: 5.3.0
-  resolution: "struct-buffer@https://github.com/noahm/struct-buffer.git#commit=af2e9c9f0a42e7c16cfefb87cecb0f72228d085d"
-  checksum: 10c0/545ca74631f84bc127406bd462c9e53cfd81415ec61f8e2bddcc6cefc448eb1cf03e089110d5f997066304dd7f171b90171ddf6d8c9193deae3f439c8425b691
   languageName: node
   linkType: hard
 
