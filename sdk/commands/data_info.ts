@@ -1,4 +1,4 @@
-import { StructBuffer, char, uint8_t, uint16_t } from "struct-buffer";
+import { StructBuffer, char, uint16_t, uint8_t } from "@nmann/struct-buffer";
 
 const data_info_packet_t = new StructBuffer("data_info_packet_t", {
   // Always 'I'

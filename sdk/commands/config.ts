@@ -1,4 +1,4 @@
-import { StructBuffer, bits, uint8_t, uint16_t } from "struct-buffer";
+import { StructBuffer, bits, uint16_t, uint8_t } from "@nmann/struct-buffer";
 import type { EachPanel } from "./inputs";
 
 type DecodedStruct<SB extends StructBuffer> = ReturnType<SB["decode"]>;

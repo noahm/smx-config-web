@@ -1,4 +1,4 @@
-import { bitFields, uint16_t } from "struct-buffer";
+import { bitFields, uint16_t } from "@nmann/struct-buffer";
 
 export type EachPanel<T> = {
   up_left: T;
