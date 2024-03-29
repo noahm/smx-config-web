@@ -47,16 +47,24 @@ input {
   font-family: inherit;
   font-size: 100%;
   background: #FFFFFF;
-  border: 1px solid #000000;
+  border: 1px solid currentColor;
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 0.5rem 1rem;
-  transition: 500ms;
+  transition-duration: 100ms;
+  transition-property: transform, box-shadow;
   cursor: pointer;
+  box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.4);
 }
 
 button:active {
   transform: translateY(5px);
+  box-shadow: 0px 0px 0px rgba(0, 0, 0, 1);
+}
+
+button:focus {
+  outline: 2px solid #322aa8;
+  outline-offset: -2px;
 }
 
 .pad {
