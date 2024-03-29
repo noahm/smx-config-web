@@ -35,7 +35,7 @@
     },
     "typecheck": {
       "name": "typecheck",
-      "command": "yarn typecheck"
+      "command": "yarn typecheck --watch"
     },
     "format": {
       "name": "format",
