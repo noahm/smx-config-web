@@ -1,5 +1,5 @@
-import { StructBuffer, bits, uint8_t, uint16_t } from "@nmann/struct-buffer";
-import type { EachPanel } from "./inputs";
+import { StructBuffer, bits, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import type { EachPanel } from "./inputs.ts";
 
 type DecodedStruct<SB extends StructBuffer> = ReturnType<SB["decode"]>;
 
@@ -252,9 +252,8 @@ class Panel {
   /**
    * Convert a panels 4 sensors back into a 4-bit LSB byte
    * TODO: Determine if this ordering is actually correct
-   * @returns {Number}
    */
-  toByte() {
+  toByte(): number {
     return (this.up ? 1 << 3 : 0) + (this.right ? 1 << 2 : 0) + (this.down ? 1 << 1 : 0) + (this.left ? 1 : 0);
   }
 }

@@ -57,7 +57,12 @@ input {
   box-shadow: 2px 2px 1px rgba(0, 0, 0, 0.4);
 }
 
-button:active {
+button:disabled {
+  background: #ececec;
+  cursor: not-allowed;
+}
+
+button:active:not(:disabled) {
   transform: translateY(5px);
   box-shadow: 0px 0px 0px rgba(0, 0, 0, 1);
 }

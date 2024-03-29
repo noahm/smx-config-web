@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { StageInputs } from "../sdk/commands/inputs";
-import { HID_REPORT_INPUT_STATE } from "../sdk/packet";
+import { StageInputs } from "../sdk/commands/inputs.ts";
+import { HID_REPORT_INPUT_STATE } from "../sdk/packet.ts";
 
 interface Props {
   dev: HIDDevice;

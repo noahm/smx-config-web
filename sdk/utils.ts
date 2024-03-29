@@ -1,4 +1,4 @@
-import { MAX_PACKET_SIZE } from "./packet.js";
+import { MAX_PACKET_SIZE } from "./packet.ts";
 
 /**
  * Pad incomming packet to `MAX_PACKET_SIZE` and convert to Uint8Array as a

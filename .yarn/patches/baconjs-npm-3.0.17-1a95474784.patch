@@ -1,0 +1,14 @@
+diff --git a/package.json b/package.json
+index 6df2387cbfaead99f6fa36a8d6a5b11900a05bb4..3b5586d74fb8f7312c64406dda8a8ef0ced929ac 100644
+--- a/package.json
++++ b/package.json
+@@ -91,9 +91,5 @@
+   },
+   "main": "dist/Bacon.js",
+   "module": "./dist/Bacon.mjs",
+-  "exports": {
+-    "import": "./dist/Bacon.mjs",
+-    "require": "./dist/Bacon.js"
+-  },
+   "types": "types/bacon.d.ts"
+ }

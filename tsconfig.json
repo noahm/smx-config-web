@@ -16,7 +16,7 @@
     "jsx": "react-jsx",
 
     /* Linting */
-    "strict": true,
+    "strict": true
   },
   "include": ["ui/", "sdk/"],
   "references": [{ "path": "./tsconfig.node.json" }]

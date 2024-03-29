@@ -1,4 +1,4 @@
-import { pad_packet } from "./utils.js";
+import { pad_packet } from "./utils.ts";
 
 /**
  * Gets the next report from the device matching a given reportId,
