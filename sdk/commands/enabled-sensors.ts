@@ -11,14 +11,14 @@ interface EnabeledSensorSet {
 
 /** sensors enabled, with two panels packed into a single byte */
 export const twoEnabledSensors_t = bits(uint8_t, {
-  up0: 0,
-  right0: 1,
-  down0: 2,
-  left0: 3,
-  up1: 4,
-  right1: 5,
-  down1: 6,
-  left1: 7,
+  up0: 7,
+  right0: 6,
+  down0: 5,
+  left0: 4,
+  up1: 3,
+  right1: 2,
+  down1: 1,
+  left1: 0,
 });
 
 /** splits packed */

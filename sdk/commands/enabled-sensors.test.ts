@@ -4,7 +4,7 @@ import { twoEnabledSensors_t, EnabledSensors } from "./enabled-sensors";
 
 describe("twoEnabledSensors_t", () => {
   test("encode", () => {
-    expect(twoEnabledSensors_t.decode(sbytes("0F"))).toEqual({
+    expect(twoEnabledSensors_t.decode(sbytes("F0"), false)).toEqual({
       up0: true,
       right0: true,
       down0: true,
@@ -14,7 +14,7 @@ describe("twoEnabledSensors_t", () => {
       down1: false,
       left1: false,
     });
-    expect(twoEnabledSensors_t.decode(sbytes("F0"))).toEqual({
+    expect(twoEnabledSensors_t.decode(sbytes("0F"))).toEqual({
       up0: false,
       right0: false,
       down0: false,
@@ -31,12 +31,6 @@ const enabledSensors = new EnabledSensors();
 
 const decodedData = [
   {
-    down: true,
-    left: true,
-    right: true,
-    up: true,
-  },
-  {
     down: false,
     left: false,
     right: false,
@@ -77,6 +71,12 @@ const decodedData = [
     left: false,
     right: false,
     up: false,
+  },
+  {
+    down: true,
+    left: true,
+    right: true,
+    up: true,
   },
   {
     down: false,
