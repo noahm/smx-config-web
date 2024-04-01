@@ -13,9 +13,7 @@ jobs:
           node-version: 20
           cache: "yarn"
       - run: yarn --immutable
-
-      - name: Biome Lint/Format
-        run: yarn lint:ci
+      - run: yarn lint:ci
   tsc:
     runs-on: ubuntu-latest
     name: Typescript
@@ -26,9 +24,18 @@ jobs:
           node-version: 20
           cache: "yarn"
       - run: yarn --immutable
-
-      - name: Typescript
-        run: yarn typecheck
+      - run: yarn typecheck
+  test:
+    runs-on: ubuntu-latest
+    name: Tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "yarn"
+      - run: yarn --immutable
+      - run: yarn test
   build:
     runs-on: ubuntu-latest
     name: Vite Build
@@ -39,7 +46,5 @@ jobs:
           node-version: 20
           cache: "yarn"
       - run: yarn --immutable
-
-      - name: Vite Build
-        run: yarn build
+      - run: yarn build
 

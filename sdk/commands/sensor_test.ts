@@ -1,6 +1,6 @@
 import { StructBuffer, bitFields, bits, bool, int16_t, uint16_t, uint8_t } from "@nmann/struct-buffer";
 import { API_COMMAND, char2byte } from "../api";
-import type { DecodedStruct } from "./config";
+import type { Decoded } from "./config";
 import type { EachPanel, EachSensor } from "./inputs";
 
 /**
@@ -97,7 +97,7 @@ export class SMXPanelTestData {
     left: false,
   };
 
-  constructor(data: DecodedStruct<typeof detail_data_t>) {
+  constructor(data: Decoded<typeof detail_data_t>) {
     /**
      * Check the header. this is always `false true false` or `0 1 0` to identify it as a response,
      * and not as random steps from the player.

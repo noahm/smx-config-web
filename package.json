@@ -10,6 +10,7 @@
     "lint": "biome check sdk ui",
     "lint:ci": "biome ci sdk ui",
     "preview": "vite preview",
+    "test": "vitest",
     "typecheck": "tsc"
   },
   "keywords": [
@@ -33,7 +34,8 @@
     "@types/w3c-web-hid": "1.0.6",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.4.3",
-    "vite": "^5.2.6"
+    "vite": "^5.2.6",
+    "vitest": "^1.4.0"
   },
   "packageManager": "yarn@4.1.1"
 }
