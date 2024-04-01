@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { SmxStage } from "../sdk";
-import { StageInputs } from "../sdk/commands/inputs.ts";
-import { HID_REPORT_INPUT_STATE } from "../sdk/packet.ts";
+import { SmxStage } from "../../sdk";
+import { StageInputs } from "../../sdk/commands/inputs.ts";
+import { HID_REPORT_INPUT_STATE } from "../../sdk/packet.ts";
 
 interface Props {
   dev: HIDDevice;

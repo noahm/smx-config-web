@@ -84,7 +84,33 @@ button:focus {
 }
 .panel {
   outline: 2px solid #ddd;
+  position: relative;
 }
 .panel.active {
   background-color: yellow;
+}
+
+.fsr {
+  position: absolute;
+  font-family: monospace;
+}
+
+.fsr.top {
+  top: 0;
+}
+.fsr.left {
+  left: 0;
+}
+.fsr.right {
+  right: 0;
+}
+.fsr.bottom {
+  bottom: 0;
+}
+
+.fsr.vert {
+  top: 50%;
+}
+.fsr.horiz {
+  left: 50%;
 }

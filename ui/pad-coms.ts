@@ -75,7 +75,7 @@ export async function requestConfig(dev: HIDDevice) {
 
 export async function requestTestData(dev: HIDDevice) {
   const response = await getSensorTestData(dev);
-  const test_obj = new SMXSensorTestData(response);
+  return new SMXSensorTestData(response);
 }
 
 /** anything here will appear in the debug UI to dispatch at will */

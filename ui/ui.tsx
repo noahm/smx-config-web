@@ -2,8 +2,9 @@ import { useAtomValue } from "jotai";
 import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
-import { open_smx_device, promptSelectDevice, requestConfig, requestTestData } from "./pad-coms.ts";
-import { browserSupported, p1Dev$, statusText$ } from "./state.ts";
+import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
+import { browserSupported, p1Dev$, p2Dev$, statusText$ } from "./state.ts";
+import { StageTest } from "./stage/stage-test.tsx";
 
 export function UI() {
   useEffect(() => {
@@ -21,18 +22,24 @@ export function UI() {
   return (
     <>
       <h1>SMX Web Config</h1>
+      <StageTest deviceAtom={p1Dev$} />
+      <StageTest deviceAtom={p2Dev$} />
       <PickDeviceButton /> <DebugCommands />
       <StatusDisplay />
     </>
   );
+}
 
-  function PickDeviceButton() {
-    return (
-      <button type="button" disabled={!browserSupported} onClick={promptSelectDevice}>
-        Pick device...
-      </button>
-    );
-  }
+function PickDeviceButton() {
+  return (
+    <button
+      type="button"
+      disabled={!browserSupported}
+      onClick={promptSelectDevice}
+    >
+      Pick device...
+    </button>
+  );
 }
 
 function StatusDisplay() {

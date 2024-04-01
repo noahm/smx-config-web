@@ -75,7 +75,7 @@ const detail_data_t = new StructBuffer("detail_data_t", {
  * This class represents the results of an SensorTestData request for a single
  * panel.
  */
-class SMXPanelTestData {
+export class SMXPanelTestData {
   have_data_from_panel: boolean;
   sensor_level: EachSensor<number> = {
     up: 0,
@@ -115,10 +115,10 @@ class SMXPanelTestData {
      * off in the config tool.
      */
     this.bad_sensor_input = {
-      up: Boolean(data.sig_bad.bad_sensor_0),
-      right: Boolean(data.sig_bad.bad_sensor_1),
-      down: Boolean(data.sig_bad.bad_sensor_2),
-      left: Boolean(data.sig_bad.bad_sensor_3),
+      up: data.sig_bad.bad_sensor_0,
+      right: data.sig_bad.bad_sensor_1,
+      down: data.sig_bad.bad_sensor_2,
+      left: data.sig_bad.bad_sensor_3,
     };
 
     // This is what the dipswitch is set to for this panel
@@ -126,10 +126,10 @@ class SMXPanelTestData {
 
     // These are true if the sensor has the incorrect jumper set
     this.bad_jumper = {
-      up: Boolean(data.dips.bad_sensor_dip_0),
-      right: Boolean(data.dips.bad_sensor_dip_1),
-      down: Boolean(data.dips.bad_sensor_dip_2),
-      left: Boolean(data.dips.bad_sensor_dip_3),
+      up: !!data.dips.bad_sensor_dip_0,
+      right: !!data.dips.bad_sensor_dip_1,
+      down: !!data.dips.bad_sensor_dip_2,
+      left: !!data.dips.bad_sensor_dip_3,
     };
 
     this.sensor_level = {
