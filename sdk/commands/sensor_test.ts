@@ -138,10 +138,10 @@ export class SMXPanelTestData {
      * negative is just kind of noise from the hardware. 
      */
     this.sensor_level = {
-      up: data.sensors[0],
+      left: data.sensors[0],
       right: data.sensors[1],
-      down: data.sensors[2],
-      left: data.sensors[3],
+      up: data.sensors[2],
+      down: data.sensors[3],
     };
   }
 }
