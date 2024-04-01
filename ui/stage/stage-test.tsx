@@ -1,14 +1,23 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
-import type { SMXPanelTestData, SMXSensorTestData } from "../../sdk/commands/sensor_test";
+import type {
+  SMXPanelTestData,
+  SMXSensorTestData,
+} from "../../sdk/commands/sensor_test";
 import { requestTestData } from "../pad-coms";
 import { FsrPanel } from "./fsr-panel";
 import { SmxStage } from "../../sdk";
-import { StageInputs, type EachPanel, type PanelName } from "../../sdk/commands/inputs";
+import {
+  StageInputs,
+  type EachPanel,
+  type PanelName,
+} from "../../sdk/commands/inputs";
 import { HID_REPORT_INPUT_STATE } from "../../sdk/packet";
 
 function useInputState(dev: HIDDevice | undefined) {
-  const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
+  const [panelStates, setPanelStates] = useState<
+    EachPanel<boolean> | undefined
+  >();
   useEffect(() => {
     if (!dev) return;
     function handleInputReport(e: HIDInputReportEvent) {
@@ -37,9 +46,9 @@ function useTestData(device: HIDDevice | undefined) {
       handle = requestAnimationFrame(update);
     }
 
-    let handle = requestAnimationFrame(update);
+    let handle = setInterval(update, 50);
 
-    return () => cancelAnimationFrame(handle);
+    return () => clearInterval(handle);
   }, [device]);
 
   return testData;
@@ -58,7 +67,10 @@ export function StageTest({
     return null;
   }
 
-  const entries = Object.entries(testData.panels) as [PanelName, SMXPanelTestData][];
+  const entries = Object.entries(testData.panels) as [
+    PanelName,
+    SMXPanelTestData
+  ][];
 
   return (
     <div className="pad">
