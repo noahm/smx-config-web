@@ -81,13 +81,17 @@ button:focus {
   gap: 1em 1em;
   height: 20em;
   width: 20em;
+  margin-right: 1em;
 }
 .panel {
   outline: 2px solid #ddd;
   position: relative;
 }
 .panel.active {
-  background-color: yellow;
+  background-color: #00ff00;
+}
+.panel.commErr {
+  background-color: red;
 }
 
 .fsr {

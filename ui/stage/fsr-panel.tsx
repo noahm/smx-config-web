@@ -3,12 +3,18 @@ import type { SMXPanelTestData } from "../../sdk/commands/sensor_test";
 
 interface EnabledProps {
   data: SMXPanelTestData;
+  active: boolean | undefined;
 }
 
 export function FsrPanel(props: EnabledProps) {
   const { bad_sensor_input, have_data_from_panel, sensor_level } = props.data;
   return (
-    <div className={cn("panel", { active: have_data_from_panel })}>
+    <div
+      className={cn("panel", {
+        commErr: !have_data_from_panel,
+        active: props.active,
+      })}
+    >
       <Fsr
         className="top horiz"
         badInput={bad_sensor_input.up}

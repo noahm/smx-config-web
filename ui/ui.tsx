@@ -14,7 +14,7 @@ export function UI() {
         devices.map((device) => {
           console.log(`Found device: ${device.productName}`);
           open_smx_device(device);
-        }),
+        })
       );
     }
   }, []);
@@ -22,8 +22,8 @@ export function UI() {
   return (
     <>
       <h1>SMX Web Config</h1>
-      <StageTest deviceAtom={p1Dev$} />
       <StageTest deviceAtom={p2Dev$} />
+      <StageTest deviceAtom={p1Dev$} />
       <PickDeviceButton /> <DebugCommands />
       <StatusDisplay />
     </>

@@ -8,7 +8,7 @@ interface Props {
 }
 
 export function SimplePad({ dev }: Props) {
-  const [panelStates, setPanelStates] = useState<number[]>([]);
+  const [panelStates, setPanelStates] = useState<boolean[]>([]);
 
   useEffect(
     () =>
@@ -27,7 +27,7 @@ export function SimplePad({ dev }: Props) {
             panelStates.down_right,
           ]);
         }),
-    [dev],
+    [dev]
   );
 
   return (
