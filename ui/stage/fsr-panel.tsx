@@ -11,22 +11,22 @@ export function FsrPanel(props: EnabledProps) {
     <div className={cn("panel", { active: have_data_from_panel })}>
       <Fsr
         className="top horiz"
-        badInput={!bad_sensor_input.up}
+        badInput={bad_sensor_input.up}
         value={sensor_level.up}
       />
       <Fsr
         className="right vert"
-        badInput={!bad_sensor_input.right}
+        badInput={bad_sensor_input.right}
         value={sensor_level.right}
       />
       <Fsr
         className="bottom horiz"
-        badInput={!bad_sensor_input.down}
+        badInput={bad_sensor_input.down}
         value={sensor_level.down}
       />
       <Fsr
         className="left vert"
-        badInput={!bad_sensor_input.left}
+        badInput={bad_sensor_input.left}
         value={sensor_level.left}
       />
     </div>
