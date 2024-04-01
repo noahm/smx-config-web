@@ -1,17 +1,21 @@
 const encoder = new TextEncoder();
 
+export function char2byte(c: string): number {
+  return encoder.encode(c)[0];
+}
+
 export const API_COMMAND = {
-  GET_DEVICE_INFO: encoder.encode("i")[0],
-  GET_CONFIG: encoder.encode("g")[0],
-  GET_CONFIG_V5: encoder.encode("G")[0],
-  WRITE_CONFIG: encoder.encode("w")[0],
-  WRITE_CONFIG_V5: encoder.encode("W")[0],
-  FACTORY_RESET: encoder.encode("f")[0],
-  SET_LIGHT_STRIP: encoder.encode("L")[0],
-  FORCE_RECALIBRATION: encoder.encode("C")[0],
-  GET_SENSOR_TEST_DATA: encoder.encode("y")[0],
-  SET_SERIAL_NUMBERS: encoder.encode("s")[0],
-  SET_PANEL_TEST_MODE: encoder.encode("t")[0],
+  GET_DEVICE_INFO: char2byte("i"),
+  GET_CONFIG: char2byte("g"),
+  GET_CONFIG_V5: char2byte("G"),
+  WRITE_CONFIG: char2byte("w"),
+  WRITE_CONFIG_V5: char2byte("W"),
+  FACTORY_RESET: char2byte("f"),
+  SET_LIGHT_STRIP: char2byte("L"),
+  FORCE_RECALIBRATION: char2byte("C"),
+  GET_SENSOR_TEST_DATA: char2byte("y"),
+  SET_SERIAL_NUMBERS: char2byte("s"),
+  SET_PANEL_TEST_MODE: char2byte("t"),
 };
 
 export const SMX_USB_VENDOR_ID = 0x2341;

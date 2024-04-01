@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { SmxStage } from "../sdk";
 import { StageInputs } from "../sdk/commands/inputs.ts";
 import { HID_REPORT_INPUT_STATE } from "../sdk/packet.ts";
 
@@ -9,27 +10,25 @@ interface Props {
 export function SimplePad({ dev }: Props) {
   const [panelStates, setPanelStates] = useState<number[]>([]);
 
-  const handleInputReport = useCallback((ev: HIDInputReportEvent) => {
-    if (ev.reportId === HID_REPORT_INPUT_STATE) {
-      const panelStates = StageInputs.decode(ev.data, true);
-      setPanelStates([
-        panelStates.up_left,
-        panelStates.up,
-        panelStates.up_right,
-        panelStates.left,
-        panelStates.center,
-        panelStates.right,
-        panelStates.down_left,
-        panelStates.down,
-        panelStates.down_right,
-      ]);
-    }
-  }, []);
-
-  useEffect(() => {
-    dev.addEventListener("inputreport", handleInputReport);
-    return () => dev.removeEventListener("inputreport", handleInputReport);
-  }, [handleInputReport, dev]);
+  useEffect(
+    () =>
+      SmxStage(dev)
+        .inputState$.throttle(67)
+        .onValue((panelStates) => {
+          setPanelStates([
+            panelStates.up_left,
+            panelStates.up,
+            panelStates.up_right,
+            panelStates.left,
+            panelStates.center,
+            panelStates.right,
+            panelStates.down_left,
+            panelStates.down,
+            panelStates.down_right,
+          ]);
+        }),
+    [dev],
+  );
 
   return (
     <div className="pad">

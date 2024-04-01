@@ -1,7 +1,8 @@
-import { getDeviceInfo, getStageConfig } from "../sdk";
+import { getDeviceInfo, getSensorTestData, getStageConfig } from "../sdk";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
 import { SMXConfig } from "../sdk/commands/config";
 import { SMXDeviceInfo } from "../sdk/commands/data_info";
+import { SMXSensorTestData } from "../sdk/commands/sensor_test";
 import { devices$, nextStatusTextLine$, statusText$, uiState } from "./state";
 
 // function formatDataForDisplay(data: DataView) {
@@ -62,17 +63,23 @@ export async function open_smx_device(dev: HIDDevice) {
 
 export async function requestConfig(dev: HIDDevice) {
   const response = await getStageConfig(dev);
-
-  console.log("Raw Bytes: ", response);
   const smxconfig = new SMXConfig(response);
-  console.log("Decoded Config:", smxconfig.config);
 
   // Right now I just want to confirm that decoding and re-encoding gives back the same data
   const encoded_config = smxconfig.encode();
   if (encoded_config) {
-    console.log("Encoded Config:", smxconfig.config);
     const buf = new Uint8Array(encoded_config.buffer);
-    console.log("Encoded Bytes: ", buf);
     console.log("Same Thing:", response.slice(2, -1).toString() === buf.toString());
   }
 }
+
+export async function requestTestData(dev: HIDDevice) {
+  const response = await getSensorTestData(dev);
+  const test_obj = new SMXSensorTestData(response);
+}
+
+/** anything here will appear in the debug UI to dispatch at will */
+export const DEBUG_COMMANDS: Record<string, (dev: HIDDevice) => unknown> = {
+  requestConfig,
+  requestTestData,
+};

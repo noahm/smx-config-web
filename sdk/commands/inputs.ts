@@ -1,5 +1,12 @@
 import { bitFields, uint16_t } from "@nmann/struct-buffer";
 
+export type EachSensor<T> = {
+  up: T;
+  right: T;
+  down: T;
+  left: T;
+};
+
 export type EachPanel<T> = {
   up_left: T;
   up: T;
@@ -12,6 +19,7 @@ export type EachPanel<T> = {
   down_right: T;
 };
 
+// TODO: This should be a bits object probably
 export const StageInputs = bitFields(uint16_t, {
   up_left: 1,
   up: 1,

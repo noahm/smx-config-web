@@ -46,10 +46,10 @@ export const MAX_PACKET_SIZE = 63;
 const PACKET_PREAMBLE_SIZE = 2;
 
 // USB Communication Packet Flags
-const PACKET_FLAG_START_OF_COMMAND = 0x04;
-const PACKET_FLAG_END_OF_COMMAND = 0x01;
-const PACKET_FLAG_HOST_CMD_FINISHED = 0x02;
-const PACKET_FLAG_DEVICE_INFO = 0x80;
+export const PACKET_FLAG_START_OF_COMMAND = 0x04;
+export const PACKET_FLAG_END_OF_COMMAND = 0x01;
+export const PACKET_FLAG_HOST_CMD_FINISHED = 0x02;
+export const PACKET_FLAG_DEVICE_INFO = 0x80;
 
 // HID Report Codes
 export const HID_REPORT_INPUT_STATE = 0x03;
@@ -59,7 +59,7 @@ export const HID_REPORT_INPUT = 0x06;
 // Acknowledge Code
 const ACK_COMMAND = 0x7;
 
-function make_packets(data: Array<number>): Array<Uint8Array> {
+export function make_packets(data: Array<number>): Array<Uint8Array> {
   const packets = [];
   const data_len = data.length;
   let idx = 0;

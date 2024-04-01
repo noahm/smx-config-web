@@ -1,7 +1,7 @@
-import { StructBuffer, bits, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import { StructBuffer, bits, uint8_t, uint16_t } from "@nmann/struct-buffer";
 import type { EachPanel } from "./inputs.ts";
 
-type DecodedStruct<SB extends StructBuffer> = ReturnType<SB["decode"]>;
+export type DecodedStruct<SB extends StructBuffer> = ReturnType<SB["decode"]>;
 
 /**
  * Each FSR panel has 4 sensors. Make read/write easier by
@@ -102,7 +102,14 @@ const step_colors_t = new StructBuffer("step_colors_t", {
   down_right: rgb_t,
 });
 
-const configShape = {
+/**
+ * The configuration for a connected controller.  This can be retrieved with SMX_GetConfig
+ * and modified with SMX_SetConfig.
+ *
+ * The order and packing of this struct corresponds to the configuration packet sent to
+ * the master controller, so it must not be changed.
+ */
+export const smx_config_t = new StructBuffer("smx_config_t", {
   /**
    * The firmware version of the master controller.  Where supported (version 2 and up), this
    * will always read back the firmware version.  This will default to 0xFF on version 1.
@@ -218,16 +225,7 @@ const configShape = {
    * Applications should leave any data in here unchanged when setting the Config.
    */
   padding: uint8_t[49],
-};
-
-/**
- * The configuration for a connected controller.  This can be retrieved with SMX_GetConfig
- * and modified with SMX_SetConfig.
- *
- * The order and packing of this struct corresponds to the configuration packet sent to
- * the master controller, so it must not be changed.
- */
-export const smx_config_t = new StructBuffer<typeof configShape>("smx_config_t", configShape);
+});
 
 /**
  * Class to represent all 4 sensors on a panel.

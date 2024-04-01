@@ -1,11 +1,11 @@
-import { StructBuffer, char, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import { StructBuffer, char, uint8_t, uint16_t } from "@nmann/struct-buffer";
 
 const data_info_packet_t = new StructBuffer("data_info_packet_t", {
-  // Always 'I'
+  /** Always 'I' */
   cmd: char,
   // Not Used
   packet_size: uint8_t,
-  // '0' for P1, '1' for P2 (Note there are the characters '0' and '1', not the numbers 0 and 1)
+  /** '0' for P1, '1' for P2 (Note these are the characters '0' and '1', not the numbers 0 and 1) */
   player: char,
   // Unused and Unknown
   unused2: char,
@@ -18,7 +18,7 @@ const data_info_packet_t = new StructBuffer("data_info_packet_t", {
 });
 
 export class SMXDeviceInfo {
-  serial = new Uint8Array(16);
+  serial = "";
   firmware_version = 0;
   player = 0;
 
@@ -30,7 +30,7 @@ export class SMXDeviceInfo {
     const info_packet = data_info_packet_t.decode(data, true);
 
     this.player = Number.parseInt(String.fromCharCode(info_packet.player)) + 1;
-    this.serial = info_packet.serial.map((x) => x.toString(16).toUpperCase()).join("");
+    this.serial = info_packet.serial.map((x) => `00${x.toString(16).toUpperCase()}`.slice(-2)).join("");
     this.firmware_version = info_packet.firmware_version;
   }
 }
