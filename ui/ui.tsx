@@ -14,7 +14,7 @@ export function UI() {
         devices.map((device) => {
           console.log(`Found device: ${device.productName}`);
           open_smx_device(device);
-        })
+        }),
       );
     }
   }, []);
@@ -32,11 +32,7 @@ export function UI() {
 
 function PickDeviceButton() {
   return (
-    <button
-      type="button"
-      disabled={!browserSupported}
-      onClick={promptSelectDevice}
-    >
+    <button type="button" disabled={!browserSupported} onClick={promptSelectDevice}>
       Pick device...
     </button>
   );

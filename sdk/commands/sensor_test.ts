@@ -135,7 +135,7 @@ export class SMXPanelTestData {
     /**
      * These are 16-bit signed integers for the sensor values.
      * These are signed as they can be negative, but I imagine them going
-     * negative is just kind of noise from the hardware. 
+     * negative is just kind of noise from the hardware.
      */
     this.sensor_level = {
       left: data.sensors[0],

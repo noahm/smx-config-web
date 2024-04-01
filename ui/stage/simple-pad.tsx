@@ -27,7 +27,7 @@ export function SimplePad({ dev }: Props) {
             panelStates.down_right,
           ]);
         }),
-    [dev]
+    [dev],
   );
 
   return (

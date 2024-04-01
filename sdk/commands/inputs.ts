@@ -7,7 +7,7 @@ export type EachSensor<T> = {
   left: T;
 };
 
-export type PanelName = keyof EachPanel<any>;
+export type PanelName = keyof EachPanel<unknown>;
 
 export type EachPanel<T> = {
   up_left: T;

@@ -15,26 +15,10 @@ export function FsrPanel(props: EnabledProps) {
         active: props.active,
       })}
     >
-      <Fsr
-        className="top horiz"
-        badInput={bad_sensor_input.up}
-        value={sensor_level.up}
-      />
-      <Fsr
-        className="right vert"
-        badInput={bad_sensor_input.right}
-        value={sensor_level.right}
-      />
-      <Fsr
-        className="bottom horiz"
-        badInput={bad_sensor_input.down}
-        value={sensor_level.down}
-      />
-      <Fsr
-        className="left vert"
-        badInput={bad_sensor_input.left}
-        value={sensor_level.left}
-      />
+      <Fsr className="top horiz" badInput={bad_sensor_input.up} value={sensor_level.up} />
+      <Fsr className="right vert" badInput={bad_sensor_input.right} value={sensor_level.right} />
+      <Fsr className="bottom horiz" badInput={bad_sensor_input.down} value={sensor_level.down} />
+      <Fsr className="left vert" badInput={bad_sensor_input.left} value={sensor_level.left} />
     </div>
   );
 }

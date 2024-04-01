@@ -31,4 +31,4 @@ export const statusText$ = atom(
 );
 
 /** write-only atom. write to this to append a line to statusText */
-export const nextStatusTextLine$ = atom(null, (_, set, line: string) => set(statusText$, (prev) => prev + "\n" + line));
+export const nextStatusTextLine$ = atom(null, (_, set, line: string) => set(statusText$, (prev) => `${prev}\n${line}`));
