@@ -1,7 +1,7 @@
-import { StructBuffer, bits, uint8_t, uint16_t } from "@nmann/struct-buffer";
-import type { EachPanel } from "./inputs.ts";
+import { StructBuffer, bits, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import { EnabledSensors } from "./enabled-sensors.ts";
 
-export type DecodedStruct<SB extends StructBuffer> = ReturnType<SB["decode"]>;
+type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
 /**
  * Each FSR panel has 4 sensors. Make read/write easier by
@@ -158,10 +158,9 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
 
   /**
    * Which sensors on each panel to enable. This can be used to disable sensors that
-   * we know aren't populated. This is packed, with four sensors per byte:
-   * enabledSensors[0] & 1 is the first sensor on the first panel, and so on.
+   * we know aren't populated.
    */
-  enabledSensors: uint8_t[5],
+  enabledSensors: new EnabledSensors(),
 
   /**
    * How long the master controller will wait for a lights command before assuming
@@ -261,29 +260,14 @@ class Panel {
  */
 export class SMXConfig {
   private data: Array<number>;
-  public config: DecodedStruct<typeof smx_config_t>;
-  public decodedEnabledSensors: EachPanel<Panel>;
+  public config: Decoded<typeof smx_config_t>;
 
   /**
    * Take in the data array and decode it into this.
    */
   constructor(data: Array<number>) {
     this.data = data;
-
     this.config = smx_config_t.decode(this.data.slice(2, -1), true);
-
-    // Do some data massaging to make `enabledSensors` easier to modify
-    this.decodedEnabledSensors = {
-      up_left: new Panel(this.config.enabledSensors[0] >> 4),
-      up: new Panel(this.config.enabledSensors[0] & 0xf),
-      up_right: new Panel(this.config.enabledSensors[1] >> 4),
-      left: new Panel(this.config.enabledSensors[1] & 0xf),
-      center: new Panel(this.config.enabledSensors[2] >> 4),
-      right: new Panel(this.config.enabledSensors[2] & 0xf),
-      down_left: new Panel(this.config.enabledSensors[3] >> 4),
-      down: new Panel(this.config.enabledSensors[3] & 0xf),
-      down_right: new Panel(this.config.enabledSensors[4] >> 4),
-    };
   }
 
   /**
@@ -295,15 +279,6 @@ export class SMXConfig {
       return null;
     }
 
-    // Do some data massaging to convert `enabledSensors` back to its c equivalent
-    const tmp_enabledSensors = [
-      (this.decodedEnabledSensors.up_left.toByte() << 4) + this.decodedEnabledSensors.up.toByte(),
-      (this.decodedEnabledSensors.up_right.toByte() << 4) + this.decodedEnabledSensors.left.toByte(),
-      (this.decodedEnabledSensors.center.toByte() << 4) + this.decodedEnabledSensors.right.toByte(),
-      (this.decodedEnabledSensors.down_left.toByte() << 4) + this.decodedEnabledSensors.down.toByte(),
-      this.decodedEnabledSensors.down_right.toByte() << 4,
-    ];
-    this.config.enabledSensors = tmp_enabledSensors;
     const encoded_data = smx_config_t.encode(this.config, true);
 
     return encoded_data;
