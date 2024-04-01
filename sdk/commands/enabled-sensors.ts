@@ -10,7 +10,7 @@ interface EnabeledSensorSet {
 }
 
 /** sensors enabled, with two panels packed into a single byte */
-const twoEnabledSensors_t = bits(uint8_t, {
+export const twoEnabledSensors_t = bits(uint8_t, {
   up0: 0,
   right0: 1,
   down0: 2,
