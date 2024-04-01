@@ -1,7 +1,7 @@
-import { StructBuffer, bits, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import { StructBuffer, bits, uint8_t, uint16_t } from "@nmann/struct-buffer";
 import { EnabledSensors } from "./enabled-sensors.ts";
 
-type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
+export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
 /**
  * Each FSR panel has 4 sensors. Make read/write easier by
