@@ -17,10 +17,14 @@ export function StageTest({
       return;
     }
 
-    const handle = requestAnimationFrame(async () => {
-      const data = await requestTestData(device);
+    const d = device;
+    async function update() {
+      const data = await requestTestData(d);
       setTestData(data);
-    });
+      handle = requestAnimationFrame(update);
+    }
+
+    let handle = requestAnimationFrame(update);
 
     return () => cancelAnimationFrame(handle);
   }, [device]);
