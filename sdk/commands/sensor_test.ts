@@ -1,4 +1,4 @@
-import { StructBuffer, bitFields, bits, bool, int16_t, uint8_t, uint16_t } from "@nmann/struct-buffer";
+import { StructBuffer, bitFields, bits, bool, int16_t, uint16_t, uint8_t } from "@nmann/struct-buffer";
 import { API_COMMAND, char2byte } from "../api";
 import type { DecodedStruct } from "./config";
 import type { EachPanel, EachSensor } from "./inputs";
@@ -99,7 +99,7 @@ export class SMXPanelTestData {
 
   constructor(data: DecodedStruct<typeof detail_data_t>) {
     /**
-     * Check the header. this is always `false true false` to identify it as a response,
+     * Check the header. this is always `false true false` or `0 1 0` to identify it as a response,
      * and not as random steps from the player.
      */
     if (data.sig_bad.sig1 || !data.sig_bad.sig2 || data.sig_bad.sig3) {
@@ -132,6 +132,11 @@ export class SMXPanelTestData {
       left: !!data.dips.bad_sensor_dip_3,
     };
 
+    /**
+     * These are 16-bit signed integers for the sensor values.
+     * These are signed as they can be negative, but I imagine them going
+     * negative is just kind of noise from the hardware. 
+     */
     this.sensor_level = {
       up: data.sensors[0],
       right: data.sensors[1],
@@ -142,12 +147,9 @@ export class SMXPanelTestData {
 }
 
 export class SMXSensorTestData {
-  private data: Array<number>;
   panels: EachPanel<SMXPanelTestData>;
 
   constructor(data: Array<number>) {
-    this.data = data;
-
     /**
      * "y" is a response to our "y" query. This is binary data with the format:
      * yAB......
@@ -161,22 +163,17 @@ export class SMXSensorTestData {
     const size = data[2];
 
     /**
-     * Copy the data and convert from Little Endian formatted 8-bit bytes
-     * and place them into 16-bit bytes.
+     * Convert the data from 8-Bit Little Endian bytes to 16-Bit Integers
      */
     const sensor_data_t = new StructBuffer("sensor_data_t", {
       data: uint16_t[size],
     });
     const decoded_data = sensor_data_t.decode(data.slice(3), true);
     const panel_count = 9; // TODO: This could be a const somewhere?
-
     const panel_data = [];
 
-    console.log(data.slice(3));
-    console.log(decoded_data);
-
     // Cycle through each panel and grab the data
-    // I'm not sure this one can be magic'd away with a struct buffer
+    // TODO: Document exactly how we're dealing with the bits here and how things are layed out
     for (let panel = 0; panel < panel_count; panel++) {
       let idx = 0;
       const out_bytes: Array<number> = [];
@@ -189,10 +186,9 @@ export class SMXSensorTestData {
         let result = 0;
 
         // Read each bit in each byte
-        for (let bit = 0; bit < 8; bit++) {
+        for (let bit = 0; bit < 8; bit++, idx++) {
           const new_bit = decoded_data.data[idx] & (1 << panel);
           result |= new_bit << bit;
-          idx++;
         }
 
         // We need to shift the result by the panel to move it back to fit within
