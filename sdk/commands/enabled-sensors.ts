@@ -93,10 +93,8 @@ export class EnabledSensors extends StructBuffer<
     }
     const v = createDataView(this.count, view);
     const joined: Array<Decoded<typeof twoEnabledSensors_t>> = [];
-    for (let i = 0; i < this.count; i++) {
-      const aIdx = i * 2;
-      const bIdx = i + 1;
-      joined.push(joinTwoSensors(obj[aIdx], bIdx < obj.length ? obj[bIdx] : undefined));
+    for (let i = 0; i < this.count; i += 2) {
+      joined.push(joinTwoSensors(obj[i], i + 1 < obj.length ? obj[i + 1] : undefined));
     }
     twoEnabledSensors_t[this.count].encode(joined, littleEndian, offset, v);
 
