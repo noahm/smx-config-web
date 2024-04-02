@@ -195,12 +195,17 @@ export class SMXSensorTestData {
      * TODO: Put in readme link here
      */
     const preamble = 3;
-    console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA); // Expected to be 'y'
+
+    // Expected to be 'y'
+    console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA, `Unknown PanelTestData Response: ${data[0]}`);
+
     // TODO: We need to somehow know what mode we requested, so we can potentially check
     // here that we got the right response.
-    const mode = SensorTestMode[data[1] as unknown as keyof typeof SensorTestMode];
-    console.assert(mode !== undefined);
+    const mode = data[1];
+    console.assert(SensorTestMode[mode] !== undefined, `Unknown SensorTestMode: ${mode}`);
+
     const size = data[2];
+    console.assert(size === 80, `Unknown PanelTestData Size: ${size}`);
 
     /**
      * Convert the data from 8-Bit Little Endian Bytes to 16-Bit Integers
