@@ -17,7 +17,7 @@ export enum SensorTestMode {
 
   /**
    * Return the calibrated value of each sensor
-   * 49 represents the char "1" 
+   * 49 represents the char "1"
    **/
   CalibratedValues = 49,
 
@@ -32,7 +32,7 @@ export enum SensorTestMode {
    * 51 represents the char "3"
    **/
   Tare = 51,
-};
+}
 
 /**
  * The first byte of the test mode detail data contains
@@ -145,8 +145,8 @@ export class SMXPanelTestData {
        * This makes the number different than the configured value
        * (square it to convert back), but without this we display a bunch
        * of four and five digit numbers that are too hard to read.
-       * 
-       * TODO: Do we want to round this value or just display decimal values? 
+       *
+       * TODO: Do we want to round this value or just display decimal values?
        */
       return Math.sqrt(value);
     }
@@ -183,15 +183,15 @@ export class SMXSensorTestData {
   constructor(data: Array<number>) {
     /**
      * The first 3 bytes are the preamble.
-     * 
+     *
      * "y" is a response to our "y" query. This is binary data with the format:
      * yAB......
      * where A (mode) is our original query mode (currently "0", "1", "2", or "3"), and
-     * B (size) is the number of 16-Bit Integers that contain all of our panel data. 
-     * 
+     * B (size) is the number of 16-Bit Integers that contain all of our panel data.
+     *
      * The explanation of how these bits are interlaced and decoded can be found
-     * in the README. 
-     * 
+     * in the README.
+     *
      * TODO: Put in readme link here
      */
     const preamble = 3;
@@ -210,7 +210,7 @@ export class SMXSensorTestData {
     /**
      * Convert the data from 8-Bit Little Endian Bytes to 16-Bit Integers
      */
-    const sensor_data_t = new StructBuffer("sensor_data_t", {data: uint16_t[size]});
+    const sensor_data_t = new StructBuffer("sensor_data_t", { data: uint16_t[size] });
     const decoded_data = sensor_data_t.decode(data.slice(preamble), true);
 
     // Cycle through each panel and grab the data
