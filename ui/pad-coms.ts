@@ -1,5 +1,5 @@
 import { getDeviceInfo, getSensorTestData, getStageConfig } from "../sdk";
-import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
+import { API_COMMAND, SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
 import { SMXConfig } from "../sdk/commands/config";
 import { SMXDeviceInfo } from "../sdk/commands/data_info";
 import { SMXSensorTestData } from "../sdk/commands/sensor_test";
@@ -75,6 +75,9 @@ export async function requestConfig(dev: HIDDevice) {
 
 export async function requestTestData(dev: HIDDevice) {
   const response = await getSensorTestData(dev);
+  if (response[0] !== API_COMMAND.GET_SENSOR_TEST_DATA) {
+    return null;
+  }
   return new SMXSensorTestData(response);
 }
 

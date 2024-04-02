@@ -33,7 +33,9 @@ function useTestData(device: HIDDevice | undefined) {
     const d = device;
     async function update() {
       const data = await requestTestData(d);
-      setTestData(data);
+      if (data) {
+        setTestData(data);
+      }
       handle = requestAnimationFrame(update);
     }
 
