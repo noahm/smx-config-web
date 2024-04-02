@@ -9,3 +9,6 @@ dist
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# python/pyenv
+.python-version

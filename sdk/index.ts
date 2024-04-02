@@ -2,7 +2,7 @@ import * as Bacon from "baconjs";
 import type { StateF } from "baconjs/types/withstatemachine";
 import { API_COMMAND } from "./api";
 import { StageInputs } from "./commands/inputs";
-import { SENSOR_TEST_MODE } from "./commands/sensor_test";
+import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 import {
   HID_REPORT_INPUT,
   HID_REPORT_INPUT_STATE,
@@ -13,20 +13,34 @@ import {
   process_packets,
   send_data,
 } from "./packet";
+import { SMXConfig } from "./commands/config";
+import { SMXDeviceInfo } from "./commands/data_info";
 
 export async function getDeviceInfo(dev: HIDDevice) {
   await send_data(dev, [API_COMMAND.GET_DEVICE_INFO], true);
-  return process_packets(dev, true);
+  const packet = await process_packets(dev, API_COMMAND.GET_DEVICE_INFO, true);
+  return new SMXDeviceInfo(packet);
 }
 
 export async function getStageConfig(dev: HIDDevice) {
   await send_data(dev, [API_COMMAND.GET_CONFIG_V5], true);
-  return process_packets(dev, true);
+  const response = await process_packets(dev, API_COMMAND.GET_CONFIG_V5, true);
+
+  const smxconfig = new SMXConfig(response);
+
+  // Right now I just want to confirm that decoding and re-encoding gives back the same data
+  const encoded_config = smxconfig.encode();
+  if (encoded_config) {
+    const buf = new Uint8Array(encoded_config.buffer);
+    console.log("Same Thing:", response.slice(2, -1).toString() === buf.toString());
+  }
+  return smxconfig;
 }
 
 export async function getSensorTestData(dev: HIDDevice) {
-  await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SENSOR_TEST_MODE.CALIBRATED_VALUES], true);
-  return process_packets(dev, true);
+  await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SensorTestMode.CalibratedValues], true);
+  const response = await process_packets(dev, API_COMMAND.GET_SENSOR_TEST_DATA, true);
+  return new SMXSensorTestData(response);
 }
 
 interface PacketHandlingState {

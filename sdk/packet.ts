@@ -106,15 +106,14 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
 
   // Send each packet
   for (const packet of packets) {
-    if (debug) {
-      console.log(packet);
-    }
     await dev.sendReport(HID_REPORT_OUTPUT, packet);
   }
 }
 
-export async function process_packets(dev: HIDDevice, debug = false): Promise<Array<number>> {
-  const current_packet: Array<number> = [];
+export async function process_packets(dev: HIDDevice, responseType: number, debug = false): Promise<Array<number>> {
+  let current_packet: Array<number> = [];
+
+  let seenFirstPacket = false;
 
   while (true) {
     const data = await nextReportCommand(dev);
@@ -124,20 +123,23 @@ export async function process_packets(dev: HIDDevice, debug = false): Promise<Ar
       continue;
     }
 
-    if (debug) {
-      console.log("RAW DATA", data);
-    }
-
     if (handle_packet(new Uint8Array(data.buffer), current_packet)) {
       break;
+    }
+
+    if (!seenFirstPacket) {
+      if (current_packet[0] === responseType) {
+        seenFirstPacket = true;
+      } else {
+        // we just picked up some other data that has nothing to do with
+        // what we're waiting on, so just discard it and keep waiting
+        current_packet = [];
+      }
     }
   }
 
   // TODO: Handle Acknowledgements
 
-  if (debug) {
-    console.log("Current Packet: ", current_packet);
-  }
   return current_packet;
 }
 
@@ -188,7 +190,7 @@ function handle_packet(dataIn: Uint8Array, currentPacketIn: Array<number>): bool
   // Note that if PACKET_FLAG_HOST_CMD_FINISHED is set, PACKET_FLAG_END_OF_COMMAND will also be set
   if ((cmd & PACKET_FLAG_HOST_CMD_FINISHED) === PACKET_FLAG_HOST_CMD_FINISHED) {
     // This tells us that a command we wrote to the devide has finished executing, and it's safe to start writing another.
-    console.log("Packet Complete");
+    // console.log("Packet Complete");
   }
 
   if ((cmd & PACKET_FLAG_END_OF_COMMAND) === PACKET_FLAG_END_OF_COMMAND) {

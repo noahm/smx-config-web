@@ -1,27 +1,38 @@
-import { StructBuffer, bitFields, bits, bool, int16_t, uint16_t, uint8_t } from "@nmann/struct-buffer";
-import { API_COMMAND, char2byte } from "../api";
+import { StructBuffer, bitFields, bits, int16_t, uint16_t, uint8_t } from "@nmann/struct-buffer";
+import { API_COMMAND, PANEL_COUNT, SENSOR_COUNT } from "../api";
 import type { Decoded } from "./config";
-import type { EachPanel, EachSensor } from "./inputs";
 
 /**
  * Sensor Test Mode values the stages expect
  */
-export const SENSOR_TEST_MODE = {
+export enum SensorTestMode {
   /** Actual 0 value */
-  OFF: 0,
+  Off = 0,
 
-  /** Return the raw uncalibrated value of each sensor */
-  UNCALIBRATED_VALUES: char2byte("0"),
+  /**
+   * Return the raw uncalibrated value of each sensor.
+   * 48 represents the char "0"
+   **/
+  UncalibratedValues = 48,
 
-  /** Return the calibrated value of each sensor */
-  CALIBRATED_VALUES: char2byte("1"),
+  /**
+   * Return the calibrated value of each sensor
+   * 49 represents the char "1"
+   **/
+  CalibratedValues = 49,
 
-  /** Return the sensor noise value */
-  NOISE: char2byte("2"),
+  /**
+   * Return the sensor noise value
+   * 50 represents the char "2"
+   **/
+  Noise = 50,
 
-  /** Return the sensor tare value */
-  TARE: char2byte("3"),
-};
+  /**
+   * Return the sensor tare value
+   * 51 represents the char "3"
+   **/
+  Tare = 51,
+}
 
 /**
  * The first byte of the test mode detail data contains
@@ -77,27 +88,12 @@ const detail_data_t = new StructBuffer("detail_data_t", {
  */
 export class SMXPanelTestData {
   have_data_from_panel: boolean;
-  sensor_level: EachSensor<number> = {
-    up: 0,
-    right: 0,
-    down: 0,
-    left: 0,
-  };
-  bad_sensor_input: EachSensor<boolean> = {
-    up: false,
-    right: false,
-    down: false,
-    left: false,
-  };
+  sensor_level: Array<number> = Array(SENSOR_COUNT).fill(-1);
+  bad_sensor_input: Array<boolean> = Array(SENSOR_COUNT).fill(false);
   dip_switch_value = -1;
-  bad_jumper: EachSensor<boolean> = {
-    up: false,
-    right: false,
-    down: false,
-    left: false,
-  };
+  bad_jumper: Array<boolean> = Array(SENSOR_COUNT).fill(false);
 
-  constructor(data: Decoded<typeof detail_data_t>) {
+  constructor(data: Decoded<typeof detail_data_t>, mode: SensorTestMode) {
     /**
      * Check the header. this is always `false true false` or `0 1 0` to identify it as a response,
      * and not as random steps from the player.
@@ -107,6 +103,7 @@ export class SMXPanelTestData {
       return;
     }
 
+    // Assuming the sig bits are correct, we can confirm here that we have proper data
     this.have_data_from_panel = true;
 
     /**
@@ -114,67 +111,110 @@ export class SMXPanelTestData {
      * A sensors reading could be considered invalid if the sensor has been turned
      * off in the config tool.
      */
-    this.bad_sensor_input = {
-      up: data.sig_bad.bad_sensor_0,
-      right: data.sig_bad.bad_sensor_1,
-      down: data.sig_bad.bad_sensor_2,
-      left: data.sig_bad.bad_sensor_3,
-    };
+    this.bad_sensor_input = [
+      data.sig_bad.bad_sensor_0,
+      data.sig_bad.bad_sensor_1,
+      data.sig_bad.bad_sensor_2,
+      data.sig_bad.bad_sensor_3,
+    ];
 
     // This is what the dipswitch is set to for this panel
     this.dip_switch_value = data.dips.dip;
 
     // These are true if the sensor has the incorrect jumper set
-    this.bad_jumper = {
-      up: !!data.dips.bad_sensor_dip_0,
-      right: !!data.dips.bad_sensor_dip_1,
-      down: !!data.dips.bad_sensor_dip_2,
-      left: !!data.dips.bad_sensor_dip_3,
-    };
+    this.bad_jumper = [
+      !!data.dips.bad_sensor_dip_0,
+      !!data.dips.bad_sensor_dip_1,
+      !!data.dips.bad_sensor_dip_2,
+      !!data.dips.bad_sensor_dip_3,
+    ];
 
     /**
      * These are 16-bit signed integers for the sensor values.
      * These are signed as they can be negative, but I imagine them going
      * negative is just kind of noise from the hardware.
      */
-    this.sensor_level = {
-      left: data.sensors[0],
-      right: data.sensors[1],
-      up: data.sensors[2],
-      down: data.sensors[3],
-    };
+    this.sensor_level = data.sensors.map((value) => this.clamp_sensor_value(value, mode));
+  }
+
+  private clamp_sensor_value(value: number, mode: SensorTestMode) {
+    if (mode === SensorTestMode.Noise) {
+      /**
+       * In Noise mode, we receive standard deviation values squared.
+       * Display the square root, since the panels don't do this for us.
+       * This makes the number different than the configured value
+       * (square it to convert back), but without this we display a bunch
+       * of four and five digit numbers that are too hard to read.
+       *
+       * TODO: Do we want to round this value or just display decimal values?
+       */
+      return Math.sqrt(value);
+    }
+
+    // TODO: We need a way to pass in if the stage we are getting this data for
+    // is using FSRs or not. Defined as `true` for now.
+    const isFSR = true;
+
+    // TODO: This may be necessary for defining sensor value vertial bars in the UI
+    // const max_value = isFSR ? 250 : 500;
+
+    let clamped_value = value;
+    /**
+     * Very slightly negative values happen due to noise.
+     * The don't indicate a problem, but they're confusing
+     * in the UI, so clamp them away.
+     */
+    if (value < 0 && value >= -10) {
+      clamped_value = 0;
+    }
+
+    // FSR values are bitshifted right by 2 (effectively a div by 4).
+    if (isFSR) {
+      clamped_value >>= 2;
+    }
+
+    return clamped_value;
   }
 }
 
 export class SMXSensorTestData {
-  panels: EachPanel<SMXPanelTestData>;
+  panels: Array<SMXPanelTestData> = [];
 
   constructor(data: Array<number>) {
     /**
+     * The first 3 bytes are the preamble.
+     *
      * "y" is a response to our "y" query. This is binary data with the format:
      * yAB......
-     * where A is our original query mode (currently "0", "1", "2", or "3"), and
-     * B is the number of bits from each panel in the response.
-     * Each bit is encoded as a 16-bit int, with each int having the response
-     * bits from each panel.
+     * where A (mode) is our original query mode (currently "0", "1", "2", or "3"), and
+     * B (size) is the number of 16-Bit Integers that contain all of our panel data.
+     *
+     * The explanation of how these bits are interlaced and decoded can be found
+     * in the README.
+     *
+     * TODO: Put in readme link here
      */
-    console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA); // Expected to be 'y'
-    // const mode = data[1];  // If we know what command we sent we could confirm we get the right response
+    const preamble = 3;
+
+    // Expected to be 'y'
+    console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA, `Unknown PanelTestData Response: ${data[0]}`);
+
+    // TODO: We need to somehow know what mode we requested, so we can potentially check
+    // here that we got the right response.
+    const mode = data[1];
+    console.assert(SensorTestMode[mode] !== undefined, `Unknown SensorTestMode: ${mode}`);
+
     const size = data[2];
+    console.assert(size === 80, `Unknown PanelTestData Size: ${size}`);
 
     /**
-     * Convert the data from 8-Bit Little Endian bytes to 16-Bit Integers
+     * Convert the data from 8-Bit Little Endian Bytes to 16-Bit Integers
      */
-    const sensor_data_t = new StructBuffer("sensor_data_t", {
-      data: uint16_t[size],
-    });
-    const decoded_data = sensor_data_t.decode(data.slice(3), true);
-    const panel_count = 9; // TODO: This could be a const somewhere?
-    const panel_data = [];
+    const sensor_data_t = new StructBuffer("sensor_data_t", { data: uint16_t[size] });
+    const decoded_data = sensor_data_t.decode(data.slice(preamble), true);
 
     // Cycle through each panel and grab the data
-    // TODO: Document exactly how we're dealing with the bits here and how things are layed out
-    for (let panel = 0; panel < panel_count; panel++) {
+    for (let panel = 0; panel < PANEL_COUNT; panel++) {
       let idx = 0;
       const out_bytes: Array<number> = [];
 
@@ -185,41 +225,18 @@ export class SMXSensorTestData {
       for (const _ of Array.from({ length: size / 8 })) {
         let result = 0;
 
-        // Read each bit in each byte
+        // Read each bit in each 8-bit byte
         for (let bit = 0; bit < 8; bit++, idx++) {
           const new_bit = decoded_data.data[idx] & (1 << panel);
           result |= new_bit << bit;
         }
 
-        // We need to shift the result by the panel to move it back to fit within
-        // an 8-bit byte
+        // We need to shift the result by the panel to move it back to fit within an 8-bit byte
         out_bytes.push(result >> panel);
       }
 
-      console.log(`Panel ${panel}: ${out_bytes}`);
-      panel_data.push(detail_data_t.decode(out_bytes, true));
+      // Generate an SMXPanelTestData object for each panel
+      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), mode));
     }
-
-    const panels = [];
-    for (let panel = 0; panel < 9; panel++) {
-      panels.push(new SMXPanelTestData(panel_data[panel]));
-    }
-
-    this.panels = {
-      up_left: panels[0],
-      up: panels[1],
-      up_right: panels[2],
-      left: panels[3],
-      center: panels[4],
-      right: panels[5],
-      down_left: panels[6],
-      down: panels[7],
-      down_right: panels[8],
-    };
-
-    console.log(decoded_data);
-    console.log(panel_data);
-
-    console.log(this);
   }
 }
