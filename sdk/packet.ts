@@ -106,9 +106,6 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
 
   // Send each packet
   for (const packet of packets) {
-    if (debug) {
-      console.log(packet);
-    }
     await dev.sendReport(HID_REPORT_OUTPUT, packet);
   }
 }
@@ -124,10 +121,6 @@ export async function process_packets(dev: HIDDevice, debug = false): Promise<Ar
       continue;
     }
 
-    if (debug) {
-      console.log("RAW DATA", data);
-    }
-
     if (handle_packet(new Uint8Array(data.buffer), current_packet)) {
       break;
     }
@@ -135,9 +128,6 @@ export async function process_packets(dev: HIDDevice, debug = false): Promise<Ar
 
   // TODO: Handle Acknowledgements
 
-  if (debug) {
-    console.log("Current Packet: ", current_packet);
-  }
   return current_packet;
 }
 
@@ -188,7 +178,7 @@ function handle_packet(dataIn: Uint8Array, currentPacketIn: Array<number>): bool
   // Note that if PACKET_FLAG_HOST_CMD_FINISHED is set, PACKET_FLAG_END_OF_COMMAND will also be set
   if ((cmd & PACKET_FLAG_HOST_CMD_FINISHED) === PACKET_FLAG_HOST_CMD_FINISHED) {
     // This tells us that a command we wrote to the devide has finished executing, and it's safe to start writing another.
-    console.log("Packet Complete");
+    // console.log("Packet Complete");
   }
 
   if ((cmd & PACKET_FLAG_END_OF_COMMAND) === PACKET_FLAG_END_OF_COMMAND) {
