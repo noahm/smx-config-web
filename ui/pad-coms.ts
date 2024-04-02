@@ -1,8 +1,5 @@
 import { getDeviceInfo, getSensorTestData, getStageConfig } from "../sdk";
-import { API_COMMAND, SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
-import { SMXConfig } from "../sdk/commands/config";
-import { SMXDeviceInfo } from "../sdk/commands/data_info";
-import { SMXSensorTestData } from "../sdk/commands/sensor_test";
+import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
 import { devices$, nextStatusTextLine$, statusText$, uiState } from "./state";
 
 // function formatDataForDisplay(data: DataView) {
@@ -47,8 +44,7 @@ export async function open_smx_device(dev: HIDDevice) {
     await dev.open();
   }
   // Get the device info an find the player number
-  const packet = await getDeviceInfo(dev);
-  const device_info = new SMXDeviceInfo(packet);
+  const device_info = await getDeviceInfo(dev);
   uiState.set(devices$, (devices) => {
     return {
       ...devices,
@@ -62,23 +58,11 @@ export async function open_smx_device(dev: HIDDevice) {
 }
 
 export async function requestConfig(dev: HIDDevice) {
-  const response = await getStageConfig(dev);
-  const smxconfig = new SMXConfig(response);
-
-  // Right now I just want to confirm that decoding and re-encoding gives back the same data
-  const encoded_config = smxconfig.encode();
-  if (encoded_config) {
-    const buf = new Uint8Array(encoded_config.buffer);
-    console.log("Same Thing:", response.slice(2, -1).toString() === buf.toString());
-  }
+  return getStageConfig(dev);
 }
 
 export async function requestTestData(dev: HIDDevice) {
-  const response = await getSensorTestData(dev);
-  if (response[0] !== API_COMMAND.GET_SENSOR_TEST_DATA) {
-    return null;
-  }
-  return new SMXSensorTestData(response);
+  return getSensorTestData(dev);
 }
 
 /** anything here will appear in the debug UI to dispatch at will */

@@ -110,8 +110,10 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
   }
 }
 
-export async function process_packets(dev: HIDDevice, debug = false): Promise<Array<number>> {
-  const current_packet: Array<number> = [];
+export async function process_packets(dev: HIDDevice, responseType: number, debug = false): Promise<Array<number>> {
+  let current_packet: Array<number> = [];
+
+  let seenFirstPacket = false;
 
   while (true) {
     const data = await nextReportCommand(dev);
@@ -123,6 +125,16 @@ export async function process_packets(dev: HIDDevice, debug = false): Promise<Ar
 
     if (handle_packet(new Uint8Array(data.buffer), current_packet)) {
       break;
+    }
+
+    if (!seenFirstPacket) {
+      if (current_packet[0] === responseType) {
+        seenFirstPacket = true;
+      } else {
+        // we just picked up some other data that has nothing to do with
+        // what we're waiting on, so just discard it and keep waiting
+        current_packet = [];
+      }
     }
   }
 
