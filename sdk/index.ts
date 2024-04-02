@@ -2,7 +2,7 @@ import * as Bacon from "baconjs";
 import type { StateF } from "baconjs/types/withstatemachine";
 import { API_COMMAND } from "./api";
 import { StageInputs } from "./commands/inputs";
-import { SENSOR_TEST_MODE } from "./commands/sensor_test";
+import { SensorTestMode } from "./commands/sensor_test";
 import {
   HID_REPORT_INPUT,
   HID_REPORT_INPUT_STATE,
@@ -25,7 +25,7 @@ export async function getStageConfig(dev: HIDDevice) {
 }
 
 export async function getSensorTestData(dev: HIDDevice) {
-  await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SENSOR_TEST_MODE.CALIBRATED_VALUES], true);
+  await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SensorTestMode.CalibratedValues], true);
   return process_packets(dev, true);
 }
 

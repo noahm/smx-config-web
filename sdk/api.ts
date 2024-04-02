@@ -21,3 +21,25 @@ export const API_COMMAND = {
 export const SMX_USB_VENDOR_ID = 0x2341;
 export const SMX_USB_PRODUCT_ID = 0x8037;
 export const SMX_USB_PRODUCT_NAME = "StepManiaX";
+
+export const PANEL_COUNT = 9;
+export const SENSOR_COUNT = 4;
+
+export enum Panel {
+  UpLeft = 0,
+  Up = 1,
+  UpRight = 2,
+  Left = 3,
+  Center = 4,
+  Right = 5,
+  DownLeft = 6,
+  Down = 7,
+  DownRight = 8,
+}
+
+export enum Sensor {
+  Left = 0,
+  Right = 1,
+  Up = 2,
+  Down = 3,
+}

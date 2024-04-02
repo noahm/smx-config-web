@@ -1,5 +1,6 @@
 import cn from "classnames";
 import type { SMXPanelTestData } from "../../sdk/commands/sensor_test";
+import { Sensor } from "../../sdk/api";
 
 interface EnabledProps {
   data: SMXPanelTestData;
@@ -15,10 +16,10 @@ export function FsrPanel(props: EnabledProps) {
         active: props.active,
       })}
     >
-      <Fsr className="top horiz" badInput={bad_sensor_input.up} value={sensor_level.up} />
-      <Fsr className="right vert" badInput={bad_sensor_input.right} value={sensor_level.right} />
-      <Fsr className="bottom horiz" badInput={bad_sensor_input.down} value={sensor_level.down} />
-      <Fsr className="left vert" badInput={bad_sensor_input.left} value={sensor_level.left} />
+      <Fsr className="top horiz" badInput={bad_sensor_input[Sensor.Up]} value={sensor_level[Sensor.Up]} />
+      <Fsr className="right vert" badInput={bad_sensor_input[Sensor.Right]} value={sensor_level[Sensor.Right]} />
+      <Fsr className="bottom horiz" badInput={bad_sensor_input[Sensor.Down]} value={sensor_level[Sensor.Down]} />
+      <Fsr className="left vert" badInput={bad_sensor_input[Sensor.Left]} value={sensor_level[Sensor.Left]} />
     </div>
   );
 }
