@@ -8,6 +8,8 @@ export const uiState = createStore();
 /** backing atom of all known devices */
 export const devices$ = atom<Record<number, HIDDevice | undefined>>({});
 
+export const displayTestData$ = atom(true);
+
 /** current p1 pad, derived from devices$ above */
 export const p1Dev$ = atom<HIDDevice | undefined, [HIDDevice | undefined], void>(
   (get) => get(devices$)[1],

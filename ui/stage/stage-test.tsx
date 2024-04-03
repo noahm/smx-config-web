@@ -1,11 +1,11 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
 import type { SMXPanelTestData, SMXSensorTestData } from "../../sdk/commands/sensor_test";
-import { requestTestData } from "../pad-coms";
 import { FsrPanel } from "./fsr-panel";
-import { SmxStage } from "../../sdk";
+import { getSensorTestData } from "../../sdk";
 import { StageInputs, type EachPanel, type PanelName } from "../../sdk/commands/inputs";
 import { HID_REPORT_INPUT_STATE } from "../../sdk/packet";
+import { displayTestData$ } from "../state";
 
 function useInputState(dev: HIDDevice | undefined) {
   const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
@@ -23,16 +23,17 @@ function useInputState(dev: HIDDevice | undefined) {
 }
 
 function useTestData(device: HIDDevice | undefined) {
+  const readTestData = useAtomValue(displayTestData$);
   const [testData, setTestData] = useState<SMXSensorTestData>();
 
   useEffect(() => {
-    if (!device) {
+    if (!device || !readTestData) {
       return;
     }
 
     const d = device;
     async function update() {
-      const data = await requestTestData(d);
+      const data = await getSensorTestData(d);
       if (data) {
         setTestData(data);
       }
@@ -42,7 +43,7 @@ function useTestData(device: HIDDevice | undefined) {
     let handle = setInterval(update, 50);
 
     return () => clearInterval(handle);
-  }, [device]);
+  }, [device, readTestData]);
 
   return testData;
 }

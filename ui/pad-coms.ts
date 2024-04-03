@@ -57,16 +57,8 @@ export async function open_smx_device(dev: HIDDevice) {
   );
 }
 
-export async function requestConfig(dev: HIDDevice) {
-  return getStageConfig(dev);
-}
-
-export async function requestTestData(dev: HIDDevice) {
-  return getSensorTestData(dev);
-}
-
 /** anything here will appear in the debug UI to dispatch at will */
 export const DEBUG_COMMANDS: Record<string, (dev: HIDDevice) => unknown> = {
-  requestConfig,
-  requestTestData,
+  requestConfig: getStageConfig,
+  requestTestData: getSensorTestData,
 };
