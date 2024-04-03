@@ -1,73 +1,52 @@
 import { StructBuffer, bits, createDataView, uint8_t } from "@nmann/struct-buffer";
+import { SENSOR_COUNT, Sensor } from "../api";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
-interface EnabeledSensorSet {
-  up: boolean;
-  right: boolean;
-  down: boolean;
-  left: boolean;
-}
-
 /** sensors enabled, with two panels packed into a single byte */
 export const twoEnabledSensors_t = bits(uint8_t, {
-  up0: 7,
+  left0: 7,
   right0: 6,
-  down0: 5,
-  left0: 4,
-  up1: 3,
+  up0: 5,
+  down0: 4,
+  left1: 3,
   right1: 2,
-  down1: 1,
-  left1: 0,
+  up1: 1,
+  down1: 0,
 });
 
 /** splits packed */
-function splitTwoSensors(decoded: Decoded<typeof twoEnabledSensors_t>): EnabeledSensorSet[] {
+function splitTwoSensors(decoded: Decoded<typeof twoEnabledSensors_t>): Array<Array<boolean>> {
   return [
-    {
-      up: decoded.up0,
-      right: decoded.right0,
-      down: decoded.down0,
-      left: decoded.left0,
-    },
-    {
-      up: decoded.up1,
-      right: decoded.right1,
-      down: decoded.down1,
-      left: decoded.left1,
-    },
+    [decoded.left0, decoded.right0, decoded.up0, decoded.down0],
+    [decoded.left1, decoded.right1, decoded.up1, decoded.down1],
   ];
 }
 
 function joinTwoSensors(
-  sensorA: EnabeledSensorSet,
-  sensorB: EnabeledSensorSet = {
-    up: false,
-    right: false,
-    down: false,
-    left: false,
-  },
+  sensorA: Array<boolean>,
+  sensorB: Array<boolean> = Array(SENSOR_COUNT).fill(false),
 ): Decoded<typeof twoEnabledSensors_t> {
   return {
-    up0: sensorA.up,
-    right0: sensorA.right,
-    down0: sensorA.down,
-    left0: sensorA.left,
-    up1: sensorB.up,
-    right1: sensorB.right,
-    down1: sensorB.down,
-    left1: sensorB.left,
+    left0: sensorA[Sensor.Left],
+    right0: sensorA[Sensor.Right],
+    up0: sensorA[Sensor.Up],
+    down0: sensorA[Sensor.Down],
+    left1: sensorB[Sensor.Left],
+    right1: sensorB[Sensor.Right],
+    up1: sensorB[Sensor.Up],
+    down1: sensorB[Sensor.Down],
   };
 }
 
 export class EnabledSensors extends StructBuffer<
   // biome-ignore lint/complexity/noBannedTypes: <explanation>
   {},
-  EnabeledSensorSet[],
-  EnabeledSensorSet[]
+  Array<Array<boolean>>,
+  Array<Array<boolean>>
 > {
   constructor() {
-    super("DisabledSensors", {});
+    super("EnabledSensors", {});
   }
 
   override get count() {
@@ -78,16 +57,21 @@ export class EnabledSensors extends StructBuffer<
     return true;
   }
 
-  override decode(view: DataView, littleEndian = false, offset = 0): EnabeledSensorSet[] {
+  override get byteLength() {
+    return 5;
+  }
+
+  override decode(view: DataView, littleEndian = false, offset = 0): Array<Array<boolean>> {
     const decoded = twoEnabledSensors_t[this.count]
       .decode(view, littleEndian, offset)
-      .flatMap<EnabeledSensorSet>(splitTwoSensors);
+      .flatMap<Array<boolean>>(splitTwoSensors);
+
     // decoded now has a trailing entry for the 4 bits of padding on the end of data
     // so we slice to just the desired data
     return decoded.slice(0, 9);
   }
 
-  override encode(obj: EnabeledSensorSet[], littleEndian = false, offset = 0, view?: DataView): DataView {
+  override encode(obj: Array<Array<boolean>>, littleEndian = false, offset = 0, view?: DataView): DataView {
     if (obj.length !== 9) {
       throw new TypeError("DisabledSensors only encodes sets of 9");
     }

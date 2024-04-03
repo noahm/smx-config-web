@@ -112,8 +112,8 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
 
 export async function process_packets(dev: HIDDevice, responseType: number, debug = false): Promise<Array<number>> {
   let current_packet: Array<number> = [];
-
   let seenFirstPacket = false;
+  let readingPacket = false;
 
   while (true) {
     const data = await nextReportCommand(dev);
@@ -123,7 +123,28 @@ export async function process_packets(dev: HIDDevice, responseType: number, debu
       continue;
     }
 
-    if (handle_packet(new Uint8Array(data.buffer), current_packet)) {
+    // Create the data buffer here so we can check for start flags and ACKs
+    const data_buffer = new Uint8Array(data.buffer);
+
+    // If we see an ACK Command just ignore it and restart
+    if (data_buffer[0] === ACK_COMMAND) {
+      readingPacket = false;
+      seenFirstPacket = false;
+      current_packet = [];
+      continue;
+    }
+
+    // Wait until we see a packet start flag so we don't grab a
+    // packet half way through
+    if (!readingPacket) {
+      if (data_buffer[0] & PACKET_FLAG_START_OF_COMMAND) {
+        readingPacket = true;
+      } else {
+        continue;
+      }
+    }
+
+    if (handle_packet(data_buffer, current_packet)) {
       break;
     }
 
@@ -135,6 +156,12 @@ export async function process_packets(dev: HIDDevice, responseType: number, debu
         // what we're waiting on, so just discard it and keep waiting
         current_packet = [];
       }
+    }
+
+    // If we've gotten here and our current packet is empty, that means
+    // we flushed it at some point. Restart
+    if (current_packet.length === 0) {
+      readingPacket = false;
     }
   }
 

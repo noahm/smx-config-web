@@ -4,17 +4,6 @@ import { EnabledSensors } from "./enabled-sensors.ts";
 export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
 /**
- * Each FSR panel has 4 sensors. Make read/write easier by
- * making them a struct
- */
-const packed_sensor_t = new StructBuffer("packed_sensor_t", {
-  up: uint8_t,
-  right: uint8_t,
-  down: uint8_t,
-  left: uint8_t,
-});
-
-/**
  * Each panel has various thresholds that are used based on
  * if it's a LoadCell or FSR panel.
  */
@@ -27,9 +16,10 @@ const packed_panel_settings_t = new StructBuffer("packed_panel_settings_t", {
 
   /**
    * FSR Thresholds
+   * 4 Sensors per threshold
    */
-  fsrLowThreshold: packed_sensor_t,
-  fsrHighThreshold: packed_sensor_t,
+  fsrLowThreshold: uint8_t[4],
+  fsrHighThreshold: uint8_t[4],
 
   /**
    * TODO: Not sure what these are for
@@ -42,22 +32,6 @@ const packed_panel_settings_t = new StructBuffer("packed_panel_settings_t", {
    * This must be left unchanged for now.
    */
   reserved: uint16_t,
-});
-
-/**
- * Just an intermediate struct so you can more easily dig into
- * each panels sensors
- */
-const panel_settings_t = new StructBuffer("panel_settings_t", {
-  up_left: packed_panel_settings_t,
-  up: packed_panel_settings_t,
-  up_right: packed_panel_settings_t,
-  left: packed_panel_settings_t,
-  center: packed_panel_settings_t,
-  right: packed_panel_settings_t,
-  down_left: packed_panel_settings_t,
-  down: packed_panel_settings_t,
-  down_right: packed_panel_settings_t,
 });
 
 /**
@@ -84,22 +58,6 @@ const rgb_t = new StructBuffer("rbg_t", {
   r: uint8_t,
   g: uint8_t,
   b: uint8_t,
-});
-
-/**
- * Just an intermediate struct so you can more easily dig into
- * each panels step color RGB values
- */
-const step_colors_t = new StructBuffer("step_colors_t", {
-  up_left: rgb_t,
-  up: rgb_t,
-  up_right: rgb_t,
-  left: rgb_t,
-  center: rgb_t,
-  right: rgb_t,
-  down_left: rgb_t,
-  down: rgb_t,
-  down_right: rgb_t,
 });
 
 /**
@@ -172,14 +130,18 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
   /**
    * The color to use for each panel when auto-lighting in master mode.  This doesn't
    * apply when the pads are in autonomous lighting mode (no master), since they don't
-   * store any configuration by themselves.  These colors should be scaled to the 0-170
-   * range.
+   * store any configuration by themselves.
+   *
+   * These colors are scaled to the 0-170 range.
+   *
+   * TODO: We can unscale them to 0-255 when reading, but then we would need to scale them back
+   * when writing.
    */
-  stepColor: step_colors_t,
+  stepColor: rgb_t[9],
 
   /**
    * The default color to set the platform (underside) LED strips to.
-   *  RGB values from 0-255
+   * RGB values from 0-255
    */
   platformStripColor: rgb_t,
 
@@ -210,7 +172,7 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
    *
    * Setting a value to 0xFF disables that threshold.
    */
-  panelSettings: panel_settings_t,
+  panelSettings: packed_panel_settings_t[9],
 
   /**
    * This is an internal tunable and should be left unchanged.
@@ -227,60 +189,23 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
 });
 
 /**
- * Class to represent all 4 sensors on a panel.
- */
-class Panel {
-  up = false;
-  right = false;
-  down = false;
-  left = false;
-
-  /**
-   * Convert the first 4 Least Significant Bits to represent all 4 sensors on a panel
-   * TODO: Determine if this ordering is actually correct
-   */
-  constructor(byte: number) {
-    this.up = byte & 0x08 ? true : false;
-    this.right = byte & 0x04 ? true : false;
-    this.down = byte & 0x02 ? true : false;
-    this.left = byte & 0x01 ? true : false;
-  }
-
-  /**
-   * Convert a panels 4 sensors back into a 4-bit LSB byte
-   * TODO: Determine if this ordering is actually correct
-   */
-  toByte(): number {
-    return (this.up ? 1 << 3 : 0) + (this.right ? 1 << 2 : 0) + (this.down ? 1 << 1 : 0) + (this.left ? 1 : 0);
-  }
-}
-
-/**
  * The configuration for a connected SMX Stage.
  */
 export class SMXConfig {
-  private data: Array<number>;
   public config: Decoded<typeof smx_config_t>;
 
   /**
    * Take in the data array and decode it into this.
    */
   constructor(data: Array<number>) {
-    this.data = data;
-    this.config = smx_config_t.decode(this.data.slice(2, -1), true);
+    this.config = smx_config_t.decode(data.slice(2, -1), true);
   }
 
   /**
    * TODO: Make this private again later, and maybe make a function called
    * "write_to_stage" or something? Depends on how we want to handle writing/reading
    */
-  encode(): DataView | null {
-    if (!this.config) {
-      return null;
-    }
-
-    const encoded_data = smx_config_t.encode(this.config, true);
-
-    return encoded_data;
+  encode(): DataView {
+    return smx_config_t.encode(this.config, true);
   }
 }

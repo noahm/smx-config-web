@@ -5,7 +5,7 @@ const data_info_packet_t = new StructBuffer("data_info_packet_t", {
   cmd: char,
   // Not Used
   packet_size: uint8_t,
-  /** '0' for P1, '1' for P2 (Note these are the characters '0' and '1', not the numbers 0 and 1) */
+  // '0' for P1, '1' for P2 (Note these are the characters '0' and '1', not the numbers 0 and 1)
   player: char,
   // Unused and Unknown
   unused2: char,
