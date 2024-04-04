@@ -3,6 +3,9 @@
   "[typescript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
