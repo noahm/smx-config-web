@@ -3,7 +3,13 @@ import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
-import { browserSupported, displayTestData$, p1Dev$, p2Dev$, statusText$ } from "./state.ts";
+import {
+  browserSupported,
+  displayTestData$,
+  p1Dev$,
+  p2Dev$,
+  statusText$,
+} from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 
 export function UI() {
@@ -21,7 +27,12 @@ export function UI() {
 
   return (
     <>
-      <h1>SMX Web Config</h1>
+      <h1>
+        SMX Web Config{" "}
+        <small>
+          (<a href="https://github.com/noahm/smx-config-web">source</a>)
+        </small>
+      </h1>
       <StageTest deviceAtom={p2Dev$} />
       <StageTest deviceAtom={p1Dev$} />
       <p>
@@ -37,7 +48,11 @@ export function UI() {
 
 function PickDeviceButton() {
   return (
-    <button type="button" disabled={!browserSupported} onClick={promptSelectDevice}>
+    <button
+      type="button"
+      disabled={!browserSupported}
+      onClick={promptSelectDevice}
+    >
       Pick device...
     </button>
   );
@@ -53,7 +68,12 @@ function TestDataDisplayToggle() {
 
   return (
     <label>
-      <input type="checkbox" checked={enabled} onChange={() => setToggle((prev) => !prev)} /> Read Stage Test Values
+      <input
+        type="checkbox"
+        checked={enabled}
+        onChange={() => setToggle((prev) => !prev)}
+      />{" "}
+      Read Stage Test Values
     </label>
   );
 }
