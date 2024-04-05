@@ -13,12 +13,7 @@ export function DebugCommands() {
     selectedCommand && stage
       ? async () => {
           const cmd = DEBUG_COMMANDS[selectedCommand];
-          const fn = stage[cmd];
-          if (typeof fn !== "function") {
-            console.log(`"${cmd}" is not a function for SMXStage`);
-            return;
-          }
-          await fn();
+          await stage[cmd]();
         }
       : undefined;
   return (

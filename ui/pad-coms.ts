@@ -35,8 +35,16 @@ export async function open_smx_device(dev: HIDDevice) {
   });
 }
 
+/**
+ * Resolves to a union of all keys of T which are functions
+ */
+type FunctionKeys<T extends object> = keyof {
+  // biome-ignore lint/complexity/noBannedTypes: <explanation>
+  [K in keyof T as T[K] extends Function ? K : never]: T[K];
+};
+
 /** anything here will appear in the debug UI to dispatch at will */
-export const DEBUG_COMMANDS: Record<string, keyof SMXStage> = {
+export const DEBUG_COMMANDS: Record<string, FunctionKeys<SMXStage>> = {
   requestConfig: "updateConfig",
   requestTestData: "updateTestData",
 };
