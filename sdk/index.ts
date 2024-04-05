@@ -32,14 +32,19 @@ export async function getStageConfig(dev: HIDDevice) {
   const encoded_config = smxconfig.encode();
   if (encoded_config) {
     const buf = new Uint8Array(encoded_config.buffer);
-    console.log("Same Thing:", response.slice(2, -1).toString() === buf.toString());
+    console.log("Config Encodes Correctly:", response.slice(2, -1).toString() === buf.toString());
   }
+
+  console.log(smxconfig);
   return smxconfig;
 }
 
 export async function getSensorTestData(dev: HIDDevice) {
   await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SensorTestMode.CalibratedValues], true);
   const response = await process_packets(dev, API_COMMAND.GET_SENSOR_TEST_DATA, true);
+  if (response.length === 0) {
+    return null;
+  }
   return new SMXSensorTestData(response);
 }
 
