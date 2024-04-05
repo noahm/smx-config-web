@@ -7,7 +7,6 @@ import {
   PACKET_FLAG_START_OF_COMMAND,
 } from "./packet";
 
-
 // TODO: Probably move all this bacon packet stuff to `packet.js`?
 interface PacketHandlingState {
   currentPacket: Uint8Array;
@@ -34,9 +33,9 @@ export const handlePacket: StateF<DataView, PacketHandlingState, Packet> = (stat
   // console.log("Raw Packet Data: ", data);
 
   // Return if packet is empty
-  if (data.length <= 3){
+  if (data.length <= 3) {
     console.log("Empty Packet");
-     return [state, []];
+    return [state, []];
   }
   const cmd = data[0];
   const byte_len = data[1];
