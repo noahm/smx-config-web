@@ -41,18 +41,21 @@ class SMXEvents {
 
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
 
+    this.otherReports$
+    .filter((e) => e.type === 'host_cmd_finished')
+    .onValue((e) => console.log("Cmd Finished"));
+
     const finishedCommand$ = this.otherReports$
       .filter((e) => e.type === 'host_cmd_finished')
-      .map((e) => e.type === 'host_cmd_finished')
-      .map((e) => !e);
+      .map((e) => e.type === 'host_cmd_finished');
 
     this.startedSend$ = new Bacon.Bus<boolean>();
 
-    // false means "it's ok to send", true means "don't send"
-    const dontSend$ = new Bacon.Bus<boolean>()
-      .merge(finishedCommand$)  // Returns false when host_cmd_finished
-      .merge(this.startedSend$)  // Return true when starting to send
-      .toProperty(false);
+    // true means "it's ok to send", false means "don't send"
+    const okSend$ = new Bacon.Bus<boolean>()
+      .merge(finishedCommand$)  // Returns true when host_cmd_finished
+      .merge(this.startedSend$.not())  // Return false when starting to send
+      .toProperty(true);
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Array<number>>();
@@ -68,12 +71,15 @@ class SMXEvents {
     const combinedOutput$ = new Bacon.Bus<Array<number>>()
       .merge(configOutput$)
       .merge(otherOutput$)
-      .holdWhen(dontSend$)
+      .bufferingThrottle(100)
+      .takeWhile(okSend$)
+      .doAction(_ => this.startedSend$.push(true))
       .onValue(async (value) => await this.writeToHID(value));
   }
 
   private async writeToHID(value: Array<number>) {
-    this.startedSend$.push(true);
+    //this.startedSend$.push(true);
+    console.log("writing to HID");
     await send_data(this.dev, value);
   }
 }
@@ -117,7 +123,9 @@ export class SMXStage {
      * 'i' command, but we can send it safely at any time, even if another
      * application is talking to the device. Thus we can do this during enumeration.
      */
-    await requestSpecialDeviceInfo(this.dev);
+    //await requestSpecialDeviceInfo(this.dev); // Modify `send_data` to accept this somehow?
+
+    this.updateDeviceInfo();
 
     // Request the config for this stage
     this.updateConfig();

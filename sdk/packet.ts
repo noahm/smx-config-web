@@ -101,7 +101,7 @@ export function make_packets(data: Array<number>): Array<Uint8Array> {
   return packets;
 }
 
-export async function requestSpecialDeviceInfo(dev: HIDDevice, debug = false) {
+export async function makeSpecialDevicePacket(dev: HIDDevice, debug = false) {
   const packet = pad_packet([PACKET_FLAG_DEVICE_INFO]);
 
   if (debug) {
