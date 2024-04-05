@@ -2,24 +2,28 @@ import * as Bacon from "baconjs";
 import { handlePacket } from "./index";
 import type { Packet } from "./index";
 import { API_COMMAND, char2byte } from "./api";
-import { SMXConfig } from "./commands/config";
+import { SMXConfig, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import {
   HID_REPORT_INPUT,
   HID_REPORT_INPUT_STATE,
-  PACKET_FLAG_DEVICE_INFO,
   requestSpecialDeviceInfo,
   send_data,
 } from "./packet";
 import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 
 class SMXEvents {
+  private dev;
+  private dontSend: Bacon.Property<boolean>;
   input$;
   inputState$;
   otherReports$;
+  output$;
 
   constructor(dev: HIDDevice) {
+    this.dev = dev;
+
     // Main USB Ingestor
     this.input$ = Bacon.fromEvent<HIDInputReportEvent>(dev, "inputreport");
 
@@ -35,7 +39,31 @@ class SMXEvents {
       .filter((d) => d.byteLength !== 0)
       .withStateMachine({ currentPacket: new Uint8Array() }, handlePacket);
 
+    this.dontSend = this.otherReports$
+      .filter((e) => e.type === 'host_cmd_finished')
+      .map((e) => e.type !== "host_cmd_finished")
+      .toProperty(false);
+
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
+
+    // Main USB Output
+    this.output$ = new Bacon.Bus<Array<number>>();
+
+    // Config writes should only happen at most once per second. 
+    const configOutput$ = this.output$
+      .filter((e) => e[0] === API_COMMAND.WRITE_CONFIG_V5)
+      .throttle(1000)
+      .holdWhen(this.dontSend)
+      .onValue(async (value) => await this.writeToHID(value));
+
+    const otherOutput$ = this.output$
+      .filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5)
+      .holdWhen(this.dontSend)
+      .onValue(async (value) => await this.writeToHID(value));
+  }
+
+  private async writeToHID(value: Array<number>) {
+    await send_data(this.dev, value);
   }
 }
 
@@ -45,8 +73,9 @@ export class SMXStage {
   info: SMXDeviceInfo | null = null;
   config: SMXConfig | null = null;
   test: SMXSensorTestData | null = null;
-  private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
-  debug = true;
+  inputs: Array<boolean> | null = null;
+  private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
+  private debug = true;
 
   constructor(dev: HIDDevice) {
     this.dev = dev;
@@ -66,6 +95,9 @@ export class SMXStage {
     this.events.otherReports$
       .filter((e) => e.payload[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
       .onValue((value) => this.handleTestData(value));
+
+    // Set the inputs data request handler
+    this.events.inputState$.onValue((value) => this.handleInputs(value));
   }
 
   async init() {
@@ -77,25 +109,25 @@ export class SMXStage {
     await requestSpecialDeviceInfo(this.dev);
 
     // Request the config for this stage
-    await this.updateConfig();
+    this.updateConfig();
 
     // Request some initial test data
-    await this.updateTestData();
+    this.updateTestData();
   }
 
-  async updateDeviceInfo() {
-    await send_data(this.dev, [API_COMMAND.GET_DEVICE_INFO]);
+  updateDeviceInfo() {
+    this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
   }
 
-  async updateConfig() {
-    await send_data(this.dev, [API_COMMAND.GET_CONFIG_V5]);
+  updateConfig() {
+    this.events.output$.push([API_COMMAND.GET_CONFIG_V5]);
   }
 
-  async updateTestData(mode: SensorTestMode | null = null) {
+  updateTestData(mode: SensorTestMode | null = null) {
     if (mode) {
       this.test_mode = mode;
     }
-    await send_data(this.dev, [API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
+   this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
   }
 
   private handleConfig(data: Packet) {
@@ -120,5 +152,19 @@ export class SMXStage {
     this.info = new SMXDeviceInfo(Array.from(data.payload));
 
     console.log("Got Info: ", this.info);
+  }
+
+  private handleInputs(data: Decoded<typeof StageInputs>) {
+    this.inputs = [
+      data.up_left,
+      data.up,
+      data.up_right,
+      data.left,
+      data.center,
+      data.right,
+      data.down_left,
+      data.down,
+      data.down_right,
+    ];
   }
 }
