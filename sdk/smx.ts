@@ -15,7 +15,7 @@ import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 
 class SMXEvents {
   private dev;
-  private dontSend: Bacon.Property<boolean>;
+  private startedSend$: Bacon.Bus<boolean>;
   input$;
   inputState$;
   otherReports$;
@@ -39,12 +39,20 @@ class SMXEvents {
       .filter((d) => d.byteLength !== 0)
       .withStateMachine({ currentPacket: new Uint8Array() }, handlePacket);
 
-    this.dontSend = this.otherReports$
-      .filter((e) => e.type === 'host_cmd_finished')
-      .map((e) => e.type !== "host_cmd_finished")
-      .toProperty(false);
-
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
+
+    const finishedCommand$ = this.otherReports$
+      .filter((e) => e.type === 'host_cmd_finished')
+      .map((e) => e.type === 'host_cmd_finished')
+      .map((e) => !e);
+
+    this.startedSend$ = new Bacon.Bus<boolean>();
+
+    // false means "it's ok to send", true means "don't send"
+    const dontSend$ = new Bacon.Bus<boolean>()
+      .merge(finishedCommand$)  // Returns false when host_cmd_finished
+      .merge(this.startedSend$)  // Return true when starting to send
+      .toProperty(false);
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Array<number>>();
@@ -52,17 +60,20 @@ class SMXEvents {
     // Config writes should only happen at most once per second. 
     const configOutput$ = this.output$
       .filter((e) => e[0] === API_COMMAND.WRITE_CONFIG_V5)
-      .throttle(1000)
-      .holdWhen(this.dontSend)
-      .onValue(async (value) => await this.writeToHID(value));
+      .throttle(1000);
 
     const otherOutput$ = this.output$
-      .filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5)
-      .holdWhen(this.dontSend)
+      .filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5);
+
+    const combinedOutput$ = new Bacon.Bus<Array<number>>()
+      .merge(configOutput$)
+      .merge(otherOutput$)
+      .holdWhen(dontSend$)
       .onValue(async (value) => await this.writeToHID(value));
   }
 
   private async writeToHID(value: Array<number>) {
+    this.startedSend$.push(true);
     await send_data(this.dev, value);
   }
 }
