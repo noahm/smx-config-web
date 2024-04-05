@@ -180,7 +180,7 @@ export class SMXPanelTestData {
 export class SMXSensorTestData {
   panels: Array<SMXPanelTestData> = [];
 
-  constructor(data: Array<number>) {
+  constructor(data: Array<number>, mode: SensorTestMode) {
     /**
      * The first 3 bytes are the preamble.
      *
@@ -199,10 +199,10 @@ export class SMXSensorTestData {
     // Expected to be 'y'
     console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA, `Unknown PanelTestData Response: ${data[0]}`);
 
-    // TODO: We need to somehow know what mode we requested, so we can potentially check
-    // here that we got the right response.
-    const mode = data[1];
-    console.assert(SensorTestMode[mode] !== undefined, `Unknown SensorTestMode: ${mode}`);
+    // Make sure we have the correct mode
+    const data_mode = data[1];
+    console.assert(SensorTestMode[data_mode] !== undefined, `Unknown SensorTestMode: ${mode}`);
+    console.assert(mode === data_mode, `Test Mode is Unexpected: ${mode} !== ${data_mode}`);
 
     const size = data[2];
     console.assert(size === 80, `Unknown PanelTestData Size: ${size}`);
@@ -236,7 +236,7 @@ export class SMXSensorTestData {
       }
 
       // Generate an SMXPanelTestData object for each panel
-      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), mode));
+      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), data_mode));
     }
   }
 }
