@@ -1,12 +1,12 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
-import type { SMXPanelTestData, SMXSensorTestData } from "../../sdk/commands/sensor_test";
+import { SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/commands/sensor_test";
 import { FsrPanel } from "./fsr-panel";
-import { getSensorTestData } from "../../sdk";
 import { StageInputs, type EachPanel, type PanelName } from "../../sdk/commands/inputs";
-import { HID_REPORT_INPUT_STATE } from "../../sdk/packet";
 import { displayTestData$ } from "../state";
+import type { SMXStage } from "../../sdk/smx";
 
+/*
 function useInputState(dev: HIDDevice | undefined) {
   const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
   useEffect(() => {
@@ -21,41 +21,40 @@ function useInputState(dev: HIDDevice | undefined) {
   }, [dev]);
   return panelStates;
 }
+*/
 
-function useTestData(device: HIDDevice | undefined) {
+function useTestData(stage: SMXStage | undefined) {
   const readTestData = useAtomValue(displayTestData$);
-  const [testData, setTestData] = useState<SMXSensorTestData>();
+  const [testData, setTestData] = useState<SMXSensorTestData | null>();
 
   useEffect(() => {
-    if (!device || !readTestData) {
+    if (!stage || !readTestData) {
       return;
     }
 
-    const d = device;
+    const d = stage;
     async function update() {
-      const data = await getSensorTestData(d);
-      if (data) {
-        setTestData(data);
-      }
+      await d.updateTestData(SensorTestMode.CalibratedValues);
+      setTestData(d.test);
       handle = requestAnimationFrame(update);
     }
 
     let handle = setInterval(update, 50);
 
     return () => clearInterval(handle);
-  }, [device, readTestData]);
+  }, [stage, readTestData]);
 
   return testData;
 }
 
 export function StageTest({
-  deviceAtom,
+  stageAtom,
 }: {
-  deviceAtom: Atom<HIDDevice | undefined>;
+  stageAtom: Atom<SMXStage | undefined>;
 }) {
-  const device = useAtomValue(deviceAtom);
-  const testData = useTestData(device);
-  const inputState = useInputState(device);
+  const stage = useAtomValue(stageAtom);
+  const testData = useTestData(stage);
+  // const inputState = useInputState(stage);
 
   if (!testData) {
     return null;
@@ -66,7 +65,7 @@ export function StageTest({
   return (
     <div className="pad">
       {entries.map(([key, data]) => (
-        <FsrPanel active={inputState?.[key]} key={key} data={data} />
+        <FsrPanel active={false} key={key} data={data} />
       ))}
     </div>
   );

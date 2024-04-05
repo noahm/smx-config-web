@@ -1,53 +1,13 @@
 import * as Bacon from "baconjs";
 import type { StateF } from "baconjs/types/withstatemachine";
-import { API_COMMAND } from "./api";
-import { StageInputs } from "./commands/inputs";
-import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 import {
-  HID_REPORT_INPUT,
-  HID_REPORT_INPUT_STATE,
   PACKET_FLAG_DEVICE_INFO,
   PACKET_FLAG_END_OF_COMMAND,
   PACKET_FLAG_HOST_CMD_FINISHED,
   PACKET_FLAG_START_OF_COMMAND,
-  process_packets,
-  send_data,
 } from "./packet";
-import { SMXConfig } from "./commands/config";
-import { SMXDeviceInfo } from "./commands/data_info";
 
-export async function getDeviceInfo(dev: HIDDevice) {
-  await send_data(dev, [API_COMMAND.GET_DEVICE_INFO], true);
-  const packet = await process_packets(dev, API_COMMAND.GET_DEVICE_INFO, true);
-  return new SMXDeviceInfo(packet);
-}
-
-export async function getStageConfig(dev: HIDDevice) {
-  await send_data(dev, [API_COMMAND.GET_CONFIG_V5], true);
-  const response = await process_packets(dev, API_COMMAND.GET_CONFIG_V5, true);
-
-  const smxconfig = new SMXConfig(response);
-
-  // Right now I just want to confirm that decoding and re-encoding gives back the same data
-  const encoded_config = smxconfig.encode();
-  if (encoded_config) {
-    const buf = new Uint8Array(encoded_config.buffer);
-    console.log("Config Encodes Correctly:", response.slice(2, -1).toString() === buf.toString());
-  }
-
-  console.log(smxconfig);
-  return smxconfig;
-}
-
-export async function getSensorTestData(dev: HIDDevice) {
-  await send_data(dev, [API_COMMAND.GET_SENSOR_TEST_DATA, SensorTestMode.CalibratedValues], true);
-  const response = await process_packets(dev, API_COMMAND.GET_SENSOR_TEST_DATA, true);
-  if (response.length === 0) {
-    return null;
-  }
-  return new SMXSensorTestData(response);
-}
-
+// TODO: Probably move all this bacon packet stuff to `packet.js`?
 interface PacketHandlingState {
   currentPacket: Uint8Array;
 }
@@ -56,24 +16,36 @@ function hasValue<T>(ev: Bacon.Event<T>): ev is Bacon.Value<T> {
   return ev.hasValue;
 }
 
-type Packet = { type: "host_cmd_finished" } | { type: "data"; payload: Uint8Array };
+export type Packet = { type: "host_cmd_finished"; payload: [] } | { type: "data"; payload: Uint8Array };
 
 /**
  * Gets called when a packet is received, returns a tuple of new state and an array of
  */
-const handlePacket: StateF<DataView, PacketHandlingState, Packet> = (state, event) => {
-  if (!hasValue(event)) return [state, []];
+export const handlePacket: StateF<DataView, PacketHandlingState, Packet> = (state, event) => {
+  if (!hasValue(event)) {
+    console.log("No Event Value");
+    return [state, []];
+  }
+
   let currentPacket = state.currentPacket;
   const data = new Uint8Array(event.value.buffer);
-  if (data.length <= 3) return [state, []];
+
+  // console.log("Raw Packet Data: ", data);
+
+  // Return if packet is empty
+  if (data.length <= 3) {
+    console.log("Empty Packet");
+    return [state, []];
+  }
   const cmd = data[0];
   const byte_len = data[1];
 
-  if ((cmd & PACKET_FLAG_DEVICE_INFO) === PACKET_FLAG_DEVICE_INFO) {
+  if (cmd & PACKET_FLAG_DEVICE_INFO) {
     // This is a response to RequestDeviceInfo. Since any application can send this,
     // we ignore the packet if we didn't request it, since it might be requested
     // for a different program.
     // TODO: Handle this? Not sure there's anything to handle here tbh
+    console.log("Found Packet Flag Device Info");
   }
 
   // TODO: Make some consts for these 2's everywhere
@@ -109,9 +81,9 @@ const handlePacket: StateF<DataView, PacketHandlingState, Packet> = (state, even
 
   // Note that if PACKET_FLAG_HOST_CMD_FINISHED is set, PACKET_FLAG_END_OF_COMMAND will also be set
   if ((cmd & PACKET_FLAG_HOST_CMD_FINISHED) === PACKET_FLAG_HOST_CMD_FINISHED) {
-    // This tells us that a command we wrote to the devide has finished executing, and it's safe to start writing another.
-    console.log("Packet Complete");
-    eventsToPass.push({ type: "host_cmd_finished" });
+    // This tells us that a command we wrote to the device has finished executing, and it's safe to start writing another.
+    //console.log("Packet Complete");
+    eventsToPass.push({ type: "host_cmd_finished", payload: [] });
   }
 
   if ((cmd & PACKET_FLAG_END_OF_COMMAND) === PACKET_FLAG_END_OF_COMMAND) {
@@ -121,21 +93,3 @@ const handlePacket: StateF<DataView, PacketHandlingState, Packet> = (state, even
 
   return [newState, eventsToPass.map((e) => new Bacon.Next(e))];
 };
-
-export function SmxStage(device: HIDDevice) {
-  const input$ = Bacon.fromEvent<HIDInputReportEvent>(device, "inputreport");
-  const inputState$ = input$
-    .filter((e) => e.reportId === HID_REPORT_INPUT_STATE)
-    .map((e) => StageInputs.decode(e.data, true));
-  const otherReports$ = input$
-    .filter((e) => e.reportId === HID_REPORT_INPUT)
-    .map((e) => e.data)
-    .filter((d) => d.byteLength !== 0)
-    .withStateMachine({ currentPacket: new Uint8Array() }, handlePacket);
-
-  return {
-    device,
-    inputState$,
-    otherReports$,
-  };
-}

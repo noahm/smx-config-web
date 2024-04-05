@@ -1,18 +1,19 @@
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "./pad-coms";
-import { devices$ } from "./state.ts";
+import { stages$ } from "./state.ts";
 
 export function DebugCommands() {
-  const connectedDevices = useAtomValue(devices$);
+  const connectedStages = useAtomValue(stages$);
   const [selectedPlayer, setSelectedPlayer] = useState(0);
   const [selectedCommand, setSelectedCommand] = useState<keyof typeof DEBUG_COMMANDS | "">("");
   const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
-  const device = connectedDevices[selectedPlayer];
+  const stage = connectedStages[selectedPlayer];
   const handleSendCommand =
-    selectedCommand && device
-      ? () => {
-          DEBUG_COMMANDS[selectedCommand](device);
+    selectedCommand && stage
+      ? async () => {
+          const cmd = DEBUG_COMMANDS[selectedCommand];
+          await stage[cmd]();
         }
       : undefined;
   return (
@@ -21,10 +22,10 @@ export function DebugCommands() {
         <option disabled value="0">
           Select Stage
         </option>
-        <option value="1" disabled={!connectedDevices[1]}>
+        <option value="1" disabled={!connectedStages[1]}>
           Player 1
         </option>
-        <option value="2" disabled={!connectedDevices[2]}>
+        <option value="2" disabled={!connectedStages[2]}>
           Player 2
         </option>
       </select>{" "}

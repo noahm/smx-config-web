@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
-import { browserSupported, displayTestData$, p1Dev$, p2Dev$, statusText$ } from "./state.ts";
+import { browserSupported, displayTestData$, p1Stage$, p2Stage$, statusText$ } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 
 export function UI() {
@@ -27,8 +27,8 @@ export function UI() {
           (<a href="https://github.com/noahm/smx-config-web">source</a>)
         </small>
       </h1>
-      <StageTest deviceAtom={p2Dev$} />
-      <StageTest deviceAtom={p1Dev$} />
+      <StageTest stageAtom={p2Stage$} />
+      <StageTest stageAtom={p1Stage$} />
       <p>
         <PickDeviceButton /> <DebugCommands />
       </p>
