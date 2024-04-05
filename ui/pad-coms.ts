@@ -36,7 +36,7 @@ export async function open_smx_device(dev: HIDDevice) {
 }
 
 /** anything here will appear in the debug UI to dispatch at will */
-export const DEBUG_COMMANDS: Record<string, string> = {
+export const DEBUG_COMMANDS: Record<string, keyof SMXStage> = {
   requestConfig: "updateConfig",
   requestTestData: "updateTestData",
 };

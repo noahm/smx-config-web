@@ -2,7 +2,6 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "./pad-coms";
 import { stages$ } from "./state.ts";
-import type { SMXStage } from "../sdk/smx.ts";
 
 export function DebugCommands() {
   const connectedStages = useAtomValue(stages$);
@@ -14,13 +13,12 @@ export function DebugCommands() {
     selectedCommand && stage
       ? async () => {
           const cmd = DEBUG_COMMANDS[selectedCommand];
-          const fn = stage[cmd as keyof SMXStage];
+          const fn = stage[cmd];
           if (typeof fn !== "function") {
             console.log(`"${cmd}" is not a function for SMXStage`);
             return;
           }
-          // TODO: This actually works, but I don't know how to stop it from complaining
-          await stage[cmd as keyof SMXStage]();
+          await fn();
         }
       : undefined;
   return (
