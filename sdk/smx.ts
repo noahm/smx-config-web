@@ -15,6 +15,8 @@ class SMXEvents {
   otherReports$: Bacon.EventStream<Uint8Array>;
   output$;
 
+  okSendStatus = true;
+
   constructor(dev: HIDDevice) {
     this.dev = dev;
 
@@ -44,14 +46,18 @@ class SMXEvents {
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
 
     finishedCommand$.log("Cmd Finished");
+    finishedCommand$.onValue((e) => {
+      this.okSendStatus = e;
+    });
 
     // we write a `true` to this whenever a series of packets is going out to the device
     this.startedSend$ = new Bacon.Bus<boolean>();
 
     // true means "it's ok to send", false means "don't send"
-    const okSend$ = finishedCommand$ // Returns true when host_cmd_finished
-      .merge(this.startedSend$.not()) // Return false when starting to send
-      .toProperty(true);
+    const okSendBus$ = finishedCommand$ // Returns true when host_cmd_finished
+      .merge(this.startedSend$.not()); // Return false when starting to send
+
+    const okSend$ = okSendBus$.toProperty(true);
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Array<number>>();
@@ -65,16 +71,24 @@ class SMXEvents {
     // combine together the throttled and unthrottled writes
     // TODO find an alternative to using `bufferedThrottle` here
     // (seemingly takeWhile lets too much through via race conditions against the okSend property changing)
-    const eventsToSend$ = configOutput$.merge(otherOutput$).bufferingThrottle(100).takeWhile(okSend$);
+    //const eventsToSend$ = configOutput$.merge(otherOutput$).bufferingThrottle(100).takeWhile(okSend$);
+
+    const eventsToSend$ = configOutput$.merge(otherOutput$).holdWhen(okSend$.not());
 
     eventsToSend$.onValue(async (value) => {
-      this.startedSend$.push(true);
-      await this.writeToHID(value);
+      if (!this.okSendStatus) {
+        // Push back onto the stream
+        this.output$.push(value);
+      } else {
+        this.startedSend$.push(true);
+        this.okSendStatus = false; // Set this here so it's *Fast Enough* to affect the next event
+        console.log("writing to HID");
+        await this.writeToHID(value);
+      }
     });
   }
 
   private async writeToHID(value: Array<number>) {
-    console.log("writing to HID");
     await send_data(this.dev, value);
   }
 }
