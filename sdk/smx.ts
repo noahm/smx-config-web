@@ -90,6 +90,8 @@ export class SMXStage {
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
   private debug = true;
 
+  private configResponse$: Bacon.EventStream<SMXConfig>;
+
   constructor(dev: HIDDevice) {
     this.dev = dev;
     this.events = new SMXEvents(this.dev);
@@ -100,9 +102,11 @@ export class SMXStage {
       .onValue((value) => this.handleDeviceInfo(value));
 
     // Set the config request handler
-    this.events.otherReports$
+    this.configResponse$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_CONFIG_V5)
-      .onValue((value) => this.handleConfig(value));
+      .map((value) => this.handleConfig(value));
+    // note that the above map function only runs when there are listeners
+    // subscribed to `this.configResponse$`, otherwise nothing happens!
 
     // Set the test data request handler
     this.events.otherReports$
@@ -136,6 +140,7 @@ export class SMXStage {
 
   updateConfig() {
     this.events.output$.push([API_COMMAND.GET_CONFIG_V5]);
+    return this.configResponse$.firstToPromise();
   }
 
   updateTestData(mode: SensorTestMode | null = null) {
@@ -155,6 +160,7 @@ export class SMXStage {
       console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === buf.toString());
     }
     console.log("Got Config: ", this.config);
+    return this.config;
   }
 
   private handleTestData(data: Uint8Array) {
