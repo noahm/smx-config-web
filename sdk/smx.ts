@@ -4,12 +4,7 @@ import { API_COMMAND, char2byte } from "./api";
 import { SMXConfig, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
-import {
-  HID_REPORT_INPUT,
-  HID_REPORT_INPUT_STATE,
-  requestSpecialDeviceInfo,
-  send_data,
-} from "./packet";
+import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
 import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 
 class SMXEvents {
@@ -17,7 +12,7 @@ class SMXEvents {
   private startedSend$: Bacon.Bus<boolean>;
   input$;
   inputState$;
-  otherReports$;
+  otherReports$: Bacon.EventStream<Uint8Array>;
   output$;
 
   constructor(dev: HIDDevice) {
@@ -54,29 +49,28 @@ class SMXEvents {
     this.startedSend$ = new Bacon.Bus<boolean>();
 
     // true means "it's ok to send", false means "don't send"
-    const okSend$ = new Bacon.Bus<boolean>()
-      .merge(finishedCommand$)  // Returns true when host_cmd_finished
-      .merge(this.startedSend$.not())  // Return false when starting to send
+    const okSend$ = finishedCommand$ // Returns true when host_cmd_finished
+      .merge(this.startedSend$.not()) // Return false when starting to send
       .toProperty(true);
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Array<number>>();
 
-    // Config writes should only happen at most once per second. 
-    const configOutput$ = this.output$
-      .filter((e) => e[0] === API_COMMAND.WRITE_CONFIG_V5)
-      .throttle(1000);
+    // Config writes should only happen at most once per second.
+    const configOutput$ = this.output$.filter((e) => e[0] === API_COMMAND.WRITE_CONFIG_V5).throttle(1000);
 
-    const otherOutput$ = this.output$
-      .filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5);
+    // All other writes are passed through unchanged
+    const otherOutput$ = this.output$.filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5);
 
-    const combinedOutput$ = new Bacon.Bus<Array<number>>()
-      .merge(configOutput$)
-      .merge(otherOutput$)
-      .bufferingThrottle(100)
-      .takeWhile(okSend$)
-      .doAction(_ => this.startedSend$.push(true))
-      .onValue(async (value) => await this.writeToHID(value));
+    // combine together the throttled and unthrottled writes
+    // TODO find an alternative to using `bufferedThrottle` here
+    // (seemingly takeWhile lets too much through via race conditions against the okSend property changing)
+    const eventsToSend$ = configOutput$.merge(otherOutput$).bufferingThrottle(100).takeWhile(okSend$);
+
+    eventsToSend$.onValue(async (value) => {
+      this.startedSend$.push(true);
+      await this.writeToHID(value);
+    });
   }
 
   private async writeToHID(value: Array<number>) {
@@ -88,7 +82,7 @@ class SMXEvents {
 
 export class SMXStage {
   private dev: HIDDevice;
-  private events: SMXEvents;
+  public readonly events: SMXEvents;
   info: SMXDeviceInfo | null = null;
   config: SMXConfig | null = null;
   test: SMXSensorTestData | null = null;
@@ -148,7 +142,7 @@ export class SMXStage {
     if (mode) {
       this.test_mode = mode;
     }
-   this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
+    this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
   }
 
   private handleConfig(data: Uint8Array) {
