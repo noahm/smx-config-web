@@ -7,29 +7,33 @@ import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
 import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
 
+/**
+ * Class purely to set up in/out event stream "pipes" to properly throttle and sync input/output from a stage
+ * this does not read or write to a stage at all. consumers can write to `output$`, and pass throttled events from
+ * `eventsToSend$` on to a stage. Read from `inputState$` to see panel pressed state reports, and from `otherReports$`
+ * to see responses to commands sent to the stage.
+ **/
 class SMXEvents {
-  private dev;
-  private startedSend$: Bacon.Bus<boolean>;
-  input$;
-  inputState$;
-  otherReports$: Bacon.EventStream<Uint8Array>;
-  output$;
-
-  okSendStatus = true;
+  /** read from this to see the constant on/off state reports for all panels */
+  public readonly inputState$;
+  /** read from this to see all reports sent by the stage in response to a command */
+  public readonly otherReports$: Bacon.EventStream<Uint8Array>;
+  /** push to this to write commands to the stage */
+  public readonly output$: Bacon.Bus<number[]>;
+  /** this is everything pushed to `output$` but properly throttled/timed to the device's ack responses */
+  public readonly eventsToSend$: Bacon.EventStream<number[]>;
 
   constructor(dev: HIDDevice) {
-    this.dev = dev;
-
     // Main USB Ingestor
-    this.input$ = Bacon.fromEvent<HIDInputReportEvent>(dev, "inputreport");
+    const rawReport$ = Bacon.fromEvent<HIDInputReportEvent>(dev, "inputreport");
 
     // Panel Input State (If a panel is active or not)
-    this.inputState$ = this.input$
+    this.inputState$ = rawReport$
       .filter((e) => e.reportId === HID_REPORT_INPUT_STATE)
       .map((e) => StageInputs.decode(e.data, true));
 
     // All other reports (command responses)
-    const report$ = this.input$
+    const report$ = rawReport$
       .filter((e) => e.reportId === HID_REPORT_INPUT)
       .map((e) => e.data)
       .filter((d) => d.byteLength !== 0)
@@ -46,18 +50,8 @@ class SMXEvents {
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
 
     finishedCommand$.log("Cmd Finished");
-    finishedCommand$.onValue((e) => {
-      this.okSendStatus = e;
-    });
 
-    // we write a `true` to this whenever a series of packets is going out to the device
-    this.startedSend$ = new Bacon.Bus<boolean>();
-
-    // true means "it's ok to send", false means "don't send"
-    const okSendBus$ = finishedCommand$ // Returns true when host_cmd_finished
-      .merge(this.startedSend$.not()); // Return false when starting to send
-
-    const okSend$ = okSendBus$.toProperty(true);
+    const okSend$ = finishedCommand$.startWith(true);
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Array<number>>();
@@ -69,27 +63,8 @@ class SMXEvents {
     const otherOutput$ = this.output$.filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5);
 
     // combine together the throttled and unthrottled writes
-    // TODO find an alternative to using `bufferedThrottle` here
-    // (seemingly takeWhile lets too much through via race conditions against the okSend property changing)
-    //const eventsToSend$ = configOutput$.merge(otherOutput$).bufferingThrottle(100).takeWhile(okSend$);
-
-    const eventsToSend$ = configOutput$.merge(otherOutput$).holdWhen(okSend$.not());
-
-    eventsToSend$.onValue(async (value) => {
-      if (!this.okSendStatus) {
-        // Push back onto the stream
-        this.output$.push(value);
-      } else {
-        this.startedSend$.push(true);
-        this.okSendStatus = false; // Set this here so it's *Fast Enough* to affect the next event
-        console.log("writing to HID");
-        await this.writeToHID(value);
-      }
-    });
-  }
-
-  private async writeToHID(value: Array<number>) {
-    await send_data(this.dev, value);
+    // and only emit one per each "ok" signal we get back following each previous output
+    this.eventsToSend$ = configOutput$.merge(otherOutput$).zip(okSend$, (nextToSend) => nextToSend);
   }
 }
 
@@ -108,6 +83,12 @@ export class SMXStage {
   constructor(dev: HIDDevice) {
     this.dev = dev;
     this.events = new SMXEvents(this.dev);
+
+    // write outgoing events to the device
+    this.events.eventsToSend$.onValue(async (value) => {
+      console.log("writing to HID");
+      await send_data(this.dev, value);
+    });
 
     // Set the device info handler
     this.events.otherReports$
