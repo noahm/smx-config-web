@@ -1,5 +1,4 @@
-import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID } from "../sdk/api";
-import { SMXStage } from "../sdk/smx";
+import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
 import { stages$, nextStatusTextLine$, statusText$, uiState } from "./state";
 
 export async function promptSelectDevice() {

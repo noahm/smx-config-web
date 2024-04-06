@@ -1,6 +1,5 @@
 import * as Bacon from "baconjs";
-import { handlePacket } from "./index";
-import type { Packet } from "./index";
+import { collatePackets, type DataPacket } from "./state-machines/collate-packets";
 import { API_COMMAND, char2byte } from "./api";
 import { SMXConfig, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
@@ -33,22 +32,25 @@ class SMXEvents {
       .map((e) => StageInputs.decode(e.data, true));
 
     // All other reports (command responses)
-    this.otherReports$ = this.input$
+    const report$ = this.input$
       .filter((e) => e.reportId === HID_REPORT_INPUT)
       .map((e) => e.data)
       .filter((d) => d.byteLength !== 0)
-      .withStateMachine({ currentPacket: new Uint8Array() }, handlePacket);
+      .withStateMachine({ currentPacket: new Uint8Array() }, collatePackets);
+
+    this.otherReports$ = (report$.filter((e) => e.type === "data") as Bacon.EventStream<DataPacket>).map(
+      (e) => e.payload,
+    );
+
+    const finishedCommand$ = report$
+      .filter((e) => e.type === "host_cmd_finished")
+      .map((e) => e.type === "host_cmd_finished");
 
     // this.otherReports$.onValue((value) => console.log("Packet: ", value));
 
-    this.otherReports$
-    .filter((e) => e.type === 'host_cmd_finished')
-    .onValue((e) => console.log("Cmd Finished"));
+    finishedCommand$.log("Cmd Finished");
 
-    const finishedCommand$ = this.otherReports$
-      .filter((e) => e.type === 'host_cmd_finished')
-      .map((e) => e.type === 'host_cmd_finished');
-
+    // we write a `true` to this whenever a series of packets is going out to the device
     this.startedSend$ = new Bacon.Bus<boolean>();
 
     // true means "it's ok to send", false means "don't send"
@@ -100,17 +102,17 @@ export class SMXStage {
 
     // Set the device info handler
     this.events.otherReports$
-      .filter((e) => e.payload[0] === char2byte("I")) // We send 'i' but for some reason we get back 'I'
+      .filter((e) => e[0] === char2byte("I")) // We send 'i' but for some reason we get back 'I'
       .onValue((value) => this.handleDeviceInfo(value));
 
     // Set the config request handler
     this.events.otherReports$
-      .filter((e) => e.payload[0] === API_COMMAND.GET_CONFIG_V5)
+      .filter((e) => e[0] === API_COMMAND.GET_CONFIG_V5)
       .onValue((value) => this.handleConfig(value));
 
     // Set the test data request handler
     this.events.otherReports$
-      .filter((e) => e.payload[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
+      .filter((e) => e[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
       .onValue((value) => this.handleTestData(value));
 
     // Set the inputs data request handler
@@ -149,26 +151,26 @@ export class SMXStage {
    this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
   }
 
-  private handleConfig(data: Packet) {
-    this.config = new SMXConfig(Array.from(data.payload));
+  private handleConfig(data: Uint8Array) {
+    this.config = new SMXConfig(Array.from(data));
 
     // Right now I just want to confirm that decoding and encoding gives us back the same data
     const encoded_config = this.config.encode();
     if (encoded_config) {
       const buf = new Uint8Array(encoded_config.buffer);
-      console.log("Config Encodes Correctly: ", data.payload.slice(2, -1).toString() === buf.toString());
+      console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === buf.toString());
     }
     console.log("Got Config: ", this.config);
   }
 
-  private handleTestData(data: Packet) {
-    this.test = new SMXSensorTestData(Array.from(data.payload), this.test_mode);
+  private handleTestData(data: Uint8Array) {
+    this.test = new SMXSensorTestData(Array.from(data), this.test_mode);
 
     console.log("Got Test: ", this.test);
   }
 
-  private handleDeviceInfo(data: Packet) {
-    this.info = new SMXDeviceInfo(Array.from(data.payload));
+  private handleDeviceInfo(data: Uint8Array) {
+    this.info = new SMXDeviceInfo(Array.from(data));
 
     console.log("Got Info: ", this.info);
   }

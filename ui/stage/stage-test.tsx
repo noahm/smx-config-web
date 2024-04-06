@@ -1,10 +1,14 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
-import { SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/commands/sensor_test";
 import { FsrPanel } from "./fsr-panel";
-import { StageInputs, type EachPanel, type PanelName } from "../../sdk/commands/inputs";
+import {
+  type PanelName,
+  type SMXStage,
+  SensorTestMode,
+  type SMXPanelTestData,
+  type SMXSensorTestData,
+} from "../../sdk/";
 import { displayTestData$ } from "../state";
-import type { SMXStage } from "../../sdk/smx";
 
 /*
 function useInputState(dev: HIDDevice | undefined) {
