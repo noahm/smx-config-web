@@ -1,22 +1,17 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
 import { FsrPanel } from "./fsr-panel";
-import {
-  type PanelName,
-  type SMXStage,
-  SensorTestMode,
-  type SMXPanelTestData,
-  type SMXSensorTestData,
-  type EachPanel,
-} from "../../sdk/";
+import { type SMXStage, SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/";
 import { displayTestData$ } from "../state";
 
 function useInputState(stage: SMXStage | undefined) {
-  const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
+  const [panelStates, setPanelStates] = useState<Array<boolean> | undefined>();
+  const inputs = stage?.inputs || undefined;
+
   useEffect(() => {
     if (!stage) return;
-    return stage.events.inputState$.onValue(setPanelStates);
-  }, [stage]);
+    return setPanelStates(inputs); //TODO: Figure out why this feels laggy?
+  }, [stage, inputs]);
   return panelStates;
 }
 
@@ -31,15 +26,11 @@ function useTestData(stage: SMXStage | undefined) {
 
     const d = stage;
     async function update() {
-      await d.updateTestData(SensorTestMode.CalibratedValues);
+      d.updateTestData(SensorTestMode.CalibratedValues);
       setTestData(d.test);
-      if (readTestData) {
-        handle = requestAnimationFrame(update);
-      }
     }
 
-    let handle = setInterval(update, 50);
-
+    const handle = setInterval(update, 50);
     return () => clearInterval(handle);
   }, [stage, readTestData]);
 
@@ -59,12 +50,12 @@ export function StageTest({
     return null;
   }
 
-  const entries = Object.entries(testData.panels) as [PanelName, SMXPanelTestData][];
+  const entries = Object.entries(testData.panels) as [string, SMXPanelTestData][];
 
   return (
     <div className="pad">
       {entries.map(([key, data]) => (
-        <FsrPanel active={inputState?.[key]} key={key} data={data} />
+        <FsrPanel active={inputState?.[Number.parseInt(key)]} key={key} data={data} />
       ))}
     </div>
   );

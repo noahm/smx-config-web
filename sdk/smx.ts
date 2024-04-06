@@ -74,7 +74,6 @@ class SMXEvents {
   }
 
   private async writeToHID(value: Array<number>) {
-    //this.startedSend$.push(true);
     console.log("writing to HID");
     await send_data(this.dev, value);
   }
@@ -117,7 +116,7 @@ export class SMXStage {
     this.events.inputState$.onValue((value) => this.handleInputs(value));
   }
 
-  async init() {
+  async init(): Promise<SMXConfig> {
     /**
      * This is a special RequestDeviceInfo packet. This is the same as sending an
      * 'i' command, but we can send it safely at any time, even if another
@@ -127,23 +126,23 @@ export class SMXStage {
 
     this.updateDeviceInfo();
 
-    // Request the config for this stage
-    this.updateConfig();
-
     // Request some initial test data
     this.updateTestData();
+
+    // Request the config for this stage
+    return this.updateConfig();
   }
 
   updateDeviceInfo() {
     this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
   }
 
-  updateConfig() {
+  updateConfig(): Promise<SMXConfig> {
     this.events.output$.push([API_COMMAND.GET_CONFIG_V5]);
     return this.configResponse$.firstToPromise();
   }
 
-  updateTestData(mode: SensorTestMode | null = null) {
+  updateTestData(mode: SensorTestMode | null = null): void {
     if (mode) {
       this.test_mode = mode;
     }
