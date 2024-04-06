@@ -36,7 +36,9 @@ function useTestData(stage: SMXStage | undefined) {
     async function update() {
       await d.updateTestData(SensorTestMode.CalibratedValues);
       setTestData(d.test);
-      handle = requestAnimationFrame(update);
+      if (readTestData) {
+        handle = requestAnimationFrame(update);
+      }
     }
 
     let handle = setInterval(update, 50);
