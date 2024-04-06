@@ -7,25 +7,18 @@ import {
   SensorTestMode,
   type SMXPanelTestData,
   type SMXSensorTestData,
+  type EachPanel,
 } from "../../sdk/";
 import { displayTestData$ } from "../state";
 
-/*
-function useInputState(dev: HIDDevice | undefined) {
+function useInputState(stage: SMXStage | undefined) {
   const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
   useEffect(() => {
-    if (!dev) return;
-    function handleInputReport(e: HIDInputReportEvent) {
-      if (e.reportId !== HID_REPORT_INPUT_STATE) return;
-      const state = StageInputs.decode(e.data, true);
-      setPanelStates(state);
-    }
-    dev.addEventListener("inputreport", handleInputReport);
-    return () => dev.removeEventListener("inputreport", handleInputReport);
-  }, [dev]);
+    if (!stage) return;
+    return stage.events.inputState$.onValue(setPanelStates);
+  }, [stage]);
   return panelStates;
 }
-*/
 
 function useTestData(stage: SMXStage | undefined) {
   const readTestData = useAtomValue(displayTestData$);
@@ -60,7 +53,7 @@ export function StageTest({
 }) {
   const stage = useAtomValue(stageAtom);
   const testData = useTestData(stage);
-  // const inputState = useInputState(stage);
+  const inputState = useInputState(stage);
 
   if (!testData) {
     return null;
@@ -71,7 +64,7 @@ export function StageTest({
   return (
     <div className="pad">
       {entries.map(([key, data]) => (
-        <FsrPanel active={false} key={key} data={data} />
+        <FsrPanel active={inputState?.[key]} key={key} data={data} />
       ))}
     </div>
   );
