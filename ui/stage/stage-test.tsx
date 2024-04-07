@@ -10,19 +10,9 @@ const UI_UPDATE_RATE = 50;
 
 function useInputState(stage: SMXStage | undefined) {
   const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
-
   useEffect(() => {
-    if (!stage) return;
-
-    const d = stage;
-    async function update() {
-      setPanelStates(d.inputs);
-    }
-
-    const handle = setInterval(update, UI_UPDATE_RATE);
-    return () => clearInterval(handle);
+    return stage?.inputState$.throttle(UI_UPDATE_RATE).onValue(setPanelStates);
   }, [stage]);
-
   return panelStates;
 }
 
