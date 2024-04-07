@@ -1,5 +1,5 @@
 import { atom, createStore } from "jotai";
-import type { SMXStage } from "../sdk/smx";
+import type { SMXStage } from "../sdk";
 
 export const browserSupported = "hid" in navigator;
 

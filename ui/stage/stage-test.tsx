@@ -1,27 +1,29 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
-import { SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/commands/sensor_test";
 import { FsrPanel } from "./fsr-panel";
-import { StageInputs, type EachPanel, type PanelName } from "../../sdk/commands/inputs";
+import { type SMXStage, SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/";
 import { displayTestData$ } from "../state";
-import type { SMXStage } from "../../sdk/smx";
 
-/*
-function useInputState(dev: HIDDevice | undefined) {
-  const [panelStates, setPanelStates] = useState<EachPanel<boolean> | undefined>();
+// UI Update Rate in Milliseconds
+const UI_UPDATE_RATE = 50;
+
+function useInputState(stage: SMXStage | undefined) {
+  const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
+
   useEffect(() => {
-    if (!dev) return;
-    function handleInputReport(e: HIDInputReportEvent) {
-      if (e.reportId !== HID_REPORT_INPUT_STATE) return;
-      const state = StageInputs.decode(e.data, true);
-      setPanelStates(state);
+    if (!stage) return;
+
+    const d = stage;
+    async function update() {
+      setPanelStates(d.inputs);
     }
-    dev.addEventListener("inputreport", handleInputReport);
-    return () => dev.removeEventListener("inputreport", handleInputReport);
-  }, [dev]);
+
+    const handle = setInterval(update, UI_UPDATE_RATE);
+    return () => clearInterval(handle);
+  }, [stage]);
+
   return panelStates;
 }
-*/
 
 function useTestData(stage: SMXStage | undefined) {
   const readTestData = useAtomValue(displayTestData$);
@@ -34,13 +36,11 @@ function useTestData(stage: SMXStage | undefined) {
 
     const d = stage;
     async function update() {
-      await d.updateTestData(SensorTestMode.CalibratedValues);
+      d.updateTestData(SensorTestMode.CalibratedValues);
       setTestData(d.test);
-      handle = requestAnimationFrame(update);
     }
 
-    let handle = setInterval(update, 50);
-
+    const handle = setInterval(update, UI_UPDATE_RATE);
     return () => clearInterval(handle);
   }, [stage, readTestData]);
 
@@ -54,18 +54,18 @@ export function StageTest({
 }) {
   const stage = useAtomValue(stageAtom);
   const testData = useTestData(stage);
-  // const inputState = useInputState(stage);
+  const inputState = useInputState(stage);
 
-  if (!testData) {
+  if (!testData || !inputState) {
     return null;
   }
 
-  const entries = Object.entries(testData.panels) as [PanelName, SMXPanelTestData][];
+  const entries = Object.entries(testData.panels) as [string, SMXPanelTestData][];
 
   return (
     <div className="pad">
       {entries.map(([key, data]) => (
-        <FsrPanel active={false} key={key} data={data} />
+        <FsrPanel active={inputState?.[Number.parseInt(key)]} key={key} data={data} />
       ))}
     </div>
   );

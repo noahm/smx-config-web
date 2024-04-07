@@ -93,7 +93,7 @@ export class SMXPanelTestData {
   dip_switch_value = -1;
   bad_jumper: Array<boolean> = Array(SENSOR_COUNT).fill(false);
 
-  constructor(data: Decoded<typeof detail_data_t>, mode: SensorTestMode) {
+  constructor(data: Decoded<typeof detail_data_t>, mode: SensorTestMode, isFsr: boolean) {
     /**
      * Check the header. this is always `false true false` or `0 1 0` to identify it as a response,
      * and not as random steps from the player.
@@ -134,10 +134,10 @@ export class SMXPanelTestData {
      * These are signed as they can be negative, but I imagine them going
      * negative is just kind of noise from the hardware.
      */
-    this.sensor_level = data.sensors.map((value) => this.clamp_sensor_value(value, mode));
+    this.sensor_level = data.sensors.map((value) => this.clamp_sensor_value(value, mode, isFsr));
   }
 
-  private clamp_sensor_value(value: number, mode: SensorTestMode) {
+  private clamp_sensor_value(value: number, mode: SensorTestMode, isFsr: boolean) {
     if (mode === SensorTestMode.Noise) {
       /**
        * In Noise mode, we receive standard deviation values squared.
@@ -145,18 +145,13 @@ export class SMXPanelTestData {
        * This makes the number different than the configured value
        * (square it to convert back), but without this we display a bunch
        * of four and five digit numbers that are too hard to read.
-       *
-       * TODO: Do we want to round this value or just display decimal values?
        */
       return Math.sqrt(value);
     }
 
-    // TODO: We need a way to pass in if the stage we are getting this data for
-    // is using FSRs or not. Defined as `true` for now.
-    const isFSR = true;
-
     // TODO: This may be necessary for defining sensor value vertial bars in the UI
-    // const max_value = isFSR ? 250 : 500;
+    // This will probably go in the UI and not here
+    // const max_value = isFsr ? 250 : 500;
 
     let clamped_value = value;
     /**
@@ -169,7 +164,7 @@ export class SMXPanelTestData {
     }
 
     // FSR values are bitshifted right by 2 (effectively a div by 4).
-    if (isFSR) {
+    if (isFsr) {
       clamped_value >>= 2;
     }
 
@@ -180,7 +175,7 @@ export class SMXPanelTestData {
 export class SMXSensorTestData {
   panels: Array<SMXPanelTestData> = [];
 
-  constructor(data: Array<number>, mode: SensorTestMode) {
+  constructor(data: Array<number>, mode: SensorTestMode, isFsr: boolean) {
     /**
      * The first 3 bytes are the preamble.
      *
@@ -236,7 +231,7 @@ export class SMXSensorTestData {
       }
 
       // Generate an SMXPanelTestData object for each panel
-      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), data_mode));
+      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), data_mode, isFsr));
     }
   }
 }

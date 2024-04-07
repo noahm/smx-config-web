@@ -1,6 +1,5 @@
 import cn from "classnames";
-import type { SMXPanelTestData } from "../../sdk/commands/sensor_test";
-import { Sensor } from "../../sdk/api";
+import { Sensor, type SMXPanelTestData } from "../../sdk";
 
 interface EnabledProps {
   data: SMXPanelTestData;
