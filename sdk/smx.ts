@@ -68,14 +68,17 @@ class SMXEvents {
 
 export class SMXStage {
   private dev: HIDDevice;
-  public readonly events: SMXEvents;
+  private readonly events: SMXEvents;
+  private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
+  private debug = false;
+
   info: SMXDeviceInfo | null = null;
   config: SMXConfig | null = null;
   test: SMXSensorTestData | null = null;
   inputs: Array<boolean> | null = null;
-  private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
-  private debug = false;
 
+  public readonly inputState$: Bacon.EventStream<boolean[]>;
+  public readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
   public readonly configResponse$: Bacon.EventStream<SMXConfig>;
   public readonly testDataResponse$: Bacon.EventStream<SMXSensorTestData>;
 
@@ -90,9 +93,9 @@ export class SMXStage {
     });
 
     // Set the device info handler
-    this.events.otherReports$
+    this.deviceInfo$ = this.events.otherReports$
       .filter((e) => e[0] === char2byte("I")) // We send 'i' but for some reason we get back 'I'
-      .onValue((value) => this.handleDeviceInfo(value));
+      .map((value) => this.handleDeviceInfo(value));
 
     // Set the config request handler
     this.configResponse$ = this.events.otherReports$
@@ -109,7 +112,7 @@ export class SMXStage {
     // subscribed to `this.testDataResponse$`, otherwise nothing happens!
 
     // Set the inputs data request handler
-    this.events.inputState$.onValue((value) => this.handleInputs(value));
+    this.inputState$ = this.events.inputState$.map((value) => this.handleInputs(value));
   }
 
   async init(): Promise<SMXConfig> {
@@ -125,6 +128,7 @@ export class SMXStage {
 
   updateDeviceInfo() {
     this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
+    return this.deviceInfo$.firstToPromise();
   }
 
   updateConfig(): Promise<SMXConfig> {
@@ -169,6 +173,7 @@ export class SMXStage {
     this.info = new SMXDeviceInfo(Array.from(data));
 
     this.debug && console.log("Got Info: ", this.info);
+    return this.info;
   }
 
   private handleInputs(data: Decoded<typeof StageInputs>) {
@@ -183,5 +188,6 @@ export class SMXStage {
       data.down,
       data.down_right,
     ];
+    return this.inputs;
   }
 }
