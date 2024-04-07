@@ -47,9 +47,7 @@ class SMXEvents {
       .filter((e) => e.type === "host_cmd_finished")
       .map((e) => e.type === "host_cmd_finished");
 
-    // this.otherReports$.onValue((value) => console.log("Packet: ", value));
-
-    finishedCommand$.log("Cmd Finished");
+    // finishedCommand$.log("Cmd Finished");
 
     const okSend$ = finishedCommand$.startWith(true);
 
@@ -76,7 +74,7 @@ export class SMXStage {
   test: SMXSensorTestData | null = null;
   inputs: Array<boolean> | null = null;
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
-  private debug = true;
+  private debug = false;
 
   private configResponse$: Bacon.EventStream<SMXConfig>;
 
@@ -86,8 +84,8 @@ export class SMXStage {
 
     // write outgoing events to the device
     this.events.eventsToSend$.onValue(async (value) => {
-      console.log("writing to HID");
-      await send_data(this.dev, value);
+      this.debug && console.log("writing to HID");
+      await send_data(this.dev, value, this.debug);
     });
 
     // Set the device info handler
@@ -112,13 +110,7 @@ export class SMXStage {
   }
 
   async init(): Promise<SMXConfig> {
-    /**
-     * This is a special RequestDeviceInfo packet. This is the same as sending an
-     * 'i' command, but we can send it safely at any time, even if another
-     * application is talking to the device. Thus we can do this during enumeration.
-     */
-    //await requestSpecialDeviceInfo(this.dev); // Modify `send_data` to accept this somehow?
-
+    // Request the device information
     this.updateDeviceInfo();
 
     // Request some initial test data
@@ -151,22 +143,26 @@ export class SMXStage {
     const encoded_config = this.config.encode();
     if (encoded_config) {
       const buf = new Uint8Array(encoded_config.buffer);
-      console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === buf.toString());
+      this.debug && console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === buf.toString());
     }
-    console.log("Got Config: ", this.config);
+    this.debug && console.log("Got Config: ", this.config);
     return this.config;
   }
 
   private handleTestData(data: Uint8Array) {
-    this.test = new SMXSensorTestData(Array.from(data), this.test_mode);
+    this.test = new SMXSensorTestData(
+      Array.from(data),
+      this.test_mode,
+      this.config?.config?.flags?.PlatformFlags_FSR || true,
+    );
 
-    console.log("Got Test: ", this.test);
+    this.debug && console.log("Got Test: ", this.test);
   }
 
   private handleDeviceInfo(data: Uint8Array) {
     this.info = new SMXDeviceInfo(Array.from(data));
 
-    console.log("Got Info: ", this.info);
+    this.debug && console.log("Got Info: ", this.info);
   }
 
   private handleInputs(data: Decoded<typeof StageInputs>) {

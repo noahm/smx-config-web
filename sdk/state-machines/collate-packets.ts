@@ -5,6 +5,7 @@ import {
   PACKET_FLAG_END_OF_COMMAND,
   PACKET_FLAG_HOST_CMD_FINISHED,
   PACKET_FLAG_START_OF_COMMAND,
+  PACKET_PREAMBLE_SIZE,
 } from "../packet";
 
 interface PacketHandlingState {
@@ -18,6 +19,7 @@ export type Packet = { type: "host_cmd_finished" } | DataPacket;
  * Gets called when a packet is received, returns a tuple of new state and an array of
  */
 export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (state, event) => {
+  // TODO: This whole function could maybe just use a bit more comments
   if (!Bacon.hasValue(event)) {
     console.log("No Event Value");
     return [state, []];
@@ -29,7 +31,7 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
   // console.log("Raw Packet Data: ", data);
 
   // Return if packet is empty
-  if (data.length <= 3) {
+  if (data.length <= PACKET_PREAMBLE_SIZE) {
     console.log("Empty Packet");
     return [state, []];
   }
@@ -44,8 +46,7 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
     console.log("Found Packet Flag Device Info");
   }
 
-  // TODO: Make some consts for these 2's everywhere
-  if (2 + byte_len > data.length) {
+  if (PACKET_PREAMBLE_SIZE + byte_len > data.length) {
     // TODO: Can this even happen???
     console.log("Communication Error: Oversized Packet (ignored)");
     return [state, []];

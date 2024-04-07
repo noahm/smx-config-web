@@ -1,37 +1,5 @@
 import { pad_packet } from "./utils.ts";
 
-/**
- * Gets the next report from the device matching a given reportId,
- * wrapped in a promise for convenience. Times out after 500ms looking
- * for a response.
- */
-export function nextReportCommand(dev: HIDDevice): Promise<DataView> {
-  return new Promise((resolve, reject) => {
-    // set a 500ms timeout
-    // TODO: Should this be longer?
-    const timeoutHandle = window.setTimeout(() => {
-      // stop listening
-      dev.removeEventListener("inputreport", handleReport);
-      reject("timeout");
-    }, 500);
-
-    function handleReport(event: HIDInputReportEvent) {
-      // TODO other more specific filtering here?
-      if (event.reportId !== HID_REPORT_INPUT) {
-        return; // not the report we're looking for
-      }
-      // stop listening
-      dev.removeEventListener("inputreport", handleReport);
-      // stop timeout
-      clearTimeout(timeoutHandle);
-      // return data to caller
-      resolve(event.data);
-    }
-
-    dev.addEventListener("inputreport", handleReport);
-  });
-}
-
 /*
 StepManiaX Stages expect packets that are exactly 64-bytes in length.
 
@@ -43,7 +11,7 @@ Thus, we're going to set the packet length to 63, since the Report ID will
 be added to the data going out, making it 64 bits.
 */
 export const MAX_PACKET_SIZE = 63;
-const PACKET_PREAMBLE_SIZE = 2;
+export const PACKET_PREAMBLE_SIZE = 2;
 
 // USB Communication Packet Flags
 export const PACKET_FLAG_START_OF_COMMAND = 0x04;
@@ -56,9 +24,19 @@ export const HID_REPORT_INPUT_STATE = 0x03;
 export const HID_REPORT_OUTPUT = 0x05;
 export const HID_REPORT_INPUT = 0x06;
 
-// Acknowledge Code
-// TODO: Decide what to do with this
-const ACK_COMMAND = 0x7;
+export async function send_data(dev: HIDDevice, data: Array<number>, debug = false) {
+  // Split data into packets
+  const packets = make_packets(data);
+
+  if (debug) {
+    console.log("Sending Packets: ", packets);
+  }
+
+  // Send each packet
+  for (const packet of packets) {
+    await dev.sendReport(HID_REPORT_OUTPUT, packet);
+  }
+}
 
 export function make_packets(data: Array<number>): Array<Uint8Array> {
   const packets = [];
@@ -99,28 +77,4 @@ export function make_packets(data: Array<number>): Array<Uint8Array> {
   }
 
   return packets;
-}
-
-export async function makeSpecialDevicePacket(dev: HIDDevice, debug = false) {
-  const packet = pad_packet([PACKET_FLAG_DEVICE_INFO]);
-
-  if (debug) {
-    console.log("Sending Packets: ", packet);
-  }
-
-  await dev.sendReport(HID_REPORT_OUTPUT, packet);
-}
-
-export async function send_data(dev: HIDDevice, data: Array<number>, debug = false) {
-  // Split data into packets
-  const packets = make_packets(data);
-
-  if (debug) {
-    console.log("Sending Packets: ", packets);
-  }
-
-  // Send each packet
-  for (const packet of packets) {
-    await dev.sendReport(HID_REPORT_OUTPUT, packet);
-  }
 }

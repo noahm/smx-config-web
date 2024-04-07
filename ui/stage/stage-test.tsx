@@ -4,14 +4,24 @@ import { FsrPanel } from "./fsr-panel";
 import { type SMXStage, SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/";
 import { displayTestData$ } from "../state";
 
+// UI Update Rate in Milliseconds
+const UI_UPDATE_RATE = 50;
+
 function useInputState(stage: SMXStage | undefined) {
-  const [panelStates, setPanelStates] = useState<Array<boolean> | undefined>();
-  const inputs = stage?.inputs || undefined;
+  const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
 
   useEffect(() => {
     if (!stage) return;
-    return setPanelStates(inputs); //TODO: Figure out why this feels laggy?
-  }, [stage, inputs]);
+
+    const d = stage;
+    async function update() {
+      setPanelStates(d.inputs);
+    }
+
+    const handle = setInterval(update, UI_UPDATE_RATE);
+    return () => clearInterval(handle);
+  }, [stage]);
+
   return panelStates;
 }
 
@@ -30,7 +40,7 @@ function useTestData(stage: SMXStage | undefined) {
       setTestData(d.test);
     }
 
-    const handle = setInterval(update, 50);
+    const handle = setInterval(update, UI_UPDATE_RATE);
     return () => clearInterval(handle);
   }, [stage, readTestData]);
 
@@ -46,7 +56,7 @@ export function StageTest({
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
 
-  if (!testData) {
+  if (!testData || !inputState) {
     return null;
   }
 
