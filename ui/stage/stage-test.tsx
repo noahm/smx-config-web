@@ -1,8 +1,9 @@
 import { useAtomValue, type Atom } from "jotai";
 import { useEffect, useState } from "react";
 import { FsrPanel } from "./fsr-panel";
-import { type SMXStage, SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "../../sdk/";
+import { type SMXStage, SensorTestMode, type SMXSensorTestData } from "../../sdk/";
 import { displayTestData$ } from "../state";
+import { timez } from "./util";
 
 // UI Update Rate in Milliseconds
 const UI_UPDATE_RATE = 50;
@@ -26,23 +27,23 @@ function useInputState(stage: SMXStage | undefined) {
 }
 
 function useTestData(stage: SMXStage | undefined) {
-  const readTestData = useAtomValue(displayTestData$);
+  const testDataMode = useAtomValue(displayTestData$);
   const [testData, setTestData] = useState<SMXSensorTestData | null>();
 
+  // request updates on an interval
   useEffect(() => {
-    if (!stage || !readTestData) {
+    if (!stage || !testDataMode) {
       return;
     }
-
-    const d = stage;
-    async function update() {
-      d.updateTestData(SensorTestMode.CalibratedValues);
-      setTestData(d.test);
-    }
-
-    const handle = setInterval(update, UI_UPDATE_RATE);
+    const testMode = testDataMode === "raw" ? SensorTestMode.UncalibratedValues : SensorTestMode.CalibratedValues;
+    const handle = setInterval(() => stage.updateTestData(testMode), UI_UPDATE_RATE);
     return () => clearInterval(handle);
-  }, [stage, readTestData]);
+  }, [stage, testDataMode]);
+
+  // ingest responses and display in UI
+  useEffect(() => {
+    return stage?.testDataResponse$.onValue(setTestData);
+  }, [stage]);
 
   return testData;
 }
@@ -56,16 +57,10 @@ export function StageTest({
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
 
-  if (!testData || !inputState) {
-    return null;
-  }
-
-  const entries = Object.entries(testData.panels) as [string, SMXPanelTestData][];
-
   return (
     <div className="pad">
-      {entries.map(([key, data]) => (
-        <FsrPanel active={inputState?.[Number.parseInt(key)]} key={key} data={data} />
+      {timez(9, (idx) => (
+        <FsrPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />
       ))}
     </div>
   );

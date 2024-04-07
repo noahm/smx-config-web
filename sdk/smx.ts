@@ -76,7 +76,8 @@ export class SMXStage {
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues; // TODO: Maybe we just let this be public
   private debug = false;
 
-  private configResponse$: Bacon.EventStream<SMXConfig>;
+  public readonly configResponse$: Bacon.EventStream<SMXConfig>;
+  public readonly testDataResponse$: Bacon.EventStream<SMXSensorTestData>;
 
   constructor(dev: HIDDevice) {
     this.dev = dev;
@@ -101,9 +102,11 @@ export class SMXStage {
     // subscribed to `this.configResponse$`, otherwise nothing happens!
 
     // Set the test data request handler
-    this.events.otherReports$
+    this.testDataResponse$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
-      .onValue((value) => this.handleTestData(value));
+      .map((value) => this.handleTestData(value));
+    // note that the above map function only runs when there are listeners
+    // subscribed to `this.testDataResponse$`, otherwise nothing happens!
 
     // Set the inputs data request handler
     this.events.inputState$.onValue((value) => this.handleInputs(value));
@@ -129,11 +132,12 @@ export class SMXStage {
     return this.configResponse$.firstToPromise();
   }
 
-  updateTestData(mode: SensorTestMode | null = null): void {
+  updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
     if (mode) {
       this.test_mode = mode;
     }
     this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
+    return this.testDataResponse$.firstToPromise();
   }
 
   private handleConfig(data: Uint8Array) {
@@ -157,6 +161,8 @@ export class SMXStage {
     );
 
     this.debug && console.log("Got Test: ", this.test);
+
+    return this.test;
   }
 
   private handleDeviceInfo(data: Uint8Array) {

@@ -9,7 +9,7 @@ export const uiState = createStore();
 /** backing atom of all known stages */
 export const stages$ = atom<Record<number, SMXStage | undefined>>({});
 
-export const displayTestData$ = atom(false);
+export const displayTestData$ = atom<"" | "raw" | "calibrated">("");
 
 /** current p1 pad, derived from devices$ above */
 export const p1Stage$ = atom<SMXStage | undefined, [SMXStage | undefined], void>(

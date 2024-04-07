@@ -5,6 +5,7 @@ import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
 import { browserSupported, displayTestData$, p1Stage$, p2Stage$, statusText$ } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
+import { TypedSelect } from "./common/typed-select.tsx";
 
 export function UI() {
   useEffect(() => {
@@ -54,11 +55,20 @@ function StatusDisplay() {
 }
 
 function TestDataDisplayToggle() {
-  const [enabled, setToggle] = useAtom(displayTestData$);
+  const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
     <label>
-      <input type="checkbox" checked={enabled} onChange={() => setToggle((prev) => !prev)} /> Read Stage Test Values
+      Read Test Values:{" "}
+      <TypedSelect
+        value={testMode}
+        options={[
+          ["", "None"],
+          ["calibrated", "Calibrated"],
+          ["raw", "Raw"],
+        ]}
+        onOptSelected={(next) => setTestMode(next)}
+      />
     </label>
   );
 }

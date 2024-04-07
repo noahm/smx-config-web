@@ -2,23 +2,38 @@ import cn from "classnames";
 import { Sensor, type SMXPanelTestData } from "../../sdk";
 
 interface EnabledProps {
-  data: SMXPanelTestData;
+  testData: SMXPanelTestData | undefined;
   active: boolean | undefined;
 }
 
-export function FsrPanel(props: EnabledProps) {
-  const { bad_sensor_input, have_data_from_panel, sensor_level } = props.data;
+export function FsrPanel({ testData, active }: EnabledProps) {
   return (
     <div
       className={cn("panel", {
-        commErr: !have_data_from_panel,
-        active: props.active,
+        commErr: testData && !testData.have_data_from_panel,
+        active: active,
       })}
     >
-      <Fsr className="top horiz" badInput={bad_sensor_input[Sensor.Up]} value={sensor_level[Sensor.Up]} />
-      <Fsr className="right vert" badInput={bad_sensor_input[Sensor.Right]} value={sensor_level[Sensor.Right]} />
-      <Fsr className="bottom horiz" badInput={bad_sensor_input[Sensor.Down]} value={sensor_level[Sensor.Down]} />
-      <Fsr className="left vert" badInput={bad_sensor_input[Sensor.Left]} value={sensor_level[Sensor.Left]} />
+      <Fsr
+        className="top horiz"
+        badInput={testData?.bad_sensor_input[Sensor.Up]}
+        value={testData?.sensor_level[Sensor.Up]}
+      />
+      <Fsr
+        className="right vert"
+        badInput={testData?.bad_sensor_input[Sensor.Right]}
+        value={testData?.sensor_level[Sensor.Right]}
+      />
+      <Fsr
+        className="bottom horiz"
+        badInput={testData?.bad_sensor_input[Sensor.Down]}
+        value={testData?.sensor_level[Sensor.Down]}
+      />
+      <Fsr
+        className="left vert"
+        badInput={testData?.bad_sensor_input[Sensor.Left]}
+        value={testData?.sensor_level[Sensor.Left]}
+      />
     </div>
   );
 }
@@ -29,8 +44,8 @@ function Fsr({
   value,
 }: {
   className?: string;
-  badInput: boolean;
-  value: number;
+  badInput?: boolean;
+  value?: number;
 }) {
   return <div className={cn("fsr", className)}>{badInput ? "!!" : value}</div>;
 }
