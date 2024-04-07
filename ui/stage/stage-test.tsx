@@ -9,6 +9,7 @@ import { timez } from "./util";
 const UI_UPDATE_RATE = 50;
 
 function useInputState(stage: SMXStage | undefined) {
+  const readTestData = useAtomValue(displayTestData$);
   const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
   useEffect(() => {
     return stage?.inputState$.throttle(UI_UPDATE_RATE).onValue(setPanelStates);
@@ -25,7 +26,17 @@ function useTestData(stage: SMXStage | undefined) {
     if (!stage || !testDataMode) {
       return;
     }
-    const testMode = testDataMode === "raw" ? SensorTestMode.UncalibratedValues : SensorTestMode.CalibratedValues;
+    let testMode = SensorTestMode.UncalibratedValues;
+    switch (testDataMode) {
+      case "calibrated":
+        testMode = SensorTestMode.CalibratedValues;
+        break;
+      case "noise":
+        testMode = SensorTestMode.Noise;
+        break;
+      case "tare":
+        testMode = SensorTestMode.Tare;
+    }
     const handle = setInterval(() => stage.updateTestData(testMode), UI_UPDATE_RATE);
     return () => clearInterval(handle);
   }, [stage, testDataMode]);

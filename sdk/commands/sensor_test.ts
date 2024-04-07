@@ -146,7 +146,7 @@ export class SMXPanelTestData {
        * (square it to convert back), but without this we display a bunch
        * of four and five digit numbers that are too hard to read.
        */
-      return Math.sqrt(value);
+      return Math.round((Math.sqrt(value) + Number.EPSILON) * 100) / 100;
     }
 
     // TODO: This may be necessary for defining sensor value vertial bars in the UI
