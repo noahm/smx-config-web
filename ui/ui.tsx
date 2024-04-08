@@ -6,6 +6,7 @@ import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
 import { browserSupported, displayTestData$, p1Stage$, p2Stage$, statusText$ } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
+import { SensorTestMode } from "../sdk/index.ts";
 
 export function UI() {
   useEffect(() => {
@@ -66,6 +67,8 @@ function TestDataDisplayToggle() {
           ["", "None"],
           ["calibrated", "Calibrated"],
           ["raw", "Raw"],
+          ["noise", "Noise"],
+          ["tare", "Tare"],
         ]}
         onOptSelected={(next) => setTestMode(next)}
       />

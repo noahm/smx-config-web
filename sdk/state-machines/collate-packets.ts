@@ -8,12 +8,15 @@ import {
   PACKET_PREAMBLE_SIZE,
 } from "../packet";
 
+const ACK_PACKET = 0x7;
+
 interface PacketHandlingState {
   currentPacket: Uint8Array;
 }
 
 export type DataPacket = { type: "data"; payload: Uint8Array };
-export type Packet = { type: "host_cmd_finished" } | DataPacket;
+export type AckPacket = { type: "ack" };
+export type Packet = { type: "host_cmd_finished" } | DataPacket | AckPacket;
 
 /**
  * Gets called when a packet is received, returns a tuple of new state and an array of
@@ -53,9 +56,15 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
   }
 
   // The data exists after the first 2 bytes
-  const dataBody = data.slice(2, 2 + byte_len);
+  const dataBody = data.slice(PACKET_PREAMBLE_SIZE, PACKET_PREAMBLE_SIZE + byte_len);
 
-  if ((cmd & PACKET_FLAG_START_OF_COMMAND) === PACKET_FLAG_START_OF_COMMAND && state.currentPacket.length > 0) {
+  /**
+   * If packet starts with `ACK_PACKET`, the `byte_len` is 0, and the whole array is just 0,
+   * then this is an ack packet.
+   */
+  const isAck = (cmd & ACK_PACKET) === ACK_PACKET && byte_len === 0 && dataBody.byteLength === 0;
+
+  if (cmd & PACKET_FLAG_START_OF_COMMAND && state.currentPacket.length > 0) {
     /**
      * When we get a start packet, the read buffer should already be empty. If it isn't,
      * we got a command that didn't end with an END_OF_COMMAND packet and something is wrong.
@@ -85,7 +94,11 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
 
   if ((cmd & PACKET_FLAG_END_OF_COMMAND) === PACKET_FLAG_END_OF_COMMAND) {
     newState = { currentPacket: new Uint8Array(0) };
-    eventsToPass.push({ type: "data", payload: nextPacket });
+    if (isAck) {
+      eventsToPass.push({ type: "ack" });
+    } else {
+      eventsToPass.push({ type: "data", payload: nextPacket });
+    }
   }
 
   return [newState, eventsToPass.map((e) => new Bacon.Next(e))];

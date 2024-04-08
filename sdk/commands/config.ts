@@ -205,7 +205,7 @@ export class SMXConfig {
    * TODO: Make this private again later, and maybe make a function called
    * "write_to_stage" or something? Depends on how we want to handle writing/reading
    */
-  encode(): DataView {
-    return smx_config_t.encode(this.config, true);
+  encode(): Array<number> {
+    return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
   }
 }

@@ -1,5 +1,5 @@
 import { atom, createStore } from "jotai";
-import type { SMXStage } from "../sdk";
+import { SensorTestMode, type SMXStage } from "../sdk";
 
 export const browserSupported = "hid" in navigator;
 
@@ -9,7 +9,7 @@ export const uiState = createStore();
 /** backing atom of all known stages */
 export const stages$ = atom<Record<number, SMXStage | undefined>>({});
 
-export const displayTestData$ = atom<"" | "raw" | "calibrated">("");
+export const displayTestData$ = atom<"" | "raw" | "calibrated" | "noise" | "tare">("");
 
 /** current p1 pad, derived from devices$ above */
 export const p1Stage$ = atom<SMXStage | undefined, [SMXStage | undefined], void>(
