@@ -12,8 +12,10 @@ export function TypedSelect<Opts extends string>(props: Props<Opts>) {
 
   return (
     <select {...selectProps} onChange={(e) => onOptSelected?.(e.currentTarget.value as Opts)}>
-      {options.map(([key, label]) => (
-        <option value={key}>{label}</option>
+      {options.map(([value, label]) => (
+        <option value={value} key={value}>
+          {label}
+        </option>
       ))}
     </select>
   );
