@@ -30,3 +30,7 @@ $ yarn start
 # apply all auto-fixes to formatting, style, etc
 $ yarn lint --apply
 ```
+
+### Credit
+
+This project is heavily based on [pySMX](https://github.com/fchorney/pySMX) which is heavily based on the original [StepManiaX SDK](https://github.com/steprevolution/stepmaniax-sdk).
