@@ -20,7 +20,7 @@
   "author": "Noah Manneschmidt <noah@manneschmidt.net>",
   "license": "MIT",
   "dependencies": {
-    "@nmann/struct-buffer": "^5.4.0",
+    "@nmann/struct-buffer": "^5.4.1",
     "baconjs": "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch",
     "classnames": "^2.5.1",
     "jotai": "^2.8.0",

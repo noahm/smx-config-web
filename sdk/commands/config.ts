@@ -1,5 +1,6 @@
-import { StructBuffer, bits, uint8_t, uint16_t } from "@nmann/struct-buffer";
+import { StructBuffer, bits, uint8_t, uint16_t, sbytes } from "@nmann/struct-buffer";
 import { EnabledSensors } from "./enabled-sensors.ts";
+import { Panel } from "../api.ts";
 
 export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -188,24 +189,323 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
   padding: uint8_t[49],
 });
 
+const NEW_CONFIG_INIT = sbytes(
+  [
+    // masterVersion : 255
+    "FF",
+    // configVersion : 5
+    "05",
+    // flags : 0
+    "00",
+    // debounceNodelayMilliseconds : 0
+    "0000",
+    // debounceDelayMilliseconds : 0
+    "0000",
+    // panelDebounceMicroseconds : 4000
+    "0FA0",
+    // autoCalibrationMaxDeviation : 100
+    "64",
+    // badSensorMinimumDelaySeconds : 15
+    "0F",
+    // autoCalibrationAveragesPerUpdate : 60
+    "003C",
+    // autoCalibrationSamplesPerAverage : 500
+    "01F4",
+    // autoCalibrationMaxTare : 65535
+    "FFFF",
+    // enabledSensors
+    "00".repeat(5),
+    // autoLightsTimeout : 1000 / 128 (1 second)
+    "07",
+    // stepColor
+    "00".repeat(3 * 9),
+    // platformStripColor
+    "00".repeat(3),
+    // autoLightPanelMask : 65535
+    "FFFF",
+    // panelRotation
+    "00",
+    // packedSensorSettings
+    "00".repeat(16 * 9),
+    // preDetailsDelayMilliseconds : 5
+    "05",
+    // padding
+    "00".repeat(49),
+  ].join(),
+);
+
+const smx_old_config_t = new StructBuffer("smx_old_config_t", {
+  unused1: uint8_t[6],
+
+  masterDebounceMilliseconds: uint16_t,
+
+  // was "cardinal"
+  panelThreshold7Low: uint8_t,
+  panelThreshold7High: uint8_t,
+
+  // was "center"
+  panelThreshold4Low: uint8_t,
+  panelThreshold4High: uint8_t,
+
+  // was "corner"
+  panelThreshold2Low: uint8_t,
+  panelThreshold2High: uint8_t,
+
+  panelDebounceMicroseconds: uint16_t,
+  autoCalibrationPeriodMilliseconds: uint16_t,
+  autoCalibrationMaxDeviation: uint8_t,
+  badSensorMinimumDelaySeconds: uint8_t,
+  autoCalibrationAveragesPerUpdate: uint16_t,
+
+  unused2: uint8_t[2],
+
+  // was "up"
+  panelThreshold1Low: uint8_t,
+  panelThreshold1High: uint8_t,
+
+  enabledSensors: new EnabledSensors(),
+
+  autoLightsTimeout: uint8_t,
+
+  stepColor: rgb_t[9],
+
+  panelRotation: uint8_t,
+
+  autoCalibrationSamplesPerAverage: uint16_t,
+
+  masterVersion: uint8_t,
+  configVersion: uint8_t,
+
+  unused3: uint8_t[10],
+
+  panelThreshold0Low: uint8_t,
+  panelThreshold0High: uint8_t,
+  panelThreshold3Low: uint8_t,
+  panelThreshold3High: uint8_t,
+  panelThreshold5Low: uint8_t,
+  panelThreshold5High: uint8_t,
+  panelThreshold6Low: uint8_t,
+  panelThreshold6High: uint8_t,
+  panelThreshold8Low: uint8_t,
+  panelThreshold8High: uint8_t,
+
+  debounceDelayMilliseconds: uint16_t,
+
+  padding: uint8_t[164],
+});
+
+const OLD_CONFIG_INIT = sbytes(
+  [
+    // unused
+    "FF".repeat(6),
+    // masterDebounceMilliseconds
+    "0000",
+    // panelThreshold{7/4/2}{Low/High}
+    "FF FF FF FF FF FF",
+    // panelDebounceMicroseconds : 4000
+    "0FA0",
+    // autoCalibrationPeriodMilliseconds : 1000
+    "03E8",
+    // autoCalibrationMaxDeviation : 100
+    "64",
+    // badSensorMinimumDelaySeconds : 15
+    "0F",
+    // autoCalibrationAveragesPerUpdate : 60
+    "003C",
+    // unused
+    "FFFF",
+    // panelThreshold1{Low/High}
+    "FF FF",
+    // enabledSensors
+    "00".repeat(5),
+    // autoLightsTimeout : 1000 / 128 (1 second)
+    "07",
+    // StepColor
+    "00".repeat(3 * 9),
+    // panelRotation
+    "00",
+    // autoCalibrationSamplesPerAverage : 500
+    "01F4",
+    // masterVersion
+    "FF",
+    // configVersion : 3
+    "03",
+    // unused
+    "FF".repeat(10),
+    // panelThreshold{0/3/5/6/8}{Low/High}
+    "FF FF FF FF FF FF FF FF FF FF",
+    // debounceDelayMilliseconds : 0
+    "0000",
+    // padding
+    "00".repeat(164),
+  ].join(),
+);
+
 /**
  * The configuration for a connected SMX Stage.
  */
 export class SMXConfig {
   public config: Decoded<typeof smx_config_t>;
+  private oldConfig: Decoded<typeof smx_old_config_t> | null = null;
+  private firmwareVersion: number;
 
   /**
    * Take in the data array and decode it into this.
    */
-  constructor(data: Array<number>) {
-    this.config = smx_config_t.decode(data.slice(2, -1), true);
+  constructor(data: Array<number>, firmware_version: number) {
+    this.firmwareVersion = firmware_version;
+
+    if (this.firmwareVersion <= 5) {
+      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true);
+      this.config = this.convertOldToNew(this.oldConfig);
+    } else {
+      this.config = smx_config_t.decode(data.slice(2, -1), true);
+    }
+  }
+
+  encode(): Array<number> {
+    if (this.firmwareVersion <= 5) {
+      if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
+
+      this.convertNewToOld();
+      return Array.from(new Uint8Array(smx_old_config_t.encode(this.oldConfig, true).buffer));
+    }
+    return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
   }
 
   /**
-   * TODO: Make this private again later, and maybe make a function called
-   * "write_to_stage" or something? Depends on how we want to handle writing/reading
+   * Before encoding the config to send back to an old SMX stage,
+   * we need to copy data from the new config object back into the old config object.
+   *
+   * We don't need to check configVersion here since it's safe to set all fields in the
+   * oldConfig even if the stage doesn't use them.
    */
-  encode(): Array<number> {
-    return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
+  private convertNewToOld() {
+    if (!this.oldConfig) throw new ReferenceError("Can not convert new config to old as oldConfig is null");
+
+    const newConfig = this.config;
+    const oldConfig = this.oldConfig;
+
+    oldConfig.masterDebounceMilliseconds = newConfig.debounceNodelayMilliseconds;
+
+    // was "cardinal"
+    oldConfig.panelThreshold7Low = newConfig.panelSettings[Panel.Down].loadCellLowThreshold;
+    oldConfig.panelThreshold7High = newConfig.panelSettings[Panel.Down].loadCellHighThreshold;
+
+    // was "center"
+    oldConfig.panelThreshold4Low = newConfig.panelSettings[Panel.Center].loadCellLowThreshold;
+    oldConfig.panelThreshold4High = newConfig.panelSettings[Panel.Center].loadCellHighThreshold;
+
+    // was "corner"
+    oldConfig.panelThreshold2Low = newConfig.panelSettings[Panel.UpRight].loadCellLowThreshold;
+    oldConfig.panelThreshold2High = newConfig.panelSettings[Panel.UpRight].loadCellHighThreshold;
+
+    oldConfig.panelDebounceMicroseconds = newConfig.panelDebounceMicroseconds;
+    oldConfig.autoCalibrationMaxDeviation = newConfig.autoCalibrationMaxDeviation;
+    oldConfig.badSensorMinimumDelaySeconds = newConfig.badSensorMinimumDelaySeconds;
+    oldConfig.autoCalibrationAveragesPerUpdate = newConfig.autoCalibrationAveragesPerUpdate;
+
+    // was "up"
+    oldConfig.panelThreshold1Low = newConfig.panelSettings[Panel.Up].loadCellLowThreshold;
+    oldConfig.panelThreshold1High = newConfig.panelSettings[Panel.Up].loadCellHighThreshold;
+
+    oldConfig.enabledSensors = newConfig.enabledSensors;
+    oldConfig.autoLightsTimeout = newConfig.autoLightsTimeout;
+    oldConfig.stepColor = newConfig.stepColor;
+    oldConfig.panelRotation = newConfig.panelRotation;
+    oldConfig.autoCalibrationSamplesPerAverage = newConfig.autoCalibrationSamplesPerAverage;
+
+    oldConfig.masterVersion = newConfig.masterVersion;
+    oldConfig.configVersion = newConfig.configVersion;
+
+    oldConfig.panelThreshold0Low = newConfig.panelSettings[Panel.UpLeft].loadCellLowThreshold;
+    oldConfig.panelThreshold0High = newConfig.panelSettings[Panel.UpLeft].loadCellHighThreshold;
+
+    oldConfig.panelThreshold3Low = newConfig.panelSettings[Panel.Left].loadCellLowThreshold;
+    oldConfig.panelThreshold3High = newConfig.panelSettings[Panel.Left].loadCellHighThreshold;
+
+    oldConfig.panelThreshold5Low = newConfig.panelSettings[Panel.Right].loadCellLowThreshold;
+    oldConfig.panelThreshold5High = newConfig.panelSettings[Panel.Right].loadCellHighThreshold;
+
+    oldConfig.panelThreshold6Low = newConfig.panelSettings[Panel.DownLeft].loadCellLowThreshold;
+    oldConfig.panelThreshold6High = newConfig.panelSettings[Panel.DownLeft].loadCellHighThreshold;
+
+    oldConfig.panelThreshold8Low = newConfig.panelSettings[Panel.DownRight].loadCellLowThreshold;
+    oldConfig.panelThreshold8High = newConfig.panelSettings[Panel.DownRight].loadCellHighThreshold;
+
+    oldConfig.debounceDelayMilliseconds = newConfig.debounceDelayMilliseconds;
+  }
+
+  /**
+   * Given a parsed old config object, initiate a new config object
+   * and replace the necessary values from the old config.
+   *
+   * Depending on the old configs configVersion, we may exit early as earlier versiond of configs
+   * didn't have certain fields set.
+   *
+   * We return the config object so that the constructor has a definitive `this.config` assignment.
+   *
+   * @param oldConfig Decoded smx_old_config_t object
+   * @returns A new config object built from old config data
+   */
+  private convertOldToNew(oldConfig: Decoded<typeof smx_old_config_t>): Decoded<typeof smx_config_t> {
+    console.log("old config: ", oldConfig);
+    const newConfig = smx_config_t.decode(NEW_CONFIG_INIT);
+
+    newConfig.debounceNodelayMilliseconds = oldConfig.masterDebounceMilliseconds;
+
+    // was "cardinal"
+    newConfig.panelSettings[Panel.Down].loadCellLowThreshold = oldConfig.panelThreshold7Low;
+    newConfig.panelSettings[Panel.Down].loadCellHighThreshold = oldConfig.panelThreshold7High;
+
+    // was "center"
+    newConfig.panelSettings[Panel.Center].loadCellLowThreshold = oldConfig.panelThreshold4Low;
+    newConfig.panelSettings[Panel.Center].loadCellHighThreshold = oldConfig.panelThreshold4High;
+
+    // was "corner"
+    newConfig.panelSettings[Panel.UpRight].loadCellLowThreshold = oldConfig.panelThreshold2Low;
+    newConfig.panelSettings[Panel.UpRight].loadCellHighThreshold = oldConfig.panelThreshold2High;
+
+    newConfig.panelDebounceMicroseconds = oldConfig.panelDebounceMicroseconds;
+    newConfig.autoCalibrationMaxDeviation = oldConfig.autoCalibrationMaxDeviation;
+    newConfig.badSensorMinimumDelaySeconds = oldConfig.badSensorMinimumDelaySeconds;
+    newConfig.autoCalibrationAveragesPerUpdate = oldConfig.autoCalibrationAveragesPerUpdate;
+
+    // was "up"
+    newConfig.panelSettings[Panel.Up].loadCellLowThreshold = oldConfig.panelThreshold1Low;
+    newConfig.panelSettings[Panel.Up].loadCellHighThreshold = oldConfig.panelThreshold1High;
+
+    newConfig.enabledSensors = oldConfig.enabledSensors;
+    newConfig.autoLightsTimeout = oldConfig.autoLightsTimeout;
+    newConfig.stepColor = oldConfig.stepColor;
+    newConfig.panelRotation = oldConfig.panelRotation;
+    newConfig.autoCalibrationSamplesPerAverage = oldConfig.autoCalibrationSamplesPerAverage;
+
+    if (oldConfig.configVersion === 0xff) return newConfig;
+
+    newConfig.masterVersion = oldConfig.masterVersion;
+    newConfig.configVersion = oldConfig.configVersion;
+
+    if (oldConfig.configVersion < 2) return newConfig;
+
+    newConfig.panelSettings[Panel.UpLeft].loadCellLowThreshold = oldConfig.panelThreshold0Low;
+    newConfig.panelSettings[Panel.UpLeft].loadCellHighThreshold = oldConfig.panelThreshold0High;
+
+    newConfig.panelSettings[Panel.Left].loadCellLowThreshold = oldConfig.panelThreshold3Low;
+    newConfig.panelSettings[Panel.Left].loadCellHighThreshold = oldConfig.panelThreshold3High;
+
+    newConfig.panelSettings[Panel.Right].loadCellLowThreshold = oldConfig.panelThreshold5Low;
+    newConfig.panelSettings[Panel.Right].loadCellHighThreshold = oldConfig.panelThreshold5High;
+
+    newConfig.panelSettings[Panel.DownLeft].loadCellLowThreshold = oldConfig.panelThreshold6Low;
+    newConfig.panelSettings[Panel.DownLeft].loadCellHighThreshold = oldConfig.panelThreshold6High;
+
+    newConfig.panelSettings[Panel.DownRight].loadCellLowThreshold = oldConfig.panelThreshold8Low;
+    newConfig.panelSettings[Panel.DownRight].loadCellHighThreshold = oldConfig.panelThreshold8High;
+    if (oldConfig.configVersion < 3) return newConfig;
+
+    newConfig.debounceDelayMilliseconds = oldConfig.debounceDelayMilliseconds;
+
+    return newConfig;
   }
 }
