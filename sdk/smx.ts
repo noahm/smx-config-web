@@ -143,20 +143,32 @@ export class SMXStage {
    * SET_SERIAL_NUMBERS
    */
 
-  writeConfig(): Promise<AckPacket> {
-    if (!this.info) throw new ReferenceError("this.info does not exist for stage. Cannot write config");
-    if (!this.config) throw new ReferenceError("this.config does not exist for stage. Cannot write empty config");
+  private async needsInfo(): Promise<SMXDeviceInfo> {
+    if (!this.info) await this.updateDeviceInfo();
+    if (!this.info) throw new ReferenceError("this.info does not exist for stage.");
 
-    const command = this.info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
-    const encoded_config = this.config.encode();
+    return this.info;
+  }
+
+  private async needsConfig(): Promise<SMXConfig> {
+    if (!this.config) await this.updateConfig();
+    if (!this.config) throw new ReferenceError("this.config does not exist for stage.");
+
+    return this.config;
+  }
+
+  async writeConfig(): Promise<AckPacket> {
+    const info = await this.needsInfo();
+    const config = await this.needsConfig();
+
+    const command = info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
+    const encoded_config = config.encode();
     this.events.output$.push([command, encoded_config.length].concat(encoded_config));
 
     return this.events.ackReports$.firstToPromise();
   }
 
-  setLightStrip(color: RGB): Promise<AckPacket> {
-    if (!this.info) throw new ReferenceError("this.info does not exist for stage. Can not set light strip");
-
+  async setLightStrip(color: RGB): Promise<AckPacket> {
     const led_strip_index = 0; // Always 0
     const number_of_leds = 44; // Always 44 (Unless some older or newer versions have more/less?)
     const rgb = color.toArray();
@@ -166,15 +178,13 @@ export class SMXStage {
       light_command.push(...rgb);
     }
 
-    console.log(light_command);
     this.events.output$.push(light_command);
-
     return this.events.ackReports$.firstToPromise();
   }
 
-  factoryReset(): Promise<AckPacket> {
-    if (!this.info) throw new ReferenceError("this.info does not exist for stage. Cannot factory reset");
-    if (!this.config) throw new ReferenceError("this.config does not exist for stage. Cannot factory reset");
+  async factoryReset(): Promise<AckPacket> {
+    const info = await this.needsInfo();
+    const config = await this.needsConfig();
 
     /**
      * Factory reset resets the platform strip color saved to the
@@ -182,8 +192,8 @@ export class SMXStage {
      *
      * Do this for firmware v5 and up.
      */
-    if (this.info.firmware_version >= 5) {
-      const color = this.config.config.platformStripColor;
+    if (info.firmware_version >= 5) {
+      const color = config.config.platformStripColor;
       this.setLightStrip(new RGB(color.r, color.g, color.b));
     }
 
@@ -191,26 +201,25 @@ export class SMXStage {
     return this.events.ackReports$.firstToPromise();
   }
 
-  forceRecalibration(): Promise<AckPacket> {
+  async forceRecalibration(): Promise<AckPacket> {
     this.events.output$.push([API_COMMAND.FORCE_RECALIBRATION]);
     return this.events.ackReports$.firstToPromise();
   }
 
-  updateDeviceInfo(): Promise<SMXDeviceInfo> {
+  async updateDeviceInfo(): Promise<SMXDeviceInfo> {
     this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
     return this.deviceInfo$.firstToPromise();
   }
 
-  updateConfig(): Promise<SMXConfig> {
-    if (!this.info) throw new ReferenceError("this.info does not exist for stage. Cannot update config");
+  async updateConfig(): Promise<SMXConfig> {
+    const info = await this.needsInfo();
 
-    const command = this.info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
+    const command = info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
     this.events.output$.push([command]);
     return this.configResponse$.firstToPromise();
   }
 
-  updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
-    if (!this.config) throw new ReferenceError("this.config does not exist for stage. Cannot update test data");
+  async updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
     if (mode) this.test_mode = mode;
 
     this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
@@ -218,8 +227,6 @@ export class SMXStage {
   }
 
   private handleConfig(data: Uint8Array): SMXConfig {
-    if (!this.info) throw new ReferenceError("this.info does not exist for stage. Cannot handle config");
-
     /*
     // TODO: Figure out how we want to handle this? I think we can actually convert to/from the new config
     // from the old config
@@ -243,9 +250,8 @@ export class SMXStage {
   }
 
   private handleTestData(data: Uint8Array): SMXSensorTestData {
-    if (!this.config) throw new ReferenceError("this.config does not exist for stage. Cannot handle test data");
-
-    this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config.config.flags.PlatformFlags_FSR);
+    // biome-ignore lint/style/noNonNullAssertion: Config should very much be defined here
+    this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config!.config.flags.PlatformFlags_FSR);
 
     this.debug && console.log("Got Test: ", this.test);
 
