@@ -37,9 +37,16 @@ export enum Panel {
   DownRight = 8,
 }
 
-export enum Sensor {
+export enum FsrSensor {
   Left = 0,
   Right = 1,
   Up = 2,
   Down = 3,
+}
+
+export enum LoadCellSensor {
+  NW = 0,
+  NE = 1,
+  SW = 2,
+  SE = 3,
 }

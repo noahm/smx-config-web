@@ -1,5 +1,5 @@
 import { StructBuffer, bits, createDataView, uint8_t } from "@nmann/struct-buffer";
-import { SENSOR_COUNT, Sensor } from "../api";
+import { SENSOR_COUNT, FsrSensor } from "../api";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -28,14 +28,14 @@ function joinTwoSensors(
   sensorB: Array<boolean> = Array(SENSOR_COUNT).fill(false),
 ): Decoded<typeof twoEnabledSensors_t> {
   return {
-    left0: sensorA[Sensor.Left],
-    right0: sensorA[Sensor.Right],
-    up0: sensorA[Sensor.Up],
-    down0: sensorA[Sensor.Down],
-    left1: sensorB[Sensor.Left],
-    right1: sensorB[Sensor.Right],
-    up1: sensorB[Sensor.Up],
-    down1: sensorB[Sensor.Down],
+    left0: sensorA[FsrSensor.Left],
+    right0: sensorA[FsrSensor.Right],
+    up0: sensorA[FsrSensor.Up],
+    down0: sensorA[FsrSensor.Down],
+    left1: sensorB[FsrSensor.Left],
+    right1: sensorB[FsrSensor.Right],
+    up1: sensorB[FsrSensor.Up],
+    down1: sensorB[FsrSensor.Down],
   };
 }
 

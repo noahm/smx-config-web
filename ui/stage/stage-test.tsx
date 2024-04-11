@@ -1,9 +1,11 @@
 import { useAtomValue, type Atom } from "jotai";
+import type React from "react";
 import { useEffect, useState } from "react";
 import { FsrPanel } from "./fsr-panel";
 import { type SMXStage, SensorTestMode, type SMXSensorTestData } from "../../sdk/";
 import { displayTestData$ } from "../state";
 import { timez } from "./util";
+import { LoadCellPanel } from "./load-cell-panel";
 
 // UI Update Rate in Milliseconds
 const UI_UPDATE_RATE = 50;
@@ -58,11 +60,12 @@ export function StageTest({
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
 
-  return (
-    <div className="pad">
-      {timez(9, (idx) => (
-        <FsrPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />
-      ))}
-    </div>
-  );
+  let panels: React.ReactNode;
+  if (stage?.config?.config.flags.PlatformFlags_FSR) {
+    panels = timez(9, (idx) => <FsrPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
+  } else {
+    panels = timez(9, (idx) => <LoadCellPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
+  }
+
+  return <div className="pad">{panels}</div>;
 }
