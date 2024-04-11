@@ -917,17 +917,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*":
-  version: 18.2.73
-  resolution: "@types/react@npm:18.2.73"
-  dependencies:
-    "@types/prop-types": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: 10c0/b6645ab3c20efa41cfccf58ce0be45419517a0ba4594e323dd400342fb1c1f9589d169cf9bfa85b5b0605e9097fe9de7734b6d0c533f5b9bc32aaadb624537a4
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^18.2.75":
+"@types/react@npm:*, @types/react@npm:^18.2.75":
   version: 18.2.75
   resolution: "@types/react@npm:18.2.75"
   dependencies:
@@ -2750,47 +2740,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^5.0.0":
-  version: 5.2.7
-  resolution: "vite@npm:5.2.7"
-  dependencies:
-    esbuild: "npm:^0.20.1"
-    fsevents: "npm:~2.3.3"
-    postcss: "npm:^8.4.38"
-    rollup: "npm:^4.13.0"
-  peerDependencies:
-    "@types/node": ^18.0.0 || >=20.0.0
-    less: "*"
-    lightningcss: ^1.21.0
-    sass: "*"
-    stylus: "*"
-    sugarss: "*"
-    terser: ^5.4.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-    less:
-      optional: true
-    lightningcss:
-      optional: true
-    sass:
-      optional: true
-    stylus:
-      optional: true
-    sugarss:
-      optional: true
-    terser:
-      optional: true
-  bin:
-    vite: bin/vite.js
-  checksum: 10c0/ca927a8df388f75df194d5a5ba2be4ee46dc1d99d5be277f13c6d1ed4a4df833cc953741ef8e984061ea38b531df84e15e2a9f5deea1626317bcbec63c8ca01c
-  languageName: node
-  linkType: hard
-
-"vite@npm:^5.2.8":
+"vite@npm:^5.0.0, vite@npm:^5.2.8":
   version: 5.2.8
   resolution: "vite@npm:5.2.8"
   dependencies:
