@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { Sensor, type SMXPanelTestData } from "../../sdk";
+import { FsrSensor, type SMXPanelTestData } from "../../sdk";
 
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
@@ -16,23 +16,23 @@ export function FsrPanel({ testData, active }: EnabledProps) {
     >
       <Fsr
         className="top horiz"
-        badInput={testData?.bad_sensor_input[Sensor.Up]}
-        value={testData?.sensor_level[Sensor.Up]}
+        badInput={testData?.bad_sensor_input[FsrSensor.Up]}
+        value={testData?.sensor_level[FsrSensor.Up]}
       />
       <Fsr
         className="right vert"
-        badInput={testData?.bad_sensor_input[Sensor.Right]}
-        value={testData?.sensor_level[Sensor.Right]}
+        badInput={testData?.bad_sensor_input[FsrSensor.Right]}
+        value={testData?.sensor_level[FsrSensor.Right]}
       />
       <Fsr
         className="bottom horiz"
-        badInput={testData?.bad_sensor_input[Sensor.Down]}
-        value={testData?.sensor_level[Sensor.Down]}
+        badInput={testData?.bad_sensor_input[FsrSensor.Down]}
+        value={testData?.sensor_level[FsrSensor.Down]}
       />
       <Fsr
         className="left vert"
-        badInput={testData?.bad_sensor_input[Sensor.Left]}
-        value={testData?.sensor_level[Sensor.Left]}
+        badInput={testData?.bad_sensor_input[FsrSensor.Left]}
+        value={testData?.sensor_level[FsrSensor.Left]}
       />
     </div>
   );

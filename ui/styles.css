@@ -94,21 +94,21 @@ button:focus {
   background-color: red;
 }
 
-.fsr {
+.fsr, .load-cell {
   position: absolute;
   font-family: monospace;
 }
 
-.fsr.top {
+.top {
   top: 0;
 }
-.fsr.left {
+.left {
   left: 0;
 }
-.fsr.right {
+.right {
   right: 0;
 }
-.fsr.bottom {
+.bottom {
   bottom: 0;
 }
 
