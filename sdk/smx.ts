@@ -168,7 +168,7 @@ export class SMXStage {
     return this.events.ackReports$.firstToPromise();
   }
 
-  async setLightStrip(color: RGB): Promise<AckPacket> {
+  setLightStrip(color: RGB): Promise<AckPacket> {
     const led_strip_index = 0; // Always 0
     const number_of_leds = 44; // Always 44 (Unless some older or newer versions have more/less?)
     const rgb = color.toArray();
@@ -201,12 +201,12 @@ export class SMXStage {
     return this.events.ackReports$.firstToPromise();
   }
 
-  async forceRecalibration(): Promise<AckPacket> {
+  forceRecalibration(): Promise<AckPacket> {
     this.events.output$.push([API_COMMAND.FORCE_RECALIBRATION]);
     return this.events.ackReports$.firstToPromise();
   }
 
-  async updateDeviceInfo(): Promise<SMXDeviceInfo> {
+  updateDeviceInfo(): Promise<SMXDeviceInfo> {
     this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
     return this.deviceInfo$.firstToPromise();
   }
@@ -219,7 +219,7 @@ export class SMXStage {
     return this.configResponse$.firstToPromise();
   }
 
-  async updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
+  updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
     if (mode) this.test_mode = mode;
 
     this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
