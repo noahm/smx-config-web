@@ -1854,6 +1854,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"logrocket@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "logrocket@npm:8.1.0"
+  checksum: 10c0/fef2973d8e304036ebc5e304a93bb157c3b32aac43966e0373e3d6007a6d287db05ea66f15e6691ce390d74298ead101684d5ea7400a1b0f4e5a813db4d947b9
+  languageName: node
+  linkType: hard
+
 "loose-envify@npm:^1.1.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
@@ -2464,6 +2471,7 @@ __metadata:
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
     jotai: "npm:^2.8.0"
+    logrocket: "npm:^8.1.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
     typescript: "npm:^5.4.4"
