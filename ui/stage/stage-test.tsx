@@ -60,10 +60,8 @@ export function StageTest({
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
 
-  const useFSRs = false;
-  (stage?.info?.firmware_version || 5) >= 5;
   let panels: React.ReactNode;
-  if (useFSRs) {
+  if (stage?.config?.config.flags.PlatformFlags_FSR) {
     panels = timez(9, (idx) => <FsrPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
   } else {
     panels = timez(9, (idx) => <LoadCellPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
