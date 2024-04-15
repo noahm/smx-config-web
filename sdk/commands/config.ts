@@ -189,50 +189,48 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
   padding: uint8_t[49],
 });
 
-const NEW_CONFIG_INIT = sbytes(
-  [
-    // masterVersion : 255
-    "FF",
-    // configVersion : 5
-    "05",
-    // flags : 0
-    "00",
-    // debounceNodelayMilliseconds : 0
-    "0000",
-    // debounceDelayMilliseconds : 0
-    "0000",
-    // panelDebounceMicroseconds : 4000
-    "0FA0",
-    // autoCalibrationMaxDeviation : 100
-    "64",
-    // badSensorMinimumDelaySeconds : 15
-    "0F",
-    // autoCalibrationAveragesPerUpdate : 60
-    "003C",
-    // autoCalibrationSamplesPerAverage : 500
-    "01F4",
-    // autoCalibrationMaxTare : 65535
-    "FFFF",
-    // enabledSensors
-    "00".repeat(5),
-    // autoLightsTimeout : 1000 / 128 (1 second)
-    "07",
-    // stepColor
-    "00".repeat(3 * 9),
-    // platformStripColor
-    "00".repeat(3),
-    // autoLightPanelMask : 65535
-    "FFFF",
-    // panelRotation
-    "00",
-    // packedSensorSettings
-    "00".repeat(16 * 9),
-    // preDetailsDelayMilliseconds : 5
-    "05",
-    // padding
-    "00".repeat(49),
-  ].join(),
-);
+const NEW_CONFIG_INIT = [
+  // masterVersion : 255
+  "FF",
+  // configVersion : 5
+  "05",
+  // flags : 0
+  "00",
+  // debounceNodelayMilliseconds : 0
+  "0000",
+  // debounceDelayMilliseconds : 0
+  "0000",
+  // panelDebounceMicroseconds : 4000
+  "0FA0",
+  // autoCalibrationMaxDeviation : 100
+  "64",
+  // badSensorMinimumDelaySeconds : 15
+  "0F",
+  // autoCalibrationAveragesPerUpdate : 60
+  "003C",
+  // autoCalibrationSamplesPerAverage : 500
+  "01F4",
+  // autoCalibrationMaxTare : 65535
+  "FFFF",
+  // enabledSensors
+  "00".repeat(5),
+  // autoLightsTimeout : 1000 / 128 (1 second)
+  "07",
+  // stepColor
+  "00".repeat(3 * 9), // 27
+  // platformStripColor
+  "00".repeat(3),
+  // autoLightPanelMask : 65535
+  "FFFF",
+  // panelRotation
+  "00",
+  // packedSensorSettings
+  "00".repeat(16 * 9), // 144
+  // preDetailsDelayMilliseconds : 5
+  "05",
+  // padding
+  "00".repeat(49),
+];
 
 const smx_old_config_t = new StructBuffer("smx_old_config_t", {
   unused1: uint8_t[6],
@@ -294,52 +292,50 @@ const smx_old_config_t = new StructBuffer("smx_old_config_t", {
   padding: uint8_t[164],
 });
 
-const OLD_CONFIG_INIT = sbytes(
-  [
-    // unused
-    "FF".repeat(6),
-    // masterDebounceMilliseconds
-    "0000",
-    // panelThreshold{7/4/2}{Low/High}
-    "FF FF FF FF FF FF",
-    // panelDebounceMicroseconds : 4000
-    "0FA0",
-    // autoCalibrationPeriodMilliseconds : 1000
-    "03E8",
-    // autoCalibrationMaxDeviation : 100
-    "64",
-    // badSensorMinimumDelaySeconds : 15
-    "0F",
-    // autoCalibrationAveragesPerUpdate : 60
-    "003C",
-    // unused
-    "FFFF",
-    // panelThreshold1{Low/High}
-    "FF FF",
-    // enabledSensors
-    "00".repeat(5),
-    // autoLightsTimeout : 1000 / 128 (1 second)
-    "07",
-    // StepColor
-    "00".repeat(3 * 9),
-    // panelRotation
-    "00",
-    // autoCalibrationSamplesPerAverage : 500
-    "01F4",
-    // masterVersion
-    "FF",
-    // configVersion : 3
-    "03",
-    // unused
-    "FF".repeat(10),
-    // panelThreshold{0/3/5/6/8}{Low/High}
-    "FF FF FF FF FF FF FF FF FF FF",
-    // debounceDelayMilliseconds : 0
-    "0000",
-    // padding
-    "00".repeat(164),
-  ].join(),
-);
+const OLD_CONFIG_INIT = [
+  // unused
+  "FF".repeat(6),
+  // masterDebounceMilliseconds
+  "0000",
+  // panelThreshold{7/4/2}{Low/High}
+  "FF FF FF FF FF FF",
+  // panelDebounceMicroseconds : 4000
+  "0FA0",
+  // autoCalibrationPeriodMilliseconds : 1000
+  "03E8",
+  // autoCalibrationMaxDeviation : 100
+  "64",
+  // badSensorMinimumDelaySeconds : 15
+  "0F",
+  // autoCalibrationAveragesPerUpdate : 60
+  "003C",
+  // unused
+  "FFFF",
+  // panelThreshold1{Low/High}
+  "FF FF",
+  // enabledSensors
+  "00".repeat(5),
+  // autoLightsTimeout : 1000 / 128 (1 second)
+  "07",
+  // StepColor
+  "00".repeat(3 * 9),
+  // panelRotation
+  "00",
+  // autoCalibrationSamplesPerAverage : 500
+  "01F4",
+  // masterVersion
+  "FF",
+  // configVersion : 3
+  "03",
+  // unused
+  "FF".repeat(10),
+  // panelThreshold{0/3/5/6/8}{Low/High}
+  "FF FF FF FF FF FF FF FF FF FF",
+  // debounceDelayMilliseconds : 0
+  "0000",
+  // padding
+  "00".repeat(164),
+];
 
 /**
  * The configuration for a connected SMX Stage.
@@ -358,7 +354,7 @@ export class SMXConfig {
     if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), true);
     } else {
-      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true); 
+      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true);
       this.config = this.convertOldToNew(this.oldConfig);
     }
   }
@@ -450,7 +446,7 @@ export class SMXConfig {
    */
   private convertOldToNew(oldConfig: Decoded<typeof smx_old_config_t>): Decoded<typeof smx_config_t> {
     console.log("old config: ", oldConfig);
-    const newConfig = smx_config_t.decode(NEW_CONFIG_INIT);
+    const newConfig = smx_config_t.decode(sbytes(NEW_CONFIG_INIT.join("")), false);
 
     newConfig.debounceNodelayMilliseconds = oldConfig.masterDebounceMilliseconds;
 
