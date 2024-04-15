@@ -59,10 +59,16 @@ class SMXEvents {
     this.output$ = new Bacon.Bus<Array<number>>();
 
     // Config writes should only happen at most once per second.
-    const configOutput$ = this.output$.filter((e) => e[0] === API_COMMAND.WRITE_CONFIG_V5).throttle(1000);
+    const configOutput$ = this.output$
+      .filter((e) => {
+        return e[0] === API_COMMAND.WRITE_CONFIG || e[0] === API_COMMAND.WRITE_CONFIG_V5;
+      })
+      .throttle(1000);
 
     // All other writes are passed through unchanged
-    const otherOutput$ = this.output$.filter((e) => e[0] !== API_COMMAND.WRITE_CONFIG_V5);
+    const otherOutput$ = this.output$.filter((e) => {
+      return e[0] !== API_COMMAND.WRITE_CONFIG && e[0] !== API_COMMAND.WRITE_CONFIG_V5;
+    });
 
     // combine together the throttled and unthrottled writes
     // and only emit one per each "ok" signal we get back following each previous output
@@ -105,7 +111,7 @@ export class SMXStage {
 
     // Set the config request handler
     this.configResponse$ = this.events.otherReports$
-      .filter((e) => e[0] === API_COMMAND.GET_CONFIG_V5)
+      .filter((e) => e[0] === API_COMMAND.GET_CONFIG || e[0] === API_COMMAND.GET_CONFIG_V5)
       .map((value) => this.handleConfig(value));
     // note that the above map function only runs when there are listeners
     // subscribed to `this.configResponse$`, otherwise nothing happens!
@@ -227,16 +233,8 @@ export class SMXStage {
   }
 
   private handleConfig(data: Uint8Array): SMXConfig {
-    /*
-    // TODO: Figure out how we want to handle this? I think we can actually convert to/from the new config
-    // from the old config
-    if (this.info.firmware_version < 5) {
-      this.config = new SMXConfigOld(Array.from(data));
-    } else {
-      this.config = new SMXConfig(Array.from(data));
-    }
-    */
-    this.config = new SMXConfig(Array.from(data));
+    // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
+    this.config = new SMXConfig(Array.from(data), this.info!.firmware_version);
 
     // Right now I just want to confirm that decoding and encoding gives us back the same data
     const encoded_config = this.config.encode();
@@ -250,7 +248,7 @@ export class SMXStage {
   }
 
   private handleTestData(data: Uint8Array): SMXSensorTestData {
-    // biome-ignore lint/style/noNonNullAssertion: Config should very much be defined here
+    // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
     this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config!.config.flags.PlatformFlags_FSR);
 
     this.debug && console.log("Got Test: ", this.test);
