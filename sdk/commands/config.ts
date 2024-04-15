@@ -355,22 +355,22 @@ export class SMXConfig {
   constructor(data: Array<number>, firmware_version: number) {
     this.firmwareVersion = firmware_version;
 
-    if (this.firmwareVersion <= 5) {
-      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true);
-      this.config = this.convertOldToNew(this.oldConfig);
-    } else {
+    if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), true);
+    } else {
+      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true); 
+      this.config = this.convertOldToNew(this.oldConfig);
     }
   }
 
   encode(): Array<number> {
-    if (this.firmwareVersion <= 5) {
-      if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
-
-      this.convertNewToOld();
-      return Array.from(new Uint8Array(smx_old_config_t.encode(this.oldConfig, true).buffer));
+    if (this.firmwareVersion >= 5) {
+      return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
     }
-    return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
+
+    if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
+    this.convertNewToOld();
+    return Array.from(new Uint8Array(smx_old_config_t.encode(this.oldConfig, true).buffer));
   }
 
   /**
