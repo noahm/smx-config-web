@@ -1,3 +1,4 @@
+import cn from "classnames";
 import { useAtomValue, type Atom } from "jotai";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -92,5 +93,5 @@ export function StageTest({
     ));
   }
 
-  return <div className="pad">{panels}</div>;
+  return <div className={cn("pad", { disabled: !stage })}>{panels}</div>;
 }

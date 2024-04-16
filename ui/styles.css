@@ -74,15 +74,36 @@ button:focus {
 }
 
 .pad {
+  position: relative;
   float: right;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr; 
-  grid-template-rows: 1fr 1fr 1fr; 
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
   gap: 1em 1em;
-  height: 20em;
+  height: 26em;
   width: 20em;
   margin-right: 1em;
+  background-color: silver;
+  padding: 4em 1em 4em;
+  --corner-cut-size: 3em;
+  clip-path: polygon(var(--corner-cut-size) 0, calc(100% - var(--corner-cut-size)) 0, 100% var(--corner-cut-size), 100% calc(100% - var(--corner-cut-size)), calc(100% - var(--corner-cut-size)) 100%, var(--corner-cut-size) 100%, 0 calc(100% - var(--corner-cut-size)), 0 var(--corner-cut-size));
 }
+.pad::after {
+  /* its a bar! */
+  content: "";
+  text-align: center;
+  height: 1em;
+  width: 60%;
+  background-color: #222;
+  border-radius: 1em;
+  position: absolute;
+  bottom: 1.5em;
+  left: 20%;
+}
+.pad.disabled {
+  opacity: 0.5;
+}
+
 .panel {
   outline: 2px solid #ddd;
   position: relative;
