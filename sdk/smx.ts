@@ -147,8 +147,6 @@ export class SMXStage {
    * SET_PANEL_TEST_MODE
    *
    * Double Stretch Goal:
-   * GET_CONFIG (old firmware)
-   * WRITE_CONFIG (old_firmware)
    * SET_SERIAL_NUMBERS
    */
 

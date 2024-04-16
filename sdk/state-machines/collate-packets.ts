@@ -31,7 +31,7 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
   let currentPacket = state.currentPacket;
   const data = new Uint8Array(event.value.buffer);
 
-  // console.log("Raw Packet Data: ", data);
+  console.log("INCOMING RAW PACKET: ", data.toString());
 
   // Return if packet is empty
   if (data.length <= PACKET_PREAMBLE_SIZE) {
