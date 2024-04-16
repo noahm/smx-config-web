@@ -6,7 +6,6 @@ import { type SMXStage, SensorTestMode, type SMXSensorTestData } from "../../sdk
 import { displayTestData$ } from "../state";
 import { timez } from "./util";
 import { LoadCellPanel } from "./load-cell-panel";
-import type { SMXConfig } from "../../sdk/commands/config";
 
 // UI Update Rate in Milliseconds
 const UI_UPDATE_RATE = 50;

@@ -1,5 +1,5 @@
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { stages$, nextStatusTextLine$, statusText$, uiState } from "./state";
+import { stages$, nextStatusTextLine$, uiState, selectedStageSerial$ } from "./state";
 
 export async function promptSelectDevice() {
   const devices = await navigator.hid.requestDevice({
@@ -7,7 +7,7 @@ export async function promptSelectDevice() {
   });
 
   if (!devices.length || !devices[0]) {
-    uiState.set(statusText$, "no device selected");
+    uiState.set(nextStatusTextLine$, "no device selected in prompt");
     return;
   }
 
@@ -20,18 +20,25 @@ export async function open_smx_device(dev: HIDDevice) {
   }
 
   const stage = new SMXStage(dev);
-  await stage.init().then(() => {
-    uiState.set(stages$, (stages) => {
-      return {
-        ...stages,
-        [stage.info?.player || 0]: stage, // TODO: Is there a better way to handle this?
-      };
-    });
-    uiState.set(
-      nextStatusTextLine$,
-      `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
-    );
+  await stage.init();
+
+  const serial = stage.info?.serial;
+  if (!serial) {
+    uiState.set(nextStatusTextLine$, "selected pad failed to report a serial number");
+    return;
+  }
+
+  uiState.set(stages$, (stages) => {
+    return {
+      ...stages,
+      [serial]: stage, // TODO: Is there a better way to handle this?
+    };
   });
+  uiState.set(selectedStageSerial$, serial);
+  uiState.set(
+    nextStatusTextLine$,
+    `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
+  );
 }
 
 /**

@@ -1,15 +1,14 @@
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "./pad-coms";
-import { stages$ } from "./state.ts";
+import { selectedStage$ } from "./state.ts";
 import { RGB } from "../sdk/utils.ts";
 
+const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
+
 export function DebugCommands() {
-  const connectedStages = useAtomValue(stages$);
-  const [selectedPlayer, setSelectedPlayer] = useState(0);
+  const stage = useAtomValue(selectedStage$);
   const [selectedCommand, setSelectedCommand] = useState<keyof typeof DEBUG_COMMANDS | "">("");
-  const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
-  const stage = connectedStages[selectedPlayer];
   const handleSendCommand =
     selectedCommand && stage
       ? async () => {
@@ -25,17 +24,6 @@ export function DebugCommands() {
       : undefined;
   return (
     <>
-      <select value={selectedPlayer} onChange={(e) => setSelectedPlayer(Number(e.target.value))}>
-        <option disabled value="0">
-          Select Stage
-        </option>
-        <option value="1" disabled={!connectedStages[1]}>
-          Player 1
-        </option>
-        <option value="2" disabled={!connectedStages[2]}>
-          Player 2
-        </option>
-      </select>{" "}
       <select
         value={selectedCommand}
         onChange={(e) => setSelectedCommand(e.currentTarget.value as typeof selectedCommand)}
