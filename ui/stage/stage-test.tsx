@@ -73,10 +73,10 @@ export function StageTest({
   const config = useConfig(stage);
 
   let panels: React.ReactNode;
-  if (config?.flags.PlatformFlags_FSR) {
+  if (stage?.config?.flags.PlatformFlags_FSR) {
     panels = timez(9, (idx) => (
       <FsrPanel
-        disabled={config.enabledSensors[idx].every((enabled) => !enabled)}
+        disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
         active={inputState?.[idx]}
         key={idx}
         testData={testData?.panels[idx]}
