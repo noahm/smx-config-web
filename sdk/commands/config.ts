@@ -348,12 +348,15 @@ export class SMXConfig {
   /**
    * Take in the data array and decode it into this.
    */
-  constructor(data: Array<number>, firmware_version: number) {
-    this.firmwareVersion = firmware_version;
+  constructor(data: Array<number>, firmwareVersion: number) {
+    this.firmwareVersion = firmwareVersion;
+    console.log("Config Firmware Version: ", this.firmwareVersion);
+    console.log("CONFIG RAW DATA: ", data.toString());
 
     if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), true);
     } else {
+      console.log("Reading Old Config");
       this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true);
       this.config = this.convertOldToNew(this.oldConfig);
     }
@@ -365,6 +368,7 @@ export class SMXConfig {
     }
 
     if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
+    console.log("Writing Old Config");
     this.convertNewToOld();
     return Array.from(new Uint8Array(smx_old_config_t.encode(this.oldConfig, true).buffer));
   }

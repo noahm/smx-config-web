@@ -23,6 +23,7 @@ export class SMXDeviceInfo {
   player = 0;
 
   constructor(data: Array<number>) {
+    console.log("DEVICEINFO RAW DATA: ", data.toString());
     this.#decode(data);
   }
 

@@ -28,12 +28,11 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
   // Split data into packets
   const packets = make_packets(data);
 
-  if (debug) {
-    console.log("Sending Packets: ", packets);
-  }
-
   // Send each packet
   for (const packet of packets) {
+    if (debug) {
+      console.log("OUTGOING RAW PACKET: ", packet.toString());
+    }
     await dev.sendReport(HID_REPORT_OUTPUT, packet);
   }
 }
