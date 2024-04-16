@@ -1,5 +1,5 @@
 import { atom, createStore } from "jotai";
-import { SensorTestMode, type SMXStage } from "../sdk";
+import type { SMXStage } from "../sdk";
 
 export const browserSupported = "hid" in navigator;
 
@@ -7,25 +7,18 @@ export const browserSupported = "hid" in navigator;
 export const uiState = createStore();
 
 /** backing atom of all known stages */
-export const stages$ = atom<Record<number, SMXStage | undefined>>({});
+export const stages$ = atom<Record<string, SMXStage>>({});
+
+export const selectedStageSerial$ = atom<string | undefined>(undefined);
+
+export const selectedStage$ = atom<SMXStage | undefined>((get) => {
+  const serial = get(selectedStageSerial$);
+  if (!serial) return;
+  const stages = get(stages$);
+  return stages[serial];
+});
 
 export const displayTestData$ = atom<"" | "raw" | "calibrated" | "noise" | "tare">("");
-
-/** current p1 pad, derived from devices$ above */
-export const p1Stage$ = atom<SMXStage | undefined, [SMXStage | undefined], void>(
-  (get) => get(stages$)[1],
-  (_, set, stage: SMXStage | undefined) => {
-    set(stages$, (prev) => ({ ...prev, [1]: stage }));
-  },
-);
-
-/** current p2 pad, derived from devices$ above */
-export const p2Stage$ = atom<SMXStage | undefined, [SMXStage | undefined], void>(
-  (get) => get(stages$)[2],
-  (_, set, stage: SMXStage | undefined) => {
-    set(stages$, (prev) => ({ ...prev, [2]: stage }));
-  },
-);
 
 export const statusText$ = atom(
   browserSupported

@@ -4,9 +4,13 @@ import { FsrSensor, type SMXPanelTestData } from "../../sdk";
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
   active: boolean | undefined;
+  disabled: boolean | undefined;
 }
 
-export function FsrPanel({ testData, active }: EnabledProps) {
+export function FsrPanel({ testData, active, disabled }: EnabledProps) {
+  if (disabled) {
+    return <div className={cn("panel", {})} />;
+  }
   return (
     <div
       className={cn("panel", {

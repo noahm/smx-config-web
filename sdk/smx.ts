@@ -81,9 +81,12 @@ export class SMXStage {
   private readonly events: SMXEvents;
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
   private debug = true;
+  private _config: SMXConfig | null = null;
 
+  public get config() {
+    return this._config?.config || null;
+  }
   info: SMXDeviceInfo | null = null;
-  config: SMXConfig | null = null;
   test: SMXSensorTestData | null = null;
   inputs: Array<boolean> | null = null;
 
@@ -157,10 +160,10 @@ export class SMXStage {
   }
 
   private async needsConfig(): Promise<SMXConfig> {
-    if (!this.config) await this.updateConfig();
-    if (!this.config) throw new ReferenceError("this.config does not exist for stage.");
+    if (!this._config) await this.updateConfig();
+    if (!this._config) throw new ReferenceError("this.config does not exist for stage.");
 
-    return this.config;
+    return this._config;
   }
 
   async writeConfig(): Promise<AckPacket> {
@@ -234,22 +237,22 @@ export class SMXStage {
 
   private handleConfig(data: Uint8Array): SMXConfig {
     // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
-    this.config = new SMXConfig(Array.from(data), this.info!.firmware_version);
+    this._config = new SMXConfig(Array.from(data), this.info!.firmware_version);
 
     // Right now I just want to confirm that decoding and encoding gives us back the same data
-    const encoded_config = this.config.encode();
+    const encoded_config = this._config.encode();
     if (encoded_config) {
       this.debug &&
         console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === encoded_config.toString());
     }
     this.debug && console.log("Got Config: ", this.config);
 
-    return this.config;
+    return this._config;
   }
 
   private handleTestData(data: Uint8Array): SMXSensorTestData {
     // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
-    this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config!.config.flags.PlatformFlags_FSR);
+    this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config!.flags.PlatformFlags_FSR);
 
     this.debug && console.log("Got Test: ", this.test);
 

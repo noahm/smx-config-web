@@ -1,14 +1,21 @@
 import { useAtomValue, useAtom } from "jotai";
+import type React from "react";
 import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
-import { browserSupported, displayTestData$, p1Stage$, p2Stage$, statusText$ } from "./state.ts";
+import {
+  browserSupported,
+  displayTestData$,
+  selectedStage$,
+  selectedStageSerial$,
+  stages$,
+  statusText$,
+} from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
-import { SensorTestMode } from "../sdk/index.ts";
 
-export function UI() {
+function usePreviouslyPairedDevices() {
   useEffect(() => {
     // once, on load, get paired devices and attempt connection
     if (browserSupported) {
@@ -20,6 +27,10 @@ export function UI() {
       );
     }
   }, []);
+}
+
+export function UI() {
+  usePreviouslyPairedDevices();
 
   return (
     <>
@@ -29,10 +40,9 @@ export function UI() {
           (<a href="https://github.com/noahm/smx-config-web">source</a>)
         </small>
       </h1>
-      <StageTest stageAtom={p2Stage$} />
-      <StageTest stageAtom={p1Stage$} />
+      <StageTest stageAtom={selectedStage$} />
       <p>
-        <PickDeviceButton /> <DebugCommands />
+        <PickDevice /> <DebugCommands />
       </p>
       <p>
         <TestDataDisplayToggle />
@@ -42,11 +52,32 @@ export function UI() {
   );
 }
 
-function PickDeviceButton() {
+function PickDevice() {
+  const stages = useAtomValue(stages$);
+  const [selectedSerial, setSelectedSerial] = useAtom(selectedStageSerial$);
+  const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+    const newValue = e.currentTarget.value;
+    if (newValue === "pair-new") {
+      promptSelectDevice();
+    } else {
+      setSelectedSerial(newValue);
+    }
+  };
+
   return (
-    <button type="button" disabled={!browserSupported} onClick={promptSelectDevice}>
-      Pick device...
-    </button>
+    <select value={selectedSerial || ""} disabled={!browserSupported} onChange={handleChange}>
+      {!selectedSerial ? (
+        <option disabled value="">
+          No Stage Selected
+        </option>
+      ) : null}
+      <option value="pair-new">Pair a stage...</option>
+      {Object.entries(stages).map(([serial, stage]) => (
+        <option value={serial} key={serial}>
+          P{stage.info?.player} - {serial}
+        </option>
+      ))}
+    </select>
   );
 }
 
