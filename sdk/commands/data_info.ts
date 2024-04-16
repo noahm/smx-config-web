@@ -22,12 +22,12 @@ export class SMXDeviceInfo {
   firmware_version = 0;
   player = 0;
 
-  constructor(data: Array<number>) {
+  constructor(data: Uint8Array) {
     console.log("DEVICEINFO RAW DATA: ", data.toString());
     this.#decode(data);
   }
 
-  #decode(data: Array<number>) {
+  #decode(data: Uint8Array) {
     const info_packet = data_info_packet_t.decode(data, true);
 
     this.player = Number.parseInt(String.fromCharCode(info_packet.player)) + 1;

@@ -175,7 +175,7 @@ export class SMXPanelTestData {
 export class SMXSensorTestData {
   panels: Array<SMXPanelTestData> = [];
 
-  constructor(data: Array<number>, mode: SensorTestMode, isFsr: boolean) {
+  constructor(data: Uint8Array, mode: SensorTestMode, isFsr: boolean) {
     /**
      * The first 3 bytes are the preamble.
      *

@@ -355,7 +355,7 @@ export class SMXConfig {
   /**
    * Take in the data array and decode it into this.
    */
-  constructor(data: Array<number>, firmwareVersion: number) {
+  constructor(data: Uint8Array, firmwareVersion: number) {
     this.firmwareVersion = firmwareVersion;
     console.log("Config Firmware Version: ", this.firmwareVersion);
     console.log("CONFIG RAW DATA: ", data.toString());
@@ -375,9 +375,9 @@ export class SMXConfig {
     }
   }
 
-  encode(): Array<number> {
+  encode(): Uint8Array {
     if (this.firmwareVersion >= 5) {
-      return Array.from(new Uint8Array(smx_config_t.encode(this.config, true).buffer));
+      return new Uint8Array(smx_config_t.encode(this.config, true).buffer);
     }
 
     if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
@@ -387,10 +387,10 @@ export class SMXConfig {
     const encodedConfig = smx_old_config_t.encode(this.oldConfig, true);
     // If the old config data is less than 128 Bytes, only send the first 128 bytes
     if (this.oldConfigSize && this.oldConfigSize <= 128) {
-      return Array.from(new Uint8Array(encodedConfig.buffer.slice(0, 128)));
+      return new Uint8Array(encodedConfig.buffer.slice(0, 128));
     }
 
-    return Array.from(new Uint8Array(encodedConfig.buffer));
+    return new Uint8Array(encodedConfig.buffer);
   }
 
   /**
