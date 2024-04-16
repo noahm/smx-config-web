@@ -1,6 +1,7 @@
 import { StructBuffer, bits, uint8_t, uint16_t, sbytes } from "@nmann/struct-buffer";
 import { EnabledSensors } from "./enabled-sensors.ts";
 import { Panel } from "../api.ts";
+import { padData } from "../utils.ts";
 
 export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -343,6 +344,12 @@ const OLD_CONFIG_INIT = [
 export class SMXConfig {
   public config: Decoded<typeof smx_config_t>;
   private oldConfig: Decoded<typeof smx_old_config_t> | null = null;
+  /**
+   * some much older pads send smaller sized config data, so we need
+   * to keep track of how much they sent us and send back an appropriate
+   * sized config in the other direction
+   */
+  private oldConfigSize: number | null = null;
   private firmwareVersion: number;
 
   /**
@@ -356,8 +363,14 @@ export class SMXConfig {
     if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), true);
     } else {
+      this.oldConfigSize = data[1];
       console.log("Reading Old Config");
-      this.oldConfig = smx_old_config_t.decode(data.slice(2, -1), true);
+
+      const slicedData = data.slice(2, -1);
+      // handle very old stage's smaller config data by padding
+      // it out to the full size of the `smx_old_config_t` struct
+      const paddedData = padData(slicedData, smx_old_config_t.byteLength);
+      this.oldConfig = smx_old_config_t.decode(paddedData, true);
       this.config = this.convertOldToNew(this.oldConfig);
     }
   }
@@ -370,7 +383,14 @@ export class SMXConfig {
     if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
     console.log("Writing Old Config");
     this.convertNewToOld();
-    return Array.from(new Uint8Array(smx_old_config_t.encode(this.oldConfig, true).buffer));
+
+    const encodedConfig = smx_old_config_t.encode(this.oldConfig, true);
+    // If the old config data is less than 128 Bytes, only send the first 128 bytes
+    if (this.oldConfigSize && this.oldConfigSize <= 128) {
+      return Array.from(new Uint8Array(encodedConfig.buffer.slice(0, 128)));
+    }
+
+    return Array.from(new Uint8Array(encodedConfig.buffer));
   }
 
   /**
