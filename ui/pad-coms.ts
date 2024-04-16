@@ -31,7 +31,7 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
   uiState.set(stages$, (stages) => {
     return {
       ...stages,
-      [serial]: stage, // TODO: Is there a better way to handle this?
+      [serial]: stage,
     };
   });
   uiState.set(
