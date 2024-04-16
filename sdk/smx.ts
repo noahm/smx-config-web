@@ -22,9 +22,9 @@ class SMXEvents {
   /** read from this to see if we've received an ACK */
   public readonly ackReports$: Bacon.EventStream<AckPacket>;
   /** push to this to write commands to the stage */
-  public readonly output$: Bacon.Bus<number[]>;
+  public readonly output$: Bacon.Bus<Uint8Array>;
   /** this is everything pushed to `output$` but properly throttled/timed to the device's ack responses */
-  public readonly eventsToSend$: Bacon.EventStream<number[]>;
+  public readonly eventsToSend$: Bacon.EventStream<Uint8Array>;
 
   constructor(dev: HIDDevice) {
     // Main USB Ingestor
@@ -56,7 +56,7 @@ class SMXEvents {
     const okSend$ = finishedCommand$.startWith(true);
 
     // Main USB Output
-    this.output$ = new Bacon.Bus<Array<number>>();
+    this.output$ = new Bacon.Bus<Uint8Array>();
 
     // Config writes should only happen at most once per second.
     const configOutput$ = this.output$
@@ -170,7 +170,7 @@ export class SMXStage {
 
     const command = info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
     const encoded_config = config.encode();
-    this.events.output$.push([command, encoded_config.length, ...encoded_config]);
+    this.events.output$.push(new Uint8Array([command, encoded_config.length, ...encoded_config]));
 
     return this.events.ackReports$.firstToPromise();
   }
@@ -185,7 +185,7 @@ export class SMXStage {
       light_command.push(...rgb);
     }
 
-    this.events.output$.push(light_command);
+    this.events.output$.push(new Uint8Array(light_command));
     return this.events.ackReports$.firstToPromise();
   }
 
@@ -204,17 +204,17 @@ export class SMXStage {
       this.setLightStrip(new RGB(color.r, color.g, color.b));
     }
 
-    this.events.output$.push([API_COMMAND.FACTORY_RESET]);
+    this.events.output$.push(Uint8Array.of(API_COMMAND.FACTORY_RESET));
     return this.events.ackReports$.firstToPromise();
   }
 
   forceRecalibration(): Promise<AckPacket> {
-    this.events.output$.push([API_COMMAND.FORCE_RECALIBRATION]);
+    this.events.output$.push(Uint8Array.of(API_COMMAND.FORCE_RECALIBRATION));
     return this.events.ackReports$.firstToPromise();
   }
 
   updateDeviceInfo(): Promise<SMXDeviceInfo> {
-    this.events.output$.push([API_COMMAND.GET_DEVICE_INFO]);
+    this.events.output$.push(Uint8Array.of(API_COMMAND.GET_DEVICE_INFO));
     return this.deviceInfo$.firstToPromise();
   }
 
@@ -222,14 +222,14 @@ export class SMXStage {
     const info = await this.needsInfo();
 
     const command = info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
-    this.events.output$.push([command]);
+    this.events.output$.push(Uint8Array.of(command));
     return this.configResponse$.firstToPromise();
   }
 
   updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
     if (mode) this.test_mode = mode;
 
-    this.events.output$.push([API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode]);
+    this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
     return this.testDataResponse$.firstToPromise();
   }
 

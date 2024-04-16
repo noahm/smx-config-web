@@ -24,7 +24,7 @@ export const HID_REPORT_INPUT_STATE = 0x03;
 export const HID_REPORT_OUTPUT = 0x05;
 export const HID_REPORT_INPUT = 0x06;
 
-export async function send_data(dev: HIDDevice, data: Array<number>, debug = false) {
+export async function send_data(dev: HIDDevice, data: Uint8Array, debug = false) {
   // Split data into packets
   const packets = make_packets(data);
 
@@ -37,7 +37,7 @@ export async function send_data(dev: HIDDevice, data: Array<number>, debug = fal
   }
 }
 
-export function make_packets(data: Array<number>): Array<Uint8Array> {
+export function make_packets(data: Uint8Array): Array<Uint8Array> {
   const packets = [];
   const data_len = data.length;
   let idx = 0;
