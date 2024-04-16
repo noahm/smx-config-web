@@ -170,7 +170,7 @@ export class SMXStage {
 
     const command = info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
     const encoded_config = config.encode();
-    this.events.output$.push([command, encoded_config.length].concat(encoded_config));
+    this.events.output$.push([command, encoded_config.length, ...encoded_config]);
 
     return this.events.ackReports$.firstToPromise();
   }
@@ -235,7 +235,7 @@ export class SMXStage {
 
   private handleConfig(data: Uint8Array): SMXConfig {
     // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
-    this._config = new SMXConfig(Array.from(data), this.info!.firmware_version);
+    this._config = new SMXConfig(data, this.info!.firmware_version);
 
     // Right now I just want to confirm that decoding and encoding gives us back the same data
     const encoded_config = this._config.encode();
@@ -250,7 +250,7 @@ export class SMXStage {
 
   private handleTestData(data: Uint8Array): SMXSensorTestData {
     // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
-    this.test = new SMXSensorTestData(Array.from(data), this.test_mode, this.config!.flags.PlatformFlags_FSR);
+    this.test = new SMXSensorTestData(data, this.test_mode, this.config!.flags.PlatformFlags_FSR);
 
     this.debug && console.log("Got Test: ", this.test);
 
@@ -258,7 +258,7 @@ export class SMXStage {
   }
 
   private handleDeviceInfo(data: Uint8Array): SMXDeviceInfo {
-    this.info = new SMXDeviceInfo(Array.from(data));
+    this.info = new SMXDeviceInfo(data);
 
     this.debug && console.log("Got Info: ", this.info);
 
