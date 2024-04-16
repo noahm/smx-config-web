@@ -15,7 +15,7 @@ import {
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 
-export function UI() {
+function usePreviouslyPairedDevices() {
   useEffect(() => {
     // once, on load, get paired devices and attempt connection
     if (browserSupported) {
@@ -27,6 +27,10 @@ export function UI() {
       );
     }
   }, []);
+}
+
+export function UI() {
+  usePreviouslyPairedDevices();
 
   return (
     <>

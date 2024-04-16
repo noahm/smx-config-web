@@ -11,10 +11,10 @@ export async function promptSelectDevice() {
     return;
   }
 
-  await open_smx_device(devices[0]);
+  await open_smx_device(devices[0], true);
 }
 
-export async function open_smx_device(dev: HIDDevice) {
+export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
   if (!dev.opened) {
     await dev.open();
   }
@@ -34,11 +34,13 @@ export async function open_smx_device(dev: HIDDevice) {
       [serial]: stage, // TODO: Is there a better way to handle this?
     };
   });
-  uiState.set(selectedStageSerial$, serial);
   uiState.set(
     nextStatusTextLine$,
     `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
   );
+  if (autoSelect) {
+    uiState.set(selectedStageSerial$, serial);
+  }
 }
 
 /**
