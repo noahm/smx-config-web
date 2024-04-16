@@ -1,6 +1,7 @@
 import { StructBuffer, bits, uint8_t, uint16_t, sbytes } from "@nmann/struct-buffer";
 import { EnabledSensors } from "./enabled-sensors.ts";
 import { Panel } from "../api.ts";
+import { padData } from "../utils.ts";
 
 export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -361,8 +362,8 @@ export class SMXConfig {
       console.log("Reading Old Config");
 
       const slicedData = data.slice(2, -1);
-      const oldData = Uint8Array.from({ length: 250 }, (_, i) => slicedData[i] ?? 0);
-      this.oldConfig = smx_old_config_t.decode(oldData, true);
+      const paddedData = padData(slicedData, 250);
+      this.oldConfig = smx_old_config_t.decode(paddedData, true);
       this.config = this.convertOldToNew(this.oldConfig);
     }
   }
