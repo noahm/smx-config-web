@@ -344,6 +344,11 @@ const OLD_CONFIG_INIT = [
 export class SMXConfig {
   public config: Decoded<typeof smx_config_t>;
   private oldConfig: Decoded<typeof smx_old_config_t> | null = null;
+  /**
+   * some much older pads send smaller sized config data, so we need
+   * to keep track of how much they sent us and send back an appropriate
+   * sized config in the other direction
+   */
   private oldConfigSize: number | null = null;
   private firmwareVersion: number;
 
@@ -362,7 +367,9 @@ export class SMXConfig {
       console.log("Reading Old Config");
 
       const slicedData = data.slice(2, -1);
-      const paddedData = padData(slicedData, 250);
+      // handle very old stage's smaller config data by padding
+      // it out to the full size of the `smx_old_config_t` struct
+      const paddedData = padData(slicedData, smx_old_config_t.byteLength);
       this.oldConfig = smx_old_config_t.decode(paddedData, true);
       this.config = this.convertOldToNew(this.oldConfig);
     }
