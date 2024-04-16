@@ -4,9 +4,13 @@ import { LoadCellSensor, type SMXPanelTestData } from "../../sdk";
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
   active: boolean | undefined;
+  disabled: boolean | undefined;
 }
 
-export function LoadCellPanel({ testData, active }: EnabledProps) {
+export function LoadCellPanel({ testData, active, disabled }: EnabledProps) {
+  if (disabled) {
+    return <div className={cn("panel", {})} />;
+  }
   return (
     <div
       className={cn("panel", {

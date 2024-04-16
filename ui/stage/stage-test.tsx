@@ -6,6 +6,7 @@ import { type SMXStage, SensorTestMode, type SMXSensorTestData } from "../../sdk
 import { displayTestData$ } from "../state";
 import { timez } from "./util";
 import { LoadCellPanel } from "./load-cell-panel";
+import type { SMXConfig } from "../../sdk/commands/config";
 
 // UI Update Rate in Milliseconds
 const UI_UPDATE_RATE = 50;
@@ -21,7 +22,7 @@ function useInputState(stage: SMXStage | undefined) {
 
 function useTestData(stage: SMXStage | undefined) {
   const testDataMode = useAtomValue(displayTestData$);
-  const [testData, setTestData] = useState<SMXSensorTestData | null>();
+  const [testData, setTestData] = useState<SMXSensorTestData | null>(null);
 
   // request updates on an interval
   useEffect(() => {
@@ -51,6 +52,16 @@ function useTestData(stage: SMXStage | undefined) {
   return testData;
 }
 
+function useConfig(stage: SMXStage | undefined) {
+  const [testData, setConfig] = useState(stage?.config);
+
+  useEffect(() => {
+    return stage?.configResponse$.onValue((config) => setConfig(config.config));
+  }, [stage]);
+
+  return testData;
+}
+
 export function StageTest({
   stageAtom,
 }: {
@@ -59,12 +70,27 @@ export function StageTest({
   const stage = useAtomValue(stageAtom);
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
+  const config = useConfig(stage);
 
   let panels: React.ReactNode;
-  if (stage?.config?.config.flags.PlatformFlags_FSR) {
-    panels = timez(9, (idx) => <FsrPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
+  if (config?.flags.PlatformFlags_FSR) {
+    panels = timez(9, (idx) => (
+      <FsrPanel
+        disabled={config.enabledSensors[idx].every((enabled) => !enabled)}
+        active={inputState?.[idx]}
+        key={idx}
+        testData={testData?.panels[idx]}
+      />
+    ));
   } else {
-    panels = timez(9, (idx) => <LoadCellPanel active={inputState?.[idx]} key={idx} testData={testData?.panels[idx]} />);
+    panels = timez(9, (idx) => (
+      <LoadCellPanel
+        disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
+        active={inputState?.[idx]}
+        key={idx}
+        testData={testData?.panels[idx]}
+      />
+    ));
   }
 
   return <div className="pad">{panels}</div>;
