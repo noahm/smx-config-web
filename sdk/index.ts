@@ -7,7 +7,6 @@ export {
   SMX_USB_PRODUCT_NAME,
   SMX_USB_VENDOR_ID,
   FsrSensor,
-  LoadCellSensor,
   Panel,
   SENSOR_COUNT,
   PANEL_COUNT,

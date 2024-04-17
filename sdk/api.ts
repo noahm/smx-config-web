@@ -43,10 +43,3 @@ export enum FsrSensor {
   Up = 2,
   Down = 3,
 }
-
-export enum LoadCellSensor {
-  NW = 0,
-  NE = 1,
-  SW = 2,
-  SE = 3,
-}

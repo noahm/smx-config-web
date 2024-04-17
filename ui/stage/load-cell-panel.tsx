@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { LoadCellSensor, type SMXPanelTestData } from "../../sdk";
+import type { SMXPanelTestData } from "../../sdk";
 
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
@@ -18,26 +18,11 @@ export function LoadCellPanel({ testData, active, disabled }: EnabledProps) {
         active: active,
       })}
     >
-      <LoadCell
-        className="top left"
-        badInput={testData?.bad_sensor_input[LoadCellSensor.NW]}
-        value={testData?.sensor_level[LoadCellSensor.NW]}
-      />
-      <LoadCell
-        className="top right"
-        badInput={testData?.bad_sensor_input[LoadCellSensor.NE]}
-        value={testData?.sensor_level[LoadCellSensor.NE]}
-      />
-      <LoadCell
-        className="bottom left"
-        badInput={testData?.bad_sensor_input[LoadCellSensor.SW]}
-        value={testData?.sensor_level[LoadCellSensor.SW]}
-      />
-      <LoadCell
-        className="right bottom"
-        badInput={testData?.bad_sensor_input[LoadCellSensor.SE]}
-        value={testData?.sensor_level[LoadCellSensor.SE]}
-      />
+      {/* TODO: load cells don't have inherent placement, so this UI layout should become more ambiguous soon */}
+      <LoadCell className="top left" badInput={testData?.bad_sensor_input[0]} value={testData?.sensor_level[0]} />
+      <LoadCell className="top right" badInput={testData?.bad_sensor_input[1]} value={testData?.sensor_level[1]} />
+      <LoadCell className="bottom left" badInput={testData?.bad_sensor_input[2]} value={testData?.sensor_level[2]} />
+      <LoadCell className="right bottom" badInput={testData?.bad_sensor_input[3]} value={testData?.sensor_level[3]} />
     </div>
   );
 }
