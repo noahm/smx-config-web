@@ -1,6 +1,6 @@
 import { StructBuffer, char, uint8_t, uint16_t } from "@nmann/struct-buffer";
 
-const data_info_packet_t = new StructBuffer("data_info_packet_t", {
+const data_info_packet_t = new StructBuffer({
   /** Always 'I' */
   cmd: char,
   // Not Used
@@ -28,7 +28,7 @@ export class SMXDeviceInfo {
   }
 
   #decode(data: Uint8Array) {
-    const info_packet = data_info_packet_t.decode(data, true);
+    const info_packet = data_info_packet_t.decode(data, { littleEndian: true });
 
     this.player = Number.parseInt(String.fromCharCode(info_packet.player)) + 1;
     this.serial = info_packet.serial.map((x) => `00${x.toString(16).toUpperCase()}`.slice(-2)).join("");

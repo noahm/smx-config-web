@@ -1,5 +1,5 @@
 import { StructBuffer, bits, uint8_t, uint16_t, sbytes } from "@nmann/struct-buffer";
-import { EnabledSensors } from "./enabled-sensors.ts";
+import { enabledSensors_t } from "./enabled-sensors.ts";
 import { Panel } from "../api.ts";
 import { padData } from "../utils.ts";
 
@@ -9,7 +9,7 @@ export type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = Re
  * Each panel has various thresholds that are used based on
  * if it's a LoadCell or FSR panel.
  */
-const packed_panel_settings_t = new StructBuffer("packed_panel_settings_t", {
+const packed_panel_settings_t = new StructBuffer({
   /**
    * Load Cell Thresholds
    */
@@ -56,7 +56,7 @@ const flags_t = bits(uint8_t, {
 /**
  * Just an RGB struct for named access
  */
-const rgb_t = new StructBuffer("rbg_t", {
+const rgb_t = new StructBuffer({
   r: uint8_t,
   g: uint8_t,
   b: uint8_t,
@@ -69,7 +69,7 @@ const rgb_t = new StructBuffer("rbg_t", {
  * The order and packing of this struct corresponds to the configuration packet sent to
  * the master controller, so it must not be changed.
  */
-export const smx_config_t = new StructBuffer("smx_config_t", {
+export const smx_config_t = new StructBuffer({
   /**
    * The firmware version of the master controller.  Where supported (version 2 and up), this
    * will always read back the firmware version.  This will default to 0xFF on version 1.
@@ -120,7 +120,7 @@ export const smx_config_t = new StructBuffer("smx_config_t", {
    * Which sensors on each panel to enable. This can be used to disable sensors that
    * we know aren't populated.
    */
-  enabledSensors: new EnabledSensors(),
+  enabledSensors: enabledSensors_t,
 
   /**
    * How long the master controller will wait for a lights command before assuming
@@ -233,7 +233,7 @@ const NEW_CONFIG_INIT = [
   "00".repeat(49),
 ];
 
-const smx_old_config_t = new StructBuffer("smx_old_config_t", {
+const smx_old_config_t = new StructBuffer({
   unused1: uint8_t[6],
 
   masterDebounceMilliseconds: uint16_t,
@@ -262,7 +262,7 @@ const smx_old_config_t = new StructBuffer("smx_old_config_t", {
   panelThreshold1Low: uint8_t,
   panelThreshold1High: uint8_t,
 
-  enabledSensors: new EnabledSensors(),
+  enabledSensors: enabledSensors_t,
 
   autoLightsTimeout: uint8_t,
 
@@ -361,7 +361,7 @@ export class SMXConfig {
     console.log("CONFIG RAW DATA: ", data.toString());
 
     if (this.firmwareVersion >= 5) {
-      this.config = smx_config_t.decode(data.slice(2, -1), true);
+      this.config = smx_config_t.decode(data.slice(2, -1), { littleEndian: true });
     } else {
       this.oldConfigSize = data[1];
       console.log("Reading Old Config");
@@ -370,21 +370,21 @@ export class SMXConfig {
       // handle very old stage's smaller config data by padding
       // it out to the full size of the `smx_old_config_t` struct
       const paddedData = padData(slicedData, smx_old_config_t.byteLength);
-      this.oldConfig = smx_old_config_t.decode(paddedData, true);
+      this.oldConfig = smx_old_config_t.decode(paddedData, { littleEndian: true });
       this.config = this.convertOldToNew(this.oldConfig);
     }
   }
 
   encode(): Uint8Array {
     if (this.firmwareVersion >= 5) {
-      return new Uint8Array(smx_config_t.encode(this.config, true).buffer);
+      return new Uint8Array(smx_config_t.encode(this.config, { littleEndian: true }).buffer);
     }
 
     if (!this.oldConfig) throw new ReferenceError("Can not encode old config as it is null");
     console.log("Writing Old Config");
     this.convertNewToOld();
 
-    const encodedConfig = smx_old_config_t.encode(this.oldConfig, true);
+    const encodedConfig = smx_old_config_t.encode(this.oldConfig, { littleEndian: true });
     // If the old config data is less than 128 Bytes, only send the first 128 bytes
     if (this.oldConfigSize && this.oldConfigSize <= 128) {
       return new Uint8Array(encodedConfig.buffer.slice(0, 128));
@@ -470,7 +470,7 @@ export class SMXConfig {
    */
   private convertOldToNew(oldConfig: Decoded<typeof smx_old_config_t>): Decoded<typeof smx_config_t> {
     console.log("old config: ", oldConfig);
-    const newConfig = smx_config_t.decode(sbytes(NEW_CONFIG_INIT.join("")), false);
+    const newConfig = smx_config_t.decode(sbytes(NEW_CONFIG_INIT.join("")), { littleEndian: false });
 
     newConfig.debounceNodelayMilliseconds = oldConfig.masterDebounceMilliseconds;
 

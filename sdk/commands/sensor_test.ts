@@ -76,7 +76,7 @@ const dips_t = bitFields(uint8_t, {
  *
  * These values are then used to create the `SMXPanelTestData` for each panel.
  */
-const detail_data_t = new StructBuffer("detail_data_t", {
+const detail_data_t = new StructBuffer({
   sig_bad: sig_bad_t,
   sensors: int16_t[4],
   dips: dips_t,
@@ -205,8 +205,8 @@ export class SMXSensorTestData {
     /**
      * Convert the data from 8-Bit Little Endian Bytes to 16-Bit Integers
      */
-    const sensor_data_t = new StructBuffer("sensor_data_t", { data: uint16_t[size] });
-    const decoded_data = sensor_data_t.decode(data.slice(preamble), true);
+    const sensor_data_t = new StructBuffer({ data: uint16_t[size] });
+    const decoded_data = sensor_data_t.decode(data.slice(preamble), { littleEndian: true });
 
     // Cycle through each panel and grab the data
     for (let panel = 0; panel < PANEL_COUNT; panel++) {
@@ -231,7 +231,7 @@ export class SMXSensorTestData {
       }
 
       // Generate an SMXPanelTestData object for each panel
-      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, true), data_mode, isFsr));
+      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, { littleEndian: true }), data_mode, isFsr));
     }
   }
 }
