@@ -265,6 +265,10 @@ void SMX::SMXManager::UpdatePanelTestMode()
 }
 */
 
+  getPanelTestMode() {
+    return this.panelTestMode;
+  }
+
   setPanelTestMode(mode: PanelTestMode) {
     // If we want to turn panel test mode off...
     if (mode === PanelTestMode.Off) {

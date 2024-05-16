@@ -20,9 +20,9 @@ export const API_COMMAND = {
 };
 
 export enum PanelTestMode {
-  /** 48 represents the char "0" **/
+  /** 48 represents the char "0" */
   Off = 48,
-  /** 49 represents the char "1" **/
+  /** 49 represents the char "1" */
   PressureTest = 49,
 }
 
