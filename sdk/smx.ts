@@ -1,12 +1,12 @@
 import * as Bacon from "baconjs";
 import { collatePackets, type AckPacket, type DataPacket } from "./state-machines/collate-packets";
-import { API_COMMAND, char2byte } from "./api";
+import { API_COMMAND, PanelTestMode, char2byte } from "./api";
 import { SMXConfig, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
 import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
-import { RGB } from "./utils";
+import { RGB, padData } from "./utils";
 
 /**
  * Class purely to set up in/out event stream "pipes" to properly throttle and sync input/output from a stage
@@ -80,6 +80,8 @@ export class SMXStage {
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
   private debug = true;
   private _config: SMXConfig | null = null;
+  private panelTestMode = PanelTestMode.Off;
+  private testModeIntervalHandle: number | null = null;
 
   public get config() {
     return this._config?.config || null;
@@ -229,6 +231,99 @@ export class SMXStage {
 
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
     return this.testDataResponse$.firstToPromise();
+  }
+  
+/*
+void SMX::SMXManager::UpdatePanelTestMode()
+{
+    // If the test mode has changed, send the new test mode.
+    //
+    // When the test mode is enabled, send the test mode again periodically, or it'll time
+    // out on the master and be turned off.  Don't repeat the PanelTestMode_Off command.
+    g_Lock.AssertLockedByCurrentThread();
+    uint32_t now = GetTickCount();
+    if(m_PanelTestMode == m_LastSentPanelTestMode &&
+        (m_PanelTestMode == PanelTestMode_Off || now - m_SentPanelTestModeAtTicks < 1000))
+        return;
+
+    // When we first send the test mode command (not for repeats), turn off lights.
+    if(m_LastSentPanelTestMode == PanelTestMode_Off)
+    {
+        // The 'l' command used to set lights, but it's now only used to turn lights off
+        // for cases like this.
+        string sData = "l";
+        sData.append(108, 0);
+        sData += "\n";
+        for(int iPad = 0; iPad < 2; ++iPad)
+            m_pDevices[iPad]->SendCommandLocked(sData);
+    }
+
+    m_SentPanelTestModeAtTicks = now;
+    m_LastSentPanelTestMode = m_PanelTestMode;
+    for(int iPad = 0; iPad < 2; ++iPad)
+        m_pDevices[iPad]->SendCommandLocked(ssprintf("t %c\n", m_PanelTestMode));
+}
+*/
+
+  setPanelTestMode(mode: PanelTestMode) {
+    // If we want to turn panel test mode off...
+    if (mode === PanelTestMode.Off) {
+      // We don't want to send the "Off" command multiple times, so only send it if
+      // it's currently activated
+      if (this.panelTestMode !== PanelTestMode.Off) {
+        if (this.testModeIntervalHandle !== null) {
+          clearInterval(this.testModeIntervalHandle);
+          this.testModeIntervalHandle = null;
+        }
+        // Turn off panel test mode, and send "Off" event
+        this.panelTestMode = mode;
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
+        
+        // TODO: Do we need to do anything with this? Does this even need to be called to flush
+        // the queue?
+        this.events.ackReports$.firstToPromise();
+      }
+
+      // Either we're already off, or we sent the off command, so just return. 
+      return;
+    }
+
+    // We only need to run this when the current mode is not the same as the requested mode
+    if (this.panelTestMode !== mode) {
+      this.panelTestMode = mode;
+
+      /**
+       * the 'l' command used to set lights, but it's now only used to turn lights off
+       * for cases like this
+       * Lights are always updated together (for some reason??)
+       * 2 pads * 9 panels * 25 lights each * 3 (RGB) = 1350
+       * The source code uses `108` and I'm really unsure why
+       * 
+       * TODO: Does this even do anything?
+      */
+      this.events.output$.push(
+        Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 1350, 0), char2byte('\n'))
+      );
+
+      // TODO: Do we need to do anything with this? Does this even need to be called to flush
+      // the queue?
+      this.events.ackReports$.firstToPromise();
+
+      // Send the Panel Test Mode command
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
+
+      // TODO: Do we need to do anything with this? Does this even need to be called to flush
+      // the queue?
+      this.events.ackReports$.firstToPromise();
+
+      // The Panel Test Mode command needs to be resent every second
+      this.testModeIntervalHandle = setInterval(() => {
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode)); 
+
+        // TODO: Do I need to call this to consume the event?
+        this.events.ackReports$.firstToPromise();
+      }, 1000);
+    }
   }
 
   private handleConfig(data: Uint8Array): SMXConfig {
