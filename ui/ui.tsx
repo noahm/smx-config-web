@@ -117,6 +117,7 @@ function PanelTestModeToggle() {
     <label>
       Panel Test Mode:{" "}
       <input
+        key={stage?.info?.serial}
         type="checkbox"
         style={{ height: "2em", width: "2em" }}
         disabled={!stage}
