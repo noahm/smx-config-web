@@ -24,8 +24,7 @@ export enum PanelTestMode {
   Off = 48,
   /** 49 represents the char "1" **/
   PressureTest = 49,
-};
-
+}
 
 export const SMX_USB_VENDOR_ID = 0x2341;
 export const SMX_USB_PRODUCT_ID = 0x8037;

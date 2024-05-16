@@ -232,8 +232,8 @@ export class SMXStage {
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
     return this.testDataResponse$.firstToPromise();
   }
-  
-/*
+
+  /*
 void SMX::SMXManager::UpdatePanelTestMode()
 {
     // If the test mode has changed, send the new test mode.
@@ -278,13 +278,13 @@ void SMX::SMXManager::UpdatePanelTestMode()
         // Turn off panel test mode, and send "Off" event
         this.panelTestMode = mode;
         this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
-        
+
         // TODO: Do we need to do anything with this? Does this even need to be called to flush
         // the queue?
         this.events.ackReports$.firstToPromise();
       }
 
-      // Either we're already off, or we sent the off command, so just return. 
+      // Either we're already off, or we sent the off command, so just return.
       return;
     }
 
@@ -298,12 +298,10 @@ void SMX::SMXManager::UpdatePanelTestMode()
        * Lights are always updated together (for some reason??)
        * 2 pads * 9 panels * 25 lights each * 3 (RGB) = 1350
        * The source code uses `108` and I'm really unsure why
-       * 
+       *
        * TODO: Does this even do anything?
-      */
-      this.events.output$.push(
-        Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 1350, 0), char2byte('\n'))
-      );
+       */
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 1350, 0), char2byte("\n")));
 
       // TODO: Do we need to do anything with this? Does this even need to be called to flush
       // the queue?
@@ -318,7 +316,7 @@ void SMX::SMXManager::UpdatePanelTestMode()
 
       // The Panel Test Mode command needs to be resent every second
       this.testModeIntervalHandle = setInterval(() => {
-        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode)); 
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
 
         // TODO: Do I need to call this to consume the event?
         this.events.ackReports$.firstToPromise();
