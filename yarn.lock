@@ -1783,9 +1783,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.8.0":
-  version: 2.8.0
-  resolution: "jotai@npm:2.8.0"
+"jotai@npm:^2.8.2":
+  version: 2.8.2
+  resolution: "jotai@npm:2.8.2"
   peerDependencies:
     "@types/react": ">=17.0.0"
     react: ">=17.0.0"
@@ -1794,7 +1794,7 @@ __metadata:
       optional: true
     react:
       optional: true
-  checksum: 10c0/6b2f59749530478163e41b8b1260b99cdab533541a5b9b2dcd885f2ab440391c5ee7855d627cbe28e043b9bcd736d44837b4a8ab20a2761176bba92e623a284e
+  checksum: 10c0/72bb7da2b94cfe98cdec4f53dfca81bbf5797be1397fdce744e124a1221336c788ef4d8aa33d7174abc4119ce3c90ddb1ced254d9663020cb34fe263f650cf17
   languageName: node
   linkType: hard
 
@@ -2470,7 +2470,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.2.1"
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
-    jotai: "npm:^2.8.0"
+    jotai: "npm:^2.8.2"
     logrocket: "npm:^8.1.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
