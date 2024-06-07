@@ -33,7 +33,7 @@ class SMXEvents {
     // Panel Input State (If a panel is active or not)
     this.inputState$ = rawReport$
       .filter((e) => e.reportId === HID_REPORT_INPUT_STATE)
-      .map((e) => StageInputs.decode(e.data, true));
+      .map((e) => StageInputs.decode(e.data, { littleEndian: true }));
 
     // All other reports (command responses)
     const report$ = rawReport$
