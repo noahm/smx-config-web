@@ -8,7 +8,7 @@
 :root {
   --color-bg: white;
   --color-text-main: #000000;
-  --color-primary: #FFFF00;
+  --color-primary: #ffff00;
   --wrapper-height: 87vh;
   --image-max-width: 300px;
   --image-margin: 3rem;
@@ -42,12 +42,24 @@ body {
   background-color: var(--color-bg);
 }
 
+footer {
+  position: fixed;
+  bottom: 0em;
+  padding: 1em 0;
+  width: 100%;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0),
+    #ffffff 2em
+  );
+}
+
 button,
 input,
 select {
   font-family: inherit;
   font-size: 100%;
-  background: #FFFFFF;
+  background: #ffffff;
   border: 1px solid currentColor;
   box-sizing: border-box;
   border-radius: 5px;
@@ -86,7 +98,16 @@ button:focus {
   background-color: silver;
   padding: 4em 1em 4em;
   --corner-cut-size: 3em;
-  clip-path: polygon(var(--corner-cut-size) 0, calc(100% - var(--corner-cut-size)) 0, 100% var(--corner-cut-size), 100% calc(100% - var(--corner-cut-size)), calc(100% - var(--corner-cut-size)) 100%, var(--corner-cut-size) 100%, 0 calc(100% - var(--corner-cut-size)), 0 var(--corner-cut-size));
+  clip-path: polygon(
+    var(--corner-cut-size) 0,
+    calc(100% - var(--corner-cut-size)) 0,
+    100% var(--corner-cut-size),
+    100% calc(100% - var(--corner-cut-size)),
+    calc(100% - var(--corner-cut-size)) 100%,
+    var(--corner-cut-size) 100%,
+    0 calc(100% - var(--corner-cut-size)),
+    0 var(--corner-cut-size)
+  );
 }
 .pad::after {
   /* its a bar! */
@@ -115,7 +136,8 @@ button:focus {
   background-color: red;
 }
 
-.fsr, .load-cell {
+.fsr,
+.load-cell {
   position: absolute;
   font-family: monospace;
 }

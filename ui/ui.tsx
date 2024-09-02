@@ -34,12 +34,7 @@ export function UI() {
 
   return (
     <>
-      <h1>
-        SMX Web Config{" "}
-        <small>
-          (<a href="https://github.com/noahm/smx-config-web">source</a>)
-        </small>
-      </h1>
+      <h1>SMX Web Config</h1>
       <StageTest stageAtom={selectedStage$} />
       <p>
         <PickDevice /> <DebugCommands />
@@ -48,6 +43,13 @@ export function UI() {
         <TestDataDisplayToggle />
       </p>
       <StatusDisplay />
+      <footer>
+        A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
+        <a href="https://discord.gg/VjvCKYVxBR" target="_blank" rel="noreferrer">
+          join our discord
+        </a>{" "}
+        or <a href="https://github.com/noahm/smx-config-web">browse the source code</a>
+      </footer>
     </>
   );
 }
