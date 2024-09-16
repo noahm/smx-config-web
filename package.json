@@ -35,7 +35,7 @@
     "@types/w3c-web-hid": "1.0.6",
     "@vitejs/plugin-react": "^4.3.1",
     "typescript": "^5.5.4",
-    "vite": "^5.4.2",
+    "vite": "^5.4.5",
     "vite-plugin-mkcert": "^1.17.6",
     "vitest": "^2.0.5"
   },
