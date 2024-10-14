@@ -1,4 +1,4 @@
-import { StructBuffer, bits, createDataView, uint8_t } from "@nmann/struct-buffer";
+import { Inject, bits, uint8_t } from "@nmann/struct-buffer";
 import { SENSOR_COUNT, FsrSensor } from "../api";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
@@ -39,51 +39,34 @@ function joinTwoSensors(
   };
 }
 
-export class EnabledSensors extends StructBuffer<
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  {},
-  Array<Array<boolean>>,
-  Array<Array<boolean>>
-> {
-  constructor() {
-    super("EnabledSensors", {});
-  }
+const BYTE_LENGTH = 5;
 
-  override get count() {
-    return 5; // always 5 items (5 twoDisabledSensors_t)
-  }
-
-  override get isList() {
-    return true;
-  }
-
-  override get byteLength() {
-    return 5;
-  }
-
-  override decode(view: DataView, littleEndian = false, offset = 0): Array<Array<boolean>> {
-    const decoded = twoEnabledSensors_t[this.count]
-      .decode(view, littleEndian, offset)
-      .flatMap<Array<boolean>>(splitTwoSensors);
+/** very simple custom type that conveniently packs and unpacks  */
+export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<boolean>>>(
+  // decode
+  (view, offset) => {
+    const decoded = twoEnabledSensors_t[BYTE_LENGTH].decode(view, { offset }).flatMap<Array<boolean>>(splitTwoSensors);
 
     // decoded now has a trailing entry for the 4 bits of padding on the end of data
     // so we slice to just the desired data
-    return decoded.slice(0, 9);
-  }
+    const value = decoded.slice(0, 9);
 
-  override encode(obj: Array<Array<boolean>>, littleEndian = false, offset = 0, view?: DataView): DataView {
-    if (obj.length !== 9) {
+    return {
+      size: BYTE_LENGTH,
+      value,
+    };
+  },
+  // encode
+  (values) => {
+    if (values.length !== 9) {
       throw new TypeError("DisabledSensors only encodes sets of 9");
     }
-    const v = createDataView(this.count, view);
     const joined: Array<Decoded<typeof twoEnabledSensors_t>> = [];
-    for (let i = 0; i < this.count; i++) {
+    for (let i = 0; i < BYTE_LENGTH; i++) {
       const aIdx = i * 2;
       const bIdx = aIdx + 1;
-      joined.push(joinTwoSensors(obj[aIdx], bIdx < obj.length ? obj[bIdx] : undefined));
+      joined.push(joinTwoSensors(values[aIdx], bIdx < values.length ? values[bIdx] : undefined));
     }
-    twoEnabledSensors_t[this.count].encode(joined, littleEndian, offset, v);
-
-    return v;
-  }
-}
+    return twoEnabledSensors_t[BYTE_LENGTH].encode(joined);
+  },
+);
