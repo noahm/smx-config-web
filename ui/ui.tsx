@@ -1,6 +1,6 @@
 import { useAtomValue, useAtom } from "jotai";
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
@@ -14,6 +14,7 @@ import {
 } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
+import { PanelTestMode } from "../sdk/api.ts";
 
 function usePreviouslyPairedDevices() {
   useEffect(() => {
@@ -40,7 +41,7 @@ export function UI() {
         <PickDevice /> <DebugCommands />
       </p>
       <p>
-        <TestDataDisplayToggle />
+        <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
       <StatusDisplay />
       <footer>
@@ -89,6 +90,7 @@ function StatusDisplay() {
 }
 
 function TestDataDisplayToggle() {
+  const stage = useAtomValue(selectedStage$);
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
@@ -96,6 +98,7 @@ function TestDataDisplayToggle() {
     <label>
       Read Test Values:{" "}
       <TypedSelect
+        disabled={!stage}
         value={testMode}
         options={[
           ["", "None"],
@@ -105,6 +108,26 @@ function TestDataDisplayToggle() {
           ["tare", "Tare"],
         ]}
         onOptSelected={(next) => setTestMode(next)}
+      />
+    </label>
+  );
+}
+
+function PanelTestModeToggle() {
+  const stage = useAtomValue(selectedStage$);
+
+  return (
+    <label>
+      Panel Test Mode:{" "}
+      <input
+        key={stage?.info?.serial}
+        type="checkbox"
+        style={{ height: "2em", width: "2em" }}
+        disabled={!stage}
+        defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
+        onChange={(e) => {
+          stage?.setPanelTestMode(e.currentTarget.checked ? PanelTestMode.PressureTest : PanelTestMode.Off);
+        }}
       />
     </label>
   );

@@ -16,7 +16,15 @@ export const API_COMMAND = {
   GET_SENSOR_TEST_DATA: char2byte("y"),
   SET_SERIAL_NUMBERS: char2byte("s"),
   SET_PANEL_TEST_MODE: char2byte("t"),
+  SET_LIGHTS_OLD: char2byte("l"),
 };
+
+export enum PanelTestMode {
+  /** 48 represents the char "0" */
+  Off = 48,
+  /** 49 represents the char "1" */
+  PressureTest = 49,
+}
 
 export const SMX_USB_VENDOR_ID = 0x2341;
 export const SMX_USB_PRODUCT_ID = 0x8037;
