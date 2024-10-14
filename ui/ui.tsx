@@ -92,6 +92,7 @@ function TestDataDisplayToggle() {
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: <explanation>
     <label>
       Read Test Values:{" "}
       <TypedSelect
