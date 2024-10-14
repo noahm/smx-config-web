@@ -23,21 +23,21 @@
     "@nmann/struct-buffer": "^5.4.1",
     "baconjs": "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch",
     "classnames": "^2.5.1",
-    "jotai": "^2.8.0",
-    "logrocket": "^8.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "jotai": "^2.9.3",
+    "logrocket": "^9.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.7.0",
-    "@types/react": "^18.2.75",
-    "@types/react-dom": "^18.2.25",
+    "@biomejs/biome": "1.9.3",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
     "@types/w3c-web-hid": "1.0.6",
-    "@vitejs/plugin-react": "^4.2.1",
-    "typescript": "^5.4.5",
-    "vite": "^5.2.8",
-    "vite-plugin-mkcert": "^1.17.5",
-    "vitest": "^1.5.0"
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.2",
+    "vite-plugin-mkcert": "^1.17.6",
+    "vitest": "^2.0.5"
   },
-  "packageManager": "yarn@4.1.1"
+  "packageManager": "yarn@4.5.0"
 }
