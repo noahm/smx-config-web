@@ -1,5 +1,5 @@
 import { useAtomValue } from "jotai";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type SMXStage, type SMXSensorTestData, SensorTestMode } from "../../sdk";
 import { displayTestData$ } from "../state";
 
@@ -48,7 +48,16 @@ export function useTestData(stage: SMXStage | undefined) {
 }
 
 export function useConfig(stage: SMXStage | undefined) {
+  const stageRef = useRef(stage);
   const [configData, setConfig] = useState(stage?.config);
+
+  useEffect(() => {
+    if (stageRef.current !== stage) {
+      // detected the stage has changed, so keep the config in sync
+      setConfig(stage?.config);
+      stageRef.current = stage;
+    }
+  }, [stage]);
 
   useEffect(() => {
     return stage?.configResponse$.onValue((config) => setConfig(config.config));
