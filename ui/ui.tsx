@@ -1,6 +1,6 @@
 import { useAtomValue, useAtom, type Atom } from "jotai";
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
@@ -99,6 +99,7 @@ function TestDataDisplayToggle() {
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
     <label>
       Read Test Values:{" "}
       <TypedSelect
