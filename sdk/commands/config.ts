@@ -17,10 +17,14 @@ const packed_panel_settings_t = new StructBuffer("packed_panel_settings_t", {
   loadCellHighThreshold: uint8_t,
 
   /**
-   * FSR Thresholds
-   * 4 Sensors per threshold
+   * Activation threshold when pressing.
+   * 4 values, one for each sensor on this panel.
    */
   fsrLowThreshold: uint8_t[4],
+  /**
+   * Release threshold when lifting.
+   * 4 values, one for each sensor on this panel.
+   */
   fsrHighThreshold: uint8_t[4],
 
   /**
