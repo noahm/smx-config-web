@@ -51,8 +51,6 @@ class SMXEvents {
       .filter((e) => e.type === "host_cmd_finished")
       .map((e) => e.type === "host_cmd_finished");
 
-    finishedCommand$.log("Cmd Finished");
-
     const okSend$ = finishedCommand$.startWith(true);
 
     // Main USB Output
@@ -101,7 +99,7 @@ export class SMXStage {
 
     // write outgoing events to the device
     this.events.eventsToSend$.onValue(async (value) => {
-      this.debug && console.log("writing to HID");
+      this.debug && console.debug("writing to HID");
       await send_data(this.dev, value, this.debug);
     });
 
@@ -241,9 +239,9 @@ export class SMXStage {
     const encoded_config = this._config.encode();
     if (encoded_config) {
       this.debug &&
-        console.log("Config Encodes Correctly: ", data.slice(2, -1).toString() === encoded_config.toString());
+        console.debug("Config Encodes Correctly: ", data.slice(2, -1).toString() === encoded_config.toString());
     }
-    this.debug && console.log("Got Config: ", this.config);
+    this.debug && console.info("Got Config: ", this.config);
 
     return this._config;
   }
@@ -252,7 +250,7 @@ export class SMXStage {
     // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
     this.test = new SMXSensorTestData(data, this.test_mode, this.config!.flags.PlatformFlags_FSR);
 
-    this.debug && console.log("Got Test: ", this.test);
+    this.debug && console.debug("Got Test: ", this.test);
 
     return this.test;
   }
@@ -260,7 +258,7 @@ export class SMXStage {
   private handleDeviceInfo(data: Uint8Array): SMXDeviceInfo {
     this.info = new SMXDeviceInfo(data);
 
-    this.debug && console.log("Got Info: ", this.info);
+    this.debug && console.debug("Got Info: ", this.info);
 
     return this.info;
   }
