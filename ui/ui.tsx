@@ -23,7 +23,6 @@ function usePreviouslyPairedDevices() {
     if (browserSupported) {
       navigator.hid.getDevices().then((devices) =>
         devices.map((device) => {
-          console.log(`Found device: ${device.productName}`);
           open_smx_device(device);
         }),
       );

@@ -361,14 +361,13 @@ export class SMXConfig {
    */
   constructor(data: Uint8Array, firmwareVersion: number) {
     this.firmwareVersion = firmwareVersion;
-    console.log("Config Firmware Version: ", this.firmwareVersion);
-    console.log("CONFIG RAW DATA: ", data.toString());
+    console.debug("CONFIG RAW DATA: ", data.toString());
 
     if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), true);
     } else {
       this.oldConfigSize = data[1];
-      console.log("Reading Old Config");
+      console.debug("Reading Old Config");
 
       const slicedData = data.slice(2, -1);
       // handle very old stage's smaller config data by padding

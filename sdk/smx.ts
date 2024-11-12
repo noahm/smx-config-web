@@ -51,8 +51,6 @@ class SMXEvents {
       .filter((e) => e.type === "host_cmd_finished")
       .map((e) => e.type === "host_cmd_finished");
 
-    finishedCommand$.log("Cmd Finished");
-
     const okSend$ = finishedCommand$.startWith(true);
 
     // Main USB Output
