@@ -21,7 +21,10 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
     } catch (e) {
       console.error(e);
       uiState.set(nextStatusTextLine$, "failed to open device; more details in the browser console.");
-      uiState.set(nextStatusTextLine$, "if you are using linux, permissions to talk to a stage are still an unsolved puzzle.");
+      uiState.set(
+        nextStatusTextLine$,
+        "if you are using linux, permissions to talk to a stage are still an unsolved puzzle.",
+      );
       return;
     }
   }
