@@ -1947,13 +1947,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"logrocket@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "logrocket@npm:9.0.0"
-  checksum: 10c0/d44b1c4993200b94b98dc64c952d3b6bf32e21fb0eede69135b34e9f56fe91c0c43bf769f42411862c2554194cb1f0e1770835be83523f6b16e39925e8cf0f46
-  languageName: node
-  linkType: hard
-
 "loupe@npm:^3.1.0, loupe@npm:^3.1.2":
   version: 3.1.2
   resolution: "loupe@npm:3.1.2"
@@ -2469,7 +2462,6 @@ __metadata:
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
     jotai: "npm:^2.9.3"
-    logrocket: "npm:^9.0.0"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     typescript: "npm:^5.5.4"
