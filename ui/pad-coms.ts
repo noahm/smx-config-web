@@ -16,7 +16,14 @@ export async function promptSelectDevice() {
 
 export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
   if (!dev.opened) {
-    await dev.open();
+    try {
+      await dev.open();
+    } catch (e) {
+      console.error(e);
+      uiState.set(nextStatusTextLine$, "failed to open device; more details in the browser console.");
+      uiState.set(nextStatusTextLine$, "if you are using linux, permissions to talk to a stage are still an unsolved puzzle.");
+      return;
+    }
   }
 
   const stage = new SMXStage(dev);
