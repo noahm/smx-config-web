@@ -1,6 +1,6 @@
-import { useAtomValue, useAtom } from "jotai";
+import { useAtomValue, useAtom, type Atom } from "jotai";
 import type React from "react";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
@@ -14,6 +14,8 @@ import {
 } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
+import type { SMXStage } from "../sdk/smx.ts";
+import { ConfigValues } from "./stage/config.tsx";
 
 function usePreviouslyPairedDevices() {
   useEffect(() => {
@@ -21,7 +23,6 @@ function usePreviouslyPairedDevices() {
     if (browserSupported) {
       navigator.hid.getDevices().then((devices) =>
         devices.map((device) => {
-          console.log(`Found device: ${device.productName}`);
           open_smx_device(device);
         }),
       );
@@ -42,6 +43,7 @@ export function UI() {
       <p>
         <TestDataDisplayToggle />
       </p>
+      <ConfigValues stageAtom={selectedStage$} />
       <StatusDisplay />
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
@@ -85,14 +87,19 @@ function PickDevice() {
 
 function StatusDisplay() {
   const statusText = useAtomValue(statusText$);
-  return <pre>{statusText}</pre>;
+  return (
+    <>
+      <h3>Event Log</h3>
+      <pre>{statusText}</pre>
+    </>
+  );
 }
 
 function TestDataDisplayToggle() {
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: <explanation>
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
     <label>
       Read Test Values:{" "}
       <TypedSelect

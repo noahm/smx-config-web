@@ -17,10 +17,14 @@ const packed_panel_settings_t = new StructBuffer({
   loadCellHighThreshold: uint8_t,
 
   /**
-   * FSR Thresholds
-   * 4 Sensors per threshold
+   * Activation threshold when pressing.
+   * 4 values, one for each sensor on this panel.
    */
   fsrLowThreshold: uint8_t[4],
+  /**
+   * Release threshold when lifting.
+   * 4 values, one for each sensor on this panel.
+   */
   fsrHighThreshold: uint8_t[4],
 
   /**
@@ -357,14 +361,13 @@ export class SMXConfig {
    */
   constructor(data: Uint8Array, firmwareVersion: number) {
     this.firmwareVersion = firmwareVersion;
-    console.log("Config Firmware Version: ", this.firmwareVersion);
-    console.log("CONFIG RAW DATA: ", data.toString());
+    console.debug("CONFIG RAW DATA: ", data.toString());
 
     if (this.firmwareVersion >= 5) {
       this.config = smx_config_t.decode(data.slice(2, -1), { littleEndian: true });
     } else {
       this.oldConfigSize = data[1];
-      console.log("Reading Old Config");
+      console.debug("Reading Old Config");
 
       const slicedData = data.slice(2, -1);
       // handle very old stage's smaller config data by padding
