@@ -1,6 +1,12 @@
 # SMX Config - Web Edition
 
-This is an early WIP for a web-based config tool for StepManiaX stages using WebHID for communication and React for the UI.
+## Introduction
+
+This is a work-in-progress config tool for StepManiaX stages that runs in a web browser. It can read debug values from individual sensors and perform a factory reset on a stage. It currently _cannot_ write configuration (sensitivity levels, GIFs, etc) to the stage, yet.
+
+Connect your stage to a desktop/laptop computer, and visit [smx.tools](https://smx.tools/) in Google Chrome, Microsoft Edge, Brave, Vivaldi, etc.
+
+Our tech stack uses [WebHID](https://developer.chrome.com/docs/capabilities/web-apis/hid-examples) (Chrome-only at the moment) to communicate with the stages. React is used for the UI.
 
 ## Developing
 
