@@ -534,10 +534,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nmann/struct-buffer@npm:^5.4.1":
-  version: 5.4.1
-  resolution: "@nmann/struct-buffer@npm:5.4.1"
-  checksum: 10c0/7f5974c34f0b5c27b4f20b423e90c51fa91aef7578e8af285856a4049809c83e569aa44680fefbfd72fd41580b269479511cabdc6112d7a8b7c2b8481b5eed08
+"@nmann/struct-buffer@npm:^6.0.0-beta.1":
+  version: 6.0.0-beta.1
+  resolution: "@nmann/struct-buffer@npm:6.0.0-beta.1"
+  checksum: 10c0/b81886dce6d2638e007ba613dd5359606415e459c281b4c30def51bc2659adf18424cd2385732d4a04498654bfde320e2071862cb8b9ff423e946e7d8e564ee7
   languageName: node
   linkType: hard
 
@@ -2213,7 +2213,7 @@ __metadata:
   resolution: "smx-config-web@workspace:."
   dependencies:
     "@biomejs/biome": "npm:1.9.4"
-    "@nmann/struct-buffer": "npm:^5.4.1"
+    "@nmann/struct-buffer": "npm:^6.0.0-beta.1"
     "@types/react": "npm:^19.0.0"
     "@types/react-dom": "npm:^19.0.0"
     "@types/w3c-web-hid": "npm:1.0.6"

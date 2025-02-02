@@ -1,11 +1,11 @@
 import { sbytes, sview } from "@nmann/struct-buffer";
 import { expect, test, describe } from "vitest";
-import { twoEnabledSensors_t, EnabledSensors } from "./enabled-sensors";
+import { twoEnabledSensors_t, enabledSensors_t } from "./enabled-sensors";
 import { SENSOR_COUNT } from "../api";
 
 describe("twoEnabledSensors_t", () => {
   test("encode", () => {
-    expect(twoEnabledSensors_t.decode(sbytes("F0"), false)).toEqual({
+    expect(twoEnabledSensors_t.decode(sbytes("F0"), { littleEndian: false })).toEqual({
       left0: true,
       right0: true,
       up0: true,
@@ -29,8 +29,6 @@ describe("twoEnabledSensors_t", () => {
   });
 });
 
-const enabledSensors = new EnabledSensors();
-
 const decodedData = [
   Array(SENSOR_COUNT).fill(false),
   Array(SENSOR_COUNT).fill(true),
@@ -46,9 +44,9 @@ const decodedData = [
 const encodedData = "0f 0f ff 0f 00";
 
 test("decode", () => {
-  expect(enabledSensors.decode(sbytes(encodedData))).toEqual(decodedData);
+  expect(enabledSensors_t.decode(sbytes(encodedData))).toEqual(decodedData);
 });
 
 test("encode", () => {
-  expect(sview(enabledSensors.encode(decodedData))).toEqual(encodedData);
+  expect(sview(enabledSensors_t.encode(decodedData))).toEqual(encodedData);
 });
