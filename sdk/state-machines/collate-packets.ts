@@ -24,18 +24,18 @@ export type Packet = { type: "host_cmd_finished" } | DataPacket | AckPacket;
 export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (state, event) => {
   // TODO: This whole function could maybe just use a bit more comments
   if (!Bacon.hasValue(event)) {
-    console.log("No Event Value");
+    console.debug("No Event Value");
     return [state, []];
   }
 
   let currentPacket = state.currentPacket;
   const data = new Uint8Array(event.value.buffer);
 
-  console.log("INCOMING RAW PACKET: ", data.toString());
+  console.debug("INCOMING RAW PACKET: ", data.toString());
 
   // Return if packet is empty
   if (data.length <= PACKET_PREAMBLE_SIZE) {
-    console.log("Empty Packet");
+    console.debug("Empty Packet");
     return [state, []];
   }
   const cmd = data[0];
@@ -46,12 +46,12 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
     // we ignore the packet if we didn't request it, since it might be requested
     // for a different program.
     // TODO: Handle this? Not sure there's anything to handle here tbh
-    console.log("Found Packet Flag Device Info");
+    console.debug("Found Packet Flag Device Info");
   }
 
   if (PACKET_PREAMBLE_SIZE + byte_len > data.length) {
     // TODO: Can this even happen???
-    console.log("Communication Error: Oversized Packet (ignored)");
+    console.warn("Communication Error: Oversized Packet (ignored)");
     return [state, []];
   }
 
@@ -71,7 +71,7 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
      * This shouldn't happen, so warn about it and recover by clearing the junk in the buffer.
      * TODO: Again, does this actually happen???!?
      */
-    console.log(
+    console.warn(
       "Got PACKET_FLAG_OF_START_COMMAND, but we had ${current_packet.length} bytes in the buffer. Dropping it and continuing.",
     );
     currentPacket = new Uint8Array(0);

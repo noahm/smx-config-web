@@ -1,6 +1,6 @@
 import { useAtomValue, useAtom } from "jotai";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
@@ -15,6 +15,7 @@ import {
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
+import { ConfigValues } from "./stage/config.tsx";
 
 function usePreviouslyPairedDevices() {
   useEffect(() => {
@@ -22,7 +23,6 @@ function usePreviouslyPairedDevices() {
     if (browserSupported) {
       navigator.hid.getDevices().then((devices) =>
         devices.map((device) => {
-          console.log(`Found device: ${device.productName}`);
           open_smx_device(device);
         }),
       );
@@ -35,12 +35,7 @@ export function UI() {
 
   return (
     <>
-      <h1>
-        SMX Web Config{" "}
-        <small>
-          (<a href="https://github.com/noahm/smx-config-web">source</a>)
-        </small>
-      </h1>
+      <h1>SMX Web Config</h1>
       <StageTest stageAtom={selectedStage$} />
       <p>
         <PickDevice /> <DebugCommands />
@@ -48,7 +43,15 @@ export function UI() {
       <p>
         <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
+      <ConfigValues stageAtom={selectedStage$} />
       <StatusDisplay />
+      <footer>
+        A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
+        <a href="https://discord.gg/VjvCKYVxBR" target="_blank" rel="noreferrer">
+          join our discord
+        </a>{" "}
+        or <a href="https://github.com/noahm/smx-config-web">browse the source code</a>
+      </footer>
     </>
   );
 }
@@ -84,7 +87,12 @@ function PickDevice() {
 
 function StatusDisplay() {
   const statusText = useAtomValue(statusText$);
-  return <pre>{statusText}</pre>;
+  return (
+    <>
+      <h3>Event Log</h3>
+      <pre>{statusText}</pre>
+    </>
+  );
 }
 
 function TestDataDisplayToggle() {
@@ -92,6 +100,7 @@ function TestDataDisplayToggle() {
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
+    // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
     <label>
       Read Test Values:{" "}
       <TypedSelect

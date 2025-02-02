@@ -31,7 +31,7 @@ export async function send_data(dev: HIDDevice, data: Uint8Array, debug = false)
   // Send each packet
   for (const packet of packets) {
     if (debug) {
-      console.log("OUTGOING RAW PACKET: ", packet.toString());
+      console.debug("OUTGOING RAW PACKET: ", packet.toString());
     }
     await dev.sendReport(HID_REPORT_OUTPUT, packet);
   }

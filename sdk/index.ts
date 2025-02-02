@@ -11,6 +11,6 @@ export {
   SENSOR_COUNT,
   PANEL_COUNT,
 } from "./api.js";
-export { type PanelName, type EachPanel } from "./commands/inputs.js";
+export type { PanelName, EachPanel } from "./commands/inputs.js";
 export { SensorTestMode, type SMXPanelTestData, type SMXSensorTestData } from "./commands/sensor_test.js";
 export { SMXStage } from "./smx.js";
