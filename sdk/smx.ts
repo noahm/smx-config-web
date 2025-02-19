@@ -233,38 +233,6 @@ export class SMXStage {
     return this.testDataResponse$.firstToPromise();
   }
 
-  /*
-void SMX::SMXManager::UpdatePanelTestMode()
-{
-    // If the test mode has changed, send the new test mode.
-    //
-    // When the test mode is enabled, send the test mode again periodically, or it'll time
-    // out on the master and be turned off.  Don't repeat the PanelTestMode_Off command.
-    g_Lock.AssertLockedByCurrentThread();
-    uint32_t now = GetTickCount();
-    if(m_PanelTestMode == m_LastSentPanelTestMode &&
-        (m_PanelTestMode == PanelTestMode_Off || now - m_SentPanelTestModeAtTicks < 1000))
-        return;
-
-    // When we first send the test mode command (not for repeats), turn off lights.
-    if(m_LastSentPanelTestMode == PanelTestMode_Off)
-    {
-        // The 'l' command used to set lights, but it's now only used to turn lights off
-        // for cases like this.
-        string sData = "l";
-        sData.append(108, 0);
-        sData += "\n";
-        for(int iPad = 0; iPad < 2; ++iPad)
-            m_pDevices[iPad]->SendCommandLocked(sData);
-    }
-
-    m_SentPanelTestModeAtTicks = now;
-    m_LastSentPanelTestMode = m_PanelTestMode;
-    for(int iPad = 0; iPad < 2; ++iPad)
-        m_pDevices[iPad]->SendCommandLocked(ssprintf("t %c\n", m_PanelTestMode));
-}
-*/
-
   getPanelTestMode() {
     return this.panelTestMode;
   }
@@ -281,11 +249,7 @@ void SMX::SMXManager::UpdatePanelTestMode()
         }
         // Turn off panel test mode, and send "Off" event
         this.panelTestMode = mode;
-        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
-
-        // TODO: Do we need to do anything with this? Does this even need to be called to flush
-        // the queue?
-        this.events.ackReports$.firstToPromise();
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
       }
 
       // Either we're already off, or we sent the off command, so just return.
@@ -299,31 +263,20 @@ void SMX::SMXManager::UpdatePanelTestMode()
       /**
        * the 'l' command used to set lights, but it's now only used to turn lights off
        * for cases like this
-       * Lights are always updated together (for some reason??)
-       * 2 pads * 9 panels * 25 lights each * 3 (RGB) = 1350
-       * The source code uses `108` and I'm really unsure why
-       *
-       * TODO: Does this even do anything?
+       * 1 pad * 9 panels * 25 lights each * 3 (RGB) = 675
+       * The source code uses `108` instead and I'm really unsure why,
+       * but we're gonna do the same thing here because it works.
        */
-      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 1350, 0), char2byte("\n")));
-
-      // TODO: Do we need to do anything with this? Does this even need to be called to flush
-      // the queue?
-      this.events.ackReports$.firstToPromise();
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
 
       // Send the Panel Test Mode command
-      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
 
-      // TODO: Do we need to do anything with this? Does this even need to be called to flush
-      // the queue?
-      this.events.ackReports$.firstToPromise();
-
-      // The Panel Test Mode command needs to be resent every second
+      // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
+      // auto time out and turn off Panel Test Mode itself
       this.testModeIntervalHandle = setInterval(() => {
-        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, mode));
-
-        // TODO: Do I need to call this to consume the event?
-        this.events.ackReports$.firstToPromise();
+        console.log("Test Mode Push Interval");
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
       }, 1000);
     }
   }

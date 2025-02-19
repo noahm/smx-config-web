@@ -1,10 +1,6 @@
 import { useAtomValue, useAtom, type Atom } from "jotai";
 import type React from "react";
-<<<<<<< HEAD
-import { useEffect, useId } from "react";
-=======
 import { useEffect, useState } from "react";
->>>>>>> e29f207 (Add checkbox for panel test mode)
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
@@ -18,12 +14,8 @@ import {
 } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
-<<<<<<< HEAD
-import type { SMXStage } from "../sdk/smx.ts";
 import { ConfigValues } from "./stage/config.tsx";
-=======
 import { PanelTestMode } from "../sdk/api.ts";
->>>>>>> e29f207 (Add checkbox for panel test mode)
 
 function usePreviouslyPairedDevices() {
   useEffect(() => {
@@ -134,7 +126,6 @@ function PanelTestModeToggle() {
     <label>
       Panel Test Mode:{" "}
       <input
-        key={stage?.info?.serial}
         type="checkbox"
         style={{ height: "2em", width: "2em" }}
         disabled={!stage}
