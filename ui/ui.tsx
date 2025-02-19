@@ -1,6 +1,6 @@
-import { useAtomValue, useAtom, type Atom } from "jotai";
+import { useAtomValue, useAtom } from "jotai";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
 import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
