@@ -2,7 +2,6 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "./pad-coms";
 import { selectedStage$ } from "./state.ts";
-import { RGB } from "../sdk/utils.ts";
 
 const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
 
@@ -13,13 +12,7 @@ export function DebugCommands() {
     selectedCommand && stage
       ? async () => {
           const cmd = DEBUG_COMMANDS[selectedCommand];
-          if (cmd === "setLightStrip") {
-            // TODO: We don't even expose this to the dropdown, but this seemed
-            // like the easiest fix for now.
-            await stage[cmd](new RGB(0, 0, 255));
-          } else {
-            await stage[cmd]();
-          }
+          await stage[cmd]();
         }
       : undefined;
   return (

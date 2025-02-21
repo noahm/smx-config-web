@@ -62,10 +62,10 @@ type FunctionKeys<T extends object> = keyof {
 };
 
 /** anything here will appear in the debug UI to dispatch at will */
-export const DEBUG_COMMANDS: Record<string, FunctionKeys<SMXStage>> = {
+export const DEBUG_COMMANDS = {
   requestConfig: "updateConfig",
   writeConfig: "writeConfig",
   requestTestData: "updateTestData",
   forceRecalibration: "forceRecalibration",
   factoryReset: "factoryReset",
-};
+} as const satisfies Record<string, FunctionKeys<SMXStage>>;

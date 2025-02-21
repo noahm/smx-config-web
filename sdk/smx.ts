@@ -1,12 +1,12 @@
 import * as Bacon from "baconjs";
 import { collatePackets, type AckPacket, type DataPacket } from "./state-machines/collate-packets";
-import { API_COMMAND, char2byte } from "./api";
+import { API_COMMAND, PanelTestMode, char2byte } from "./api";
 import { SMXConfig, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
 import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
-import { RGB } from "./utils";
+import { RGB, padData } from "./utils";
 
 /**
  * Class purely to set up in/out event stream "pipes" to properly throttle and sync input/output from a stage
@@ -80,6 +80,8 @@ export class SMXStage {
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
   private debug = true;
   private _config: SMXConfig | null = null;
+  private panelTestMode = PanelTestMode.Off;
+  private cancelTestModeInterval: Bacon.Unsub | null = null;
 
   public get config() {
     return this._config?.config || null;
@@ -229,6 +231,54 @@ export class SMXStage {
 
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
     return this.testDataResponse$.firstToPromise();
+  }
+
+  getPanelTestMode() {
+    return this.panelTestMode;
+  }
+
+  setPanelTestMode(mode: PanelTestMode) {
+    // If we want to turn panel test mode off...
+    if (mode === PanelTestMode.Off) {
+      // We don't want to send the "Off" command multiple times, so only send it if
+      // it's currently activated
+      if (this.panelTestMode !== PanelTestMode.Off) {
+        if (this.cancelTestModeInterval) {
+          this.cancelTestModeInterval();
+          this.cancelTestModeInterval = null;
+        }
+        // Turn off panel test mode, and send "Off" event
+        this.panelTestMode = mode;
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
+      }
+
+      // Either we're already off, or we sent the off command, so just return.
+      return;
+    }
+
+    // We only need to run this when the current mode is not the same as the requested mode
+    if (this.panelTestMode !== mode) {
+      this.panelTestMode = mode;
+
+      /**
+       * the 'l' command used to set lights, but it's now only used to turn lights off
+       * for cases like this
+       * 1 pad * 9 panels * 25 lights each * 3 (RGB) = 675
+       * The source code uses `108` instead and I'm really unsure why,
+       * but we're gonna do the same thing here because it works.
+       */
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
+
+      // Send the Panel Test Mode command
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
+
+      // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
+      // auto time out and turn off Panel Test Mode itself
+      this.cancelTestModeInterval = Bacon.interval(1000, null).subscribe(() => {
+        console.log("Test Mode Push Interval");
+        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
+      });
+    }
   }
 
   private handleConfig(data: Uint8Array): SMXConfig {
