@@ -81,7 +81,7 @@ export class SMXStage {
   private debug = true;
   private _config: SMXConfig | null = null;
   private panelTestMode = PanelTestMode.Off;
-  private testModeIntervalHandle: number | null = null;
+  private cancelTestModeInterval: Bacon.Unsub | null = null;
 
   public get config() {
     return this._config?.config || null;
@@ -243,9 +243,9 @@ export class SMXStage {
       // We don't want to send the "Off" command multiple times, so only send it if
       // it's currently activated
       if (this.panelTestMode !== PanelTestMode.Off) {
-        if (this.testModeIntervalHandle !== null) {
-          clearInterval(this.testModeIntervalHandle);
-          this.testModeIntervalHandle = null;
+        if (this.cancelTestModeInterval) {
+          this.cancelTestModeInterval();
+          this.cancelTestModeInterval = null;
         }
         // Turn off panel test mode, and send "Off" event
         this.panelTestMode = mode;
@@ -274,10 +274,10 @@ export class SMXStage {
 
       // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
       // auto time out and turn off Panel Test Mode itself
-      this.testModeIntervalHandle = setInterval(() => {
+      this.cancelTestModeInterval = Bacon.interval(1000, null).subscribe(() => {
         console.log("Test Mode Push Interval");
         this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
-      }, 1000);
+      });
     }
   }
 
