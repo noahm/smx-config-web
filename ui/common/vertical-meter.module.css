@@ -1,0 +1,86 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  place-items: center;
+}
+
+.control {
+  display: flex;
+  place-items: center;
+  margin-bottom: 8px;
+}
+
+.meterContainer {
+  position: relative;
+  width: 64px;
+  height: 256px;
+  background-color: var(--color-gray-200);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.meterValueFill {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  transition: all;
+  transition-duration: 300ms;
+  transition-timing-function: ease-in-out;
+  background-color: var(--color-gray-500);
+}
+
+.meterValueFillActive {
+  background-color: var(--color-green-500);
+}
+
+.meterThresholdLine {
+  position: absolute;
+  inset-inline: 0;
+  height: 2px;
+}
+
+.atkColorFg {
+  color: var(--color-blue-500);
+}
+
+.atkColorBg {
+  background-color: var(--color-blue-500);
+}
+
+.rlsColorFg {
+  color: var(--color-red-500);
+}
+
+.rlsColorBg {
+  background-color: var(--color-red-500);
+}
+
+.controlsContainer {
+  position: relative;
+  margin-left: 8px;
+  width: 16px;
+  height: 256px;
+}
+
+.dragHandleContainer {
+  position: absolute;
+  display: flex;
+  place-items: center;
+}
+
+.dragHandle {
+  width: 16px;
+  height: 16px;
+  border-radius: 100%;
+  cursor: ns-resize;
+}
+
+.handleLabel {
+  margin-left: 8px;
+  font-size: 70%;
+}
+
+.bottomLabel {
+  text-align: center;
+  font-size: 80%;
+}

@@ -11,7 +11,8 @@ export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
       return []; // skip panels will all disabled sensors
     }
 
-    const { fsrHighThreshold: highs, fsrLowThreshold: lows } = config.panelSettings[idx];
+    const { fsrHighThreshold: highs, fsrLowThreshold: lows } =
+      config.panelSettings[idx];
 
     return {
       idx,
