@@ -59,7 +59,7 @@ export function PanelMeters() {
 
   return (
     <div className={classes.panelWrapper}>
-      <h1 className={classes.title}>Pressure Sensors</h1>
+      <h1 className={classes.title}>Sensor Thresholds</h1>
       <div className={classes.switchWrapper}>
         <ToggleSwitch isOn={isLocked} onToggle={toggleLock} label="Lock Thresholds" />
       </div>
