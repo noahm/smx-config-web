@@ -18,6 +18,8 @@ export const selectedStage$ = atom<SMXStage | undefined>((get) => {
   return stages[serial];
 });
 
+export const selectedPanelIdx$ = atom<number | undefined>();
+
 export const displayTestData$ = atom<"" | "raw" | "calibrated" | "noise" | "tare">("");
 
 export const statusText$ = atom(

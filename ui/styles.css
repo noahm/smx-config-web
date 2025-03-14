@@ -292,11 +292,7 @@ footer {
   bottom: 0em;
   padding: 1em 0;
   width: 100%;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0),
-    #ffffff 2em
-  );
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0), #ffffff 2em);
 }
 
 button,
@@ -373,6 +369,12 @@ button:focus {
 .panel {
   outline: 2px solid #ddd;
   position: relative;
+}
+.panel.selected {
+  outline-color: var(--color-green-900);
+}
+.panel:not(.disabled) {
+  cursor: pointer;
 }
 .panel.active {
   background-color: #00ff00;

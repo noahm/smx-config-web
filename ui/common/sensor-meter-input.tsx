@@ -8,15 +8,11 @@ function clamp(value: number, min: number, max: number) {
 
 interface SensorProps {
   id: number;
-  value: number;
+  value?: number | undefined;
   activationThreshold: number;
   releaseThreshold: number;
   maxValue: number;
-  updateThreshold?: (
-    id: number,
-    type: "activation" | "release",
-    value: number,
-  ) => void;
+  updateThreshold?: (id: number, type: "activation" | "release", value: number) => void;
   showControls?: boolean;
 }
 
@@ -46,13 +42,11 @@ export function SensorMeterInput({
   updateThreshold,
   showControls,
 }: SensorProps) {
-  const valuePct = 100 * value / maxValue;
-  const releaseThresholdPct = 100 * releaseThreshold / maxValue;
-  const activationThresholdPct = 100 * activationThreshold / maxValue;
-  const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | null>(
-    null,
-  );
-  const isActive = useSensorActive(value, activationThreshold, releaseThreshold);
+  const valuePct = (100 * (value || 0)) / maxValue;
+  const releaseThresholdPct = (100 * releaseThreshold) / maxValue;
+  const activationThresholdPct = (100 * activationThreshold) / maxValue;
+  const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | null>(null);
+  const isActive = useSensorActive(value || 0, activationThreshold, releaseThreshold);
 
   const handleMouseDown = (type: "activation" | "release") => {
     setIsDragging(type);
@@ -73,7 +67,7 @@ export function SensorMeterInput({
 
       updateThreshold?.(id, currentDraggingHandle, Math.round(percentage));
     },
-    [id, currentDraggingHandle, updateThreshold],
+    [id, currentDraggingHandle, updateThreshold, maxValue],
   );
 
   return (
@@ -100,40 +94,24 @@ export function SensorMeterInput({
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            <div
-              className={classes.dragHandleContainer}
-              style={{ bottom: `calc(${activationThresholdPct}% - 8px)` }}
-            >
+            <div className={classes.dragHandleContainer} style={{ bottom: `calc(${activationThresholdPct}% - 8px)` }}>
               <div
                 className={classNames(classes.dragHandle, classes.atkColorBg)}
                 onMouseDown={() => handleMouseDown("activation")}
               />
-              <span
-                className={classNames(classes.handleLabel, classes.atkColorFg)}
-              >
-                {activationThreshold}
-              </span>
+              <span className={classNames(classes.handleLabel, classes.atkColorFg)}>{activationThreshold}</span>
             </div>
-            <div
-              className={classes.dragHandleContainer}
-              style={{ bottom: `calc(${releaseThresholdPct}% - 8px)` }}
-            >
+            <div className={classes.dragHandleContainer} style={{ bottom: `calc(${releaseThresholdPct}% - 8px)` }}>
               <div
                 className={classNames(classes.dragHandle, classes.rlsColorBg)}
                 onMouseDown={() => handleMouseDown("release")}
               />
-              <span
-                className={classNames(classes.handleLabel, classes.rlsColorFg)}
-              >
-                {releaseThreshold}
-              </span>
+              <span className={classNames(classes.handleLabel, classes.rlsColorFg)}>{releaseThreshold}</span>
             </div>
           </div>
         )}
       </div>
-      <div className={classes.bottomLabel}>
-        <p>Value: {value}</p>
-      </div>
+      <div className={classes.bottomLabel}>{value === undefined ? null : <p>Value: {value}</p>}</div>
     </div>
   );
 }
