@@ -14,6 +14,7 @@ interface SensorProps {
   maxValue: number;
   updateThreshold?: (id: number, type: "activation" | "release", value: number) => void;
   showControls?: boolean;
+  forFsr?: boolean;
 }
 
 function useSensorActive(value: number, atk: number, rls: number) {
@@ -41,6 +42,7 @@ export function SensorMeterInput({
   activationThreshold,
   updateThreshold,
   showControls,
+  forFsr,
 }: SensorProps) {
   const valuePct = (100 * (value || 0)) / maxValue;
   const releaseThresholdPct = (100 * releaseThreshold) / maxValue;
@@ -111,7 +113,22 @@ export function SensorMeterInput({
           </div>
         )}
       </div>
-      <div className={classes.bottomLabel}>{value === undefined ? null : <p>Value: {value}</p>}</div>
+      <div className={classes.bottomLabel}>
+        {forFsr && <FsrIndicator index={id} />}
+        <p>Value: {value === undefined ? "--" : value}</p>
+      </div>
     </div>
+  );
+}
+
+const fsrSidesByIndex = ["Left", "Right", "Top", "Bottom"] as const;
+
+function FsrIndicator({ index }: { index: number }) {
+  const side = fsrSidesByIndex[index];
+  return (
+    <div
+      className={classes.fsrIndicator}
+      style={{ [`border${side}Width`]: "4px", [`border${side}Color`]: "var(--color-gray-700)" }}
+    />
   );
 }

@@ -18,6 +18,7 @@ export function PanelMeters() {
     { id: 3, activationThreshold: 80, releaseThreshold: 40 },
     { id: 4, activationThreshold: 75, releaseThreshold: 25 },
   ]);
+  const isFsr = stage?.config?.flags.PlatformFlags_FSR;
 
   const [isLocked, setIsLocked] = useState(false);
 
@@ -68,12 +69,13 @@ export function PanelMeters() {
           <SensorMeterInput
             key={sensor.id}
             value={panelData?.sensor_level[index]}
-            id={sensor.id}
+            id={index}
             activationThreshold={sensor.activationThreshold}
             releaseThreshold={sensor.releaseThreshold}
             maxValue={255}
             updateThreshold={updateSensorThreshold}
             showControls={!isLocked || index === sensors.length - 1}
+            forFsr={isFsr}
           />
         ))}
       </div>

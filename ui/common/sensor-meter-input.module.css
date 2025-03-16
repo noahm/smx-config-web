@@ -1,7 +1,8 @@
 .root {
   display: flex;
   flex-direction: column;
-  place-items: center;
+  place-items: left;
+  --meter-width: 64px;
 }
 
 .control {
@@ -12,7 +13,7 @@
 
 .meterContainer {
   position: relative;
-  width: 64px;
+  width: var(--meter-width);
   height: 256px;
   background-color: var(--color-gray-200);
   border-radius: 5px;
@@ -81,6 +82,19 @@
 }
 
 .bottomLabel {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  width: var(--meter-width);
   font-size: 80%;
+}
+
+.bottomLabel p {
+  margin: 0.4em 0;
+}
+
+.fsrIndicator {
+  align-self: center;
+  height: 2em;
+  width: 2em;
+  border: 1px solid var(--color-gray-500);
 }
