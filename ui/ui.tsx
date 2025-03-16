@@ -50,19 +50,11 @@ export function UI() {
       <PanelMeters />
       <StatusDisplay />
       <footer>
-        A project of Cathadan and SenPi. This tool is unofficial and not
-        affiliated with Step Revolution. Want to help?{" "}
-        <a
-          href="https://discord.gg/VjvCKYVxBR"
-          target="_blank"
-          rel="noreferrer"
-        >
+        A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
+        <a href="https://discord.gg/VjvCKYVxBR" target="_blank" rel="noreferrer">
           join our discord
         </a>{" "}
-        or{" "}
-        <a href="https://github.com/noahm/smx-config-web">
-          browse the source code
-        </a>
+        or <a href="https://github.com/noahm/smx-config-web">browse the source code</a>
       </footer>
     </>
   );
@@ -81,11 +73,7 @@ function PickDevice() {
   };
 
   return (
-    <select
-      value={selectedSerial || ""}
-      disabled={!browserSupported}
-      onChange={handleChange}
-    >
+    <select value={selectedSerial || ""} disabled={!browserSupported} onChange={handleChange}>
       {!selectedSerial ? (
         <option disabled value="">
           No Stage Selected
@@ -123,7 +111,6 @@ function TestDataDisplayToggle() {
         disabled={!stage}
         value={testMode}
         options={[
-          ["", "None"],
           ["calibrated", "Calibrated"],
           ["raw", "Raw"],
           ["noise", "Noise"],
@@ -145,15 +132,9 @@ function PanelTestModeToggle() {
         type="checkbox"
         style={{ height: "2em", width: "2em" }}
         disabled={!stage}
-        defaultChecked={
-          stage?.getPanelTestMode() === PanelTestMode.PressureTest
-        }
+        defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
         onChange={(e) => {
-          stage?.setPanelTestMode(
-            e.currentTarget.checked
-              ? PanelTestMode.PressureTest
-              : PanelTestMode.Off,
-          );
+          stage?.setPanelTestMode(e.currentTarget.checked ? PanelTestMode.PressureTest : PanelTestMode.Off);
         }}
       />
     </label>

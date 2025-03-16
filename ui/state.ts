@@ -20,7 +20,7 @@ export const selectedStage$ = atom<SMXStage | undefined>((get) => {
 
 export const selectedPanelIdx$ = atom<number | undefined>();
 
-export const displayTestData$ = atom<"" | "raw" | "calibrated" | "noise" | "tare">("");
+export const displayTestData$ = atom<"raw" | "calibrated" | "noise" | "tare">("calibrated");
 
 export const statusText$ = atom(
   browserSupported
