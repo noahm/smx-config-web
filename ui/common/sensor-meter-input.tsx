@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from "react";
-import classes from "./vertical-meter.module.css";
+import classes from "./sensor-meter-input.module.css";
 import classNames from "classnames";
 
 function clamp(value: number, min: number, max: number) {
