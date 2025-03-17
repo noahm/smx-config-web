@@ -16,6 +16,8 @@ import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
+import { SensorMeterInput } from "./common/sensor-meter-input.tsx";
+import { PanelMeters } from "./common/panel-meters.tsx";
 
 function usePreviouslyPairedDevices() {
   useEffect(() => {
@@ -44,6 +46,8 @@ export function UI() {
         <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
       <ConfigValues stageAtom={selectedStage$} />
+
+      <PanelMeters />
       <StatusDisplay />
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
@@ -107,7 +111,6 @@ function TestDataDisplayToggle() {
         disabled={!stage}
         value={testMode}
         options={[
-          ["", "None"],
           ["calibrated", "Calibrated"],
           ["raw", "Raw"],
           ["noise", "Noise"],
