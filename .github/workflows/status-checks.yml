@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
       - run: yarn --immutable
       - run: yarn lint:ci
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
       - run: yarn --immutable
       - run: yarn typecheck
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
       - run: yarn --immutable
       - run: yarn test
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
       - run: yarn --immutable
       - run: yarn build
