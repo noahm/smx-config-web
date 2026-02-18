@@ -23,7 +23,12 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
       uiState.set(nextStatusTextLine$, "failed to open device; more details in the browser console.");
       uiState.set(
         nextStatusTextLine$,
-        "if you are using linux, permissions to talk to a stage are still an unsolved puzzle.",
+        <>
+          if you are using linux, see{" "}
+          <a href="https://docs.google.com/document/d/1p8d1dvOg4TofBjw_8f9Z5bXZe36b_iKThG4-Js9jM-k/edit?tab=t.0">
+            these notes on Udev rules
+          </a>
+        </>,
       );
       return;
     }

@@ -3,7 +3,7 @@ import type React from "react";
 import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
-import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
+import { open_smx_device, promptSelectDevice } from "./pad-coms.tsx";
 import {
   browserSupported,
   displayTestData$,
