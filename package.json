@@ -33,7 +33,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/w3c-web-hid": "1.0.6",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.0.0",
     "typescript": "^5.5.4",
     "vite": "^7.0.0",
     "vite-plugin-mkcert": "^1.17.6",
