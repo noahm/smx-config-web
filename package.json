@@ -36,7 +36,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "^5.5.4",
     "vite": "^7.0.0",
-    "vite-plugin-mkcert": "^1.17.6",
     "vitest": "^4.0.0"
   },
   "packageManager": "yarn@4.12.0"
