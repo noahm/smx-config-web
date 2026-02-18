@@ -22,7 +22,7 @@ function usePreviouslyPairedDevices() {
     // once, on load, get paired devices and attempt connection
     if (browserSupported) {
       navigator.hid.getDevices().then((devices) =>
-        devices.map((device) => {
+        devices.forEach((device) => {
           open_smx_device(device);
         }),
       );

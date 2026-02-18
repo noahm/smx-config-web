@@ -7,6 +7,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "format": "biome format --write sdk ui",
     "lint": "biome check sdk ui",
     "lint:ci": "biome ci sdk ui",
     "preview": "vite preview",

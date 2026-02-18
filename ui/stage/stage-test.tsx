@@ -7,11 +7,7 @@ import { timez } from "./util";
 import { LoadCellPanel } from "./load-cell-panel";
 import { useTestData, useInputState, useConfig } from "./hooks";
 
-export function StageTest({
-  stageAtom,
-}: {
-  stageAtom: Atom<SMXStage | undefined>;
-}) {
+export function StageTest({ stageAtom }: { stageAtom: Atom<SMXStage | undefined> }) {
   const stage = useAtomValue(stageAtom);
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
