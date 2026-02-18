@@ -1,8 +1,6 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.6.2/schema.json",
-  "organizeImports": {
-    "enabled": false
-  },
+  "$schema": "https://biomejs.dev/schemas/2.4.0/schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "linter": {
     "enabled": true,
     "rules": {
@@ -14,6 +12,6 @@
     "lineWidth": 120
   },
   "files": {
-    "include": ["vite.config.ts", "sdk/**/*", "ui/**/*"]
+    "includes": ["**/vite.config.ts", "**/sdk/**/*", "**/ui/**/*"]
   }
 }

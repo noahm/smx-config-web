@@ -38,7 +38,9 @@
 }
 
 body {
-  font-family: HK Grotesk, sans-serif;
+  font-family:
+    HK Grotesk,
+    sans-serif;
   background-color: var(--color-bg);
 }
 
