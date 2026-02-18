@@ -38,5 +38,5 @@
     "vite-plugin-mkcert": "^1.17.6",
     "vitest": "^3.0.0"
   },
-  "packageManager": "yarn@4.7.0"
+  "packageManager": "yarn@4.12.0"
 }
