@@ -1,5 +1,6 @@
 import { atom, createStore } from "jotai";
 import type { SMXStage } from "../sdk";
+import type { ReactNode } from "react";
 
 export const browserSupported = "hid" in navigator;
 
@@ -22,11 +23,11 @@ export const selectedPanelIdx$ = atom<number | undefined>();
 
 export const displayTestData$ = atom<"raw" | "calibrated" | "noise" | "tare">("calibrated");
 
-export const statusText$ = atom(
+export const statusText$ = atom<Array<ReactNode>>(
   browserSupported
-    ? "no device connected"
-    : "HID API not supported, use Google Chrome or MS Edge browsers for this tool",
+    ? ["no device connected"]
+    : ["HID API not supported, use Google Chrome or MS Edge browsers for this tool"],
 );
 
 /** write-only atom. write to this to append a line to statusText */
-export const nextStatusTextLine$ = atom(null, (_, set, line: string) => set(statusText$, (prev) => `${prev}\n${line}`));
+export const nextStatusTextLine$ = atom(null, (_, set, line: ReactNode) => set(statusText$, (prev) => [...prev, line]));

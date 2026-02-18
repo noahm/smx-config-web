@@ -3,7 +3,7 @@ import type React from "react";
 import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
-import { open_smx_device, promptSelectDevice } from "./pad-coms.ts";
+import { open_smx_device, promptSelectDevice } from "./pad-coms.tsx";
 import {
   browserSupported,
   displayTestData$,
@@ -24,7 +24,7 @@ function usePreviouslyPairedDevices() {
     // once, on load, get paired devices and attempt connection
     if (browserSupported) {
       navigator.hid.getDevices().then((devices) =>
-        devices.map((device) => {
+        devices.forEach((device) => {
           open_smx_device(device);
         }),
       );

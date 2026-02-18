@@ -7,6 +7,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
+    "format": "biome format --write sdk ui",
     "lint": "biome check sdk ui",
     "lint:ci": "biome ci sdk ui",
     "preview": "vite preview",
@@ -28,15 +29,15 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "2.4.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@types/w3c-web-hid": "1.0.6",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.0.0",
     "typescript": "^5.5.4",
-    "vite": "^6.0.7",
+    "vite": "^7.0.0",
     "vite-plugin-mkcert": "^1.17.6",
-    "vitest": "^3.0.0"
+    "vitest": "^4.0.0"
   },
-  "packageManager": "yarn@4.7.0"
+  "packageManager": "yarn@4.12.0"
 }

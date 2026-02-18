@@ -9,11 +9,7 @@ import { useTestData, useInputState, useConfig } from "./hooks";
 import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
 import { useCallback } from "react";
 
-export function StageTest({
-  stageAtom,
-}: {
-  stageAtom: Atom<SMXStage | undefined>;
-}) {
+export function StageTest({ stageAtom }: { stageAtom: Atom<SMXStage | undefined> }) {
   const stage = useAtomValue(stageAtom);
   const testData = useTestData(stage);
   const inputState = useInputState(stage);

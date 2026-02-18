@@ -55,14 +55,6 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
   );
 }
 
-function Fsr({
-  className,
-  badInput,
-  value,
-}: {
-  className?: string;
-  badInput?: boolean;
-  value?: number;
-}) {
+function Fsr({ className, badInput, value }: { className?: string; badInput?: boolean; value?: number }) {
   return <div className={cn("fsr", className)}>{badInput ? "!!" : value}</div>;
 }

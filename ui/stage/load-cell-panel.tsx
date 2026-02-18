@@ -40,14 +40,6 @@ export function LoadCellPanel({ testData, active, disabled, onClick, index, stag
   );
 }
 
-function LoadCell({
-  className,
-  badInput,
-  value,
-}: {
-  className?: string;
-  badInput?: boolean;
-  value?: number;
-}) {
+function LoadCell({ className, badInput, value }: { className?: string; badInput?: boolean; value?: number }) {
   return <div className={cn("load-cell", className)}>{badInput ? "!!" : value}</div>;
 }
