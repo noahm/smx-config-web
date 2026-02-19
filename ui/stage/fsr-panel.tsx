@@ -15,6 +15,14 @@ interface EnabledProps {
 
 export function FsrPanel({ testData, active, disabled, index, onClick, stageSerial }: EnabledProps) {
   const handleClick = useCallback(() => onClick(index), [index, onClick]);
+  const handleKeydown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === "Space") {
+        handleClick();
+      }
+    },
+    [handleClick],
+  );
   const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
   const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
@@ -22,8 +30,12 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
   }
   const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: not doing a11y right now :/
+    // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
     <div
+      role="radio"
+      aria-checked={selected}
+      tabIndex={0}
+      onKeyDown={handleKeydown}
       onClick={handleClick}
       className={cn("panel", {
         commErr: testData && !testData.have_data_from_panel,

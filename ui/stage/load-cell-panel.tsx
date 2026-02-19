@@ -1,5 +1,6 @@
 import cn from "classnames";
 import type { SMXPanelTestData } from "../../sdk";
+import type React from "react";
 import { useCallback } from "react";
 import { useAtomValue } from "jotai";
 import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
@@ -15,6 +16,14 @@ interface EnabledProps {
 
 export function LoadCellPanel({ testData, active, disabled, onClick, index, stageSerial }: EnabledProps) {
   const handleClick = useCallback(() => onClick(index), [index, onClick]);
+  const handleKeydown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === "Space") {
+        handleClick();
+      }
+    },
+    [handleClick],
+  );
   const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
   const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
@@ -22,8 +31,12 @@ export function LoadCellPanel({ testData, active, disabled, onClick, index, stag
   }
   const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: not doing a11y right now :/
+    // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in the full UI rebuild
     <div
+      role="radio"
+      aria-checked={selected}
+      tabIndex={0}
+      onKeyDown={handleKeydown}
       onClick={handleClick}
       className={cn("panel", {
         commErr: testData && !testData.have_data_from_panel,
