@@ -69,7 +69,7 @@ export function PanelMeters() {
           <SensorMeterInput
             key={sensor.id}
             value={panelData?.sensor_level[index]}
-            id={index}
+            id={sensor.id}
             activationThreshold={sensor.activationThreshold}
             releaseThreshold={sensor.releaseThreshold}
             maxValue={255}
