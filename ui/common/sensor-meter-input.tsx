@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import classes from "./sensor-meter-input.module.css";
 import classNames from "classnames";
 
@@ -49,28 +49,37 @@ export function SensorMeterInput({
   const activationThresholdPct = (100 * activationThreshold) / maxValue;
   const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | null>(null);
   const isActive = useSensorActive(value || 0, activationThreshold, releaseThreshold);
+  const meterRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (type: "activation" | "release") => {
     setIsDragging(type);
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(null);
-  };
-
   const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+    (e: MouseEvent | TouchEvent) => {
       if (!currentDraggingHandle) return;
+      if (!meterRef.current) return;
 
-      const rect = e.currentTarget.getBoundingClientRect();
+      const rect = (meterRef.current).getBoundingClientRect();
       const height = rect.height;
-      const y = e.clientY - rect.top;
+      const y = ('touches' in e ? e.touches[0].clientY : e.clientY) - rect.top;
       const percentage = clamp(maxValue - (y / height) * maxValue, 0, maxValue);
 
       updateThreshold?.(id, currentDraggingHandle, Math.round(percentage));
     },
     [id, currentDraggingHandle, updateThreshold, maxValue],
   );
+
+  useEffect(() => {
+    if (!currentDraggingHandle) return;
+    const controller = new AbortController();
+    document.addEventListener('selectstart', e => e.preventDefault(), { signal: controller.signal });
+    document.addEventListener('touchmove', handleMouseMove, { signal: controller.signal });
+    document.addEventListener('mousemove', handleMouseMove, { signal: controller.signal });
+    document.addEventListener('mouseup', () => setIsDragging(null), { signal: controller.signal });
+    document.addEventListener('touchend', () => setIsDragging(null), { signal: controller.signal });
+    return () => controller.abort();
+  }, [currentDraggingHandle, handleMouseMove]);
 
   return (
     <div className={classes.root}>
@@ -91,15 +100,14 @@ export function SensorMeterInput({
         </div>
         {showControls && (
           <div
+            ref={meterRef}
             className={classes.controlsContainer}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
           >
             <div className={classes.dragHandleContainer} style={{ bottom: `calc(${activationThresholdPct}% - 8px)` }}>
               <div
                 className={classNames(classes.dragHandle, classes.atkColorBg)}
                 onMouseDown={() => handleMouseDown("activation")}
+                onTouchStart={()=> handleMouseDown("activation")}
               />
               <span className={classNames(classes.handleLabel, classes.atkColorFg)}>{activationThreshold}</span>
             </div>
@@ -107,6 +115,7 @@ export function SensorMeterInput({
               <div
                 className={classNames(classes.dragHandle, classes.rlsColorBg)}
                 onMouseDown={() => handleMouseDown("release")}
+                onTouchStart={() => handleMouseDown("release")}
               />
               <span className={classNames(classes.handleLabel, classes.rlsColorFg)}>{releaseThreshold}</span>
             </div>
