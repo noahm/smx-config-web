@@ -30,4 +30,4 @@ export const statusText$ = atom<Array<ReactNode>>(
 );
 
 /** write-only atom. write to this to append a line to statusText */
-export const nextStatusTextLine$ = atom(null, (_, set, line: ReactNode) => set(statusText$, (prev) => [...prev, line]));
+export const nextStatusTextLine$ = atom(null, (_, set, line: ReactNode) => set(statusText$, (prev) => [...prev, '\n', line]));
