@@ -855,6 +855,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/w3c-web-hid@patch:@types/w3c-web-hid@npm%3A1.0.6#~/.yarn/patches/@types-w3c-web-hid-npm-1.0.6-ca95fc3332.patch":
+  version: 1.0.6
+  resolution: "@types/w3c-web-hid@patch:@types/w3c-web-hid@npm%3A1.0.6#~/.yarn/patches/@types-w3c-web-hid-npm-1.0.6-ca95fc3332.patch::version=1.0.6&hash=257bf2"
+  checksum: 10c0/434c4311d721299c1b4d743c265953fea150189ffc870c336af790b1cdbc7b03d772865bc7d86df492712c14f8e276c36334fc328a229d3e97d4693c383b49f5
+  languageName: node
+  linkType: hard
+
 "@vitejs/plugin-react@npm:^5.0.0":
   version: 5.1.4
   resolution: "@vitejs/plugin-react@npm:5.1.4"
@@ -2078,7 +2085,7 @@ __metadata:
     "@nmann/struct-buffer": "npm:^6.0.0-beta.1"
     "@types/react": "npm:^19.0.0"
     "@types/react-dom": "npm:^19.0.0"
-    "@types/w3c-web-hid": "npm:1.0.6"
+    "@types/w3c-web-hid": "patch:@types/w3c-web-hid@npm%3A1.0.6#~/.yarn/patches/@types-w3c-web-hid-npm-1.0.6-ca95fc3332.patch"
     "@vitejs/plugin-react": "npm:^5.0.0"
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
