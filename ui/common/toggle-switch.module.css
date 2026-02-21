@@ -1,0 +1,55 @@
+.wrapper {
+  display: flex;
+  place-items: center;
+  cursor: pointer;
+}
+
+.inputParent {
+  position: relative;
+}
+
+.labelText {
+  margin-left: 12px;
+  color: var(--color-gray-700);
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.background {
+  display: block;
+  width: 3.5rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--color-gray-600);
+}
+
+.bgOn {
+  background-color: var(--color-blue-600);
+}
+
+.handle {
+  position: absolute;
+  left: 0.25rem;
+  top: 0.25rem;
+  background-color: white;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 100%;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.handleOn {
+  transform: translateX(1.5rem);
+}

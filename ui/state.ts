@@ -19,12 +19,14 @@ export const selectedStage$ = atom<SMXStage | undefined>((get) => {
   return stages[serial];
 });
 
-export const displayTestData$ = atom<"" | "raw" | "calibrated" | "noise" | "tare">("");
+export const selectedPanelIdx$ = atom<number | undefined>();
+
+export const displayTestData$ = atom<"raw" | "calibrated" | "noise" | "tare">("calibrated");
 
 export const statusText$ = atom<Array<ReactNode>>(
   browserSupported
     ? ["no device connected"]
-    : ["HID API not supported, use Google Chrome or MS Edge browsers for this tool"],
+    : ["WebHID is not supported in your browser, try again with Chrome, Edge, Vivaldi, etc"],
 );
 
 /** write-only atom. write to this to append a line to statusText */

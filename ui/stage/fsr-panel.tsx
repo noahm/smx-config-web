@@ -1,21 +1,46 @@
 import cn from "classnames";
 import { FsrSensor, type SMXPanelTestData } from "../../sdk";
+import { useCallback } from "react";
+import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
+import { useAtomValue } from "jotai";
 
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
   active: boolean | undefined;
   disabled: boolean | undefined;
+  index: number;
+  stageSerial: string;
+  onClick(index: number): void;
 }
 
-export function FsrPanel({ testData, active, disabled }: EnabledProps) {
+export function FsrPanel({ testData, active, disabled, index, onClick, stageSerial }: EnabledProps) {
+  const handleClick = useCallback(() => onClick(index), [index, onClick]);
+  const handleKeydown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === "Space") {
+        handleClick();
+      }
+    },
+    [handleClick],
+  );
+  const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
+  const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
-    return <div className={cn("panel", {})} />;
+    return <div className={cn("panel disabled", {})} />;
   }
+  const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
+    // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
     <div
+      role="radio"
+      aria-checked={selected}
+      tabIndex={0}
+      onKeyDown={handleKeydown}
+      onClick={handleClick}
       className={cn("panel", {
         commErr: testData && !testData.have_data_from_panel,
         active: active,
+        selected,
       })}
     >
       <Fsr

@@ -1,9 +1,8 @@
 import { useAtomValue, useAtom } from "jotai";
 import type React from "react";
-import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
-import { open_smx_device, promptSelectDevice } from "./pad-coms.tsx";
+import { promptSelectDevice, usePreviouslyPairedDevices } from "./pad-coms.tsx";
 import {
   browserSupported,
   displayTestData$,
@@ -16,19 +15,8 @@ import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
-
-function usePreviouslyPairedDevices() {
-  useEffect(() => {
-    // once, on load, get paired devices and attempt connection
-    if (browserSupported) {
-      navigator.hid.getDevices().then((devices) =>
-        devices.forEach((device) => {
-          open_smx_device(device);
-        }),
-      );
-    }
-  }, []);
-}
+// import { SensorMeterInput } from "./common/sensor-meter-input.tsx";
+import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
   usePreviouslyPairedDevices();
@@ -44,6 +32,8 @@ export function UI() {
         <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
       <ConfigValues stageAtom={selectedStage$} />
+
+      <PanelMeters />
       <StatusDisplay />
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
@@ -107,7 +97,6 @@ function TestDataDisplayToggle() {
         disabled={!stage}
         value={testMode}
         options={[
-          ["", "None"],
           ["calibrated", "Calibrated"],
           ["raw", "Raw"],
           ["noise", "Noise"],
