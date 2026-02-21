@@ -1,5 +1,50 @@
+import { useEffect } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
 import { stages$, nextStatusTextLine$, uiState, selectedStageSerial$ } from "./state";
+
+export function usePreviouslyPairedDevices() {
+  useEffect(() => {
+    // once, on load, get paired devices and attempt connection
+    if ("hid" in navigator) {
+      navigator.hid.getDevices().then((devices) =>
+        devices.forEach((device) => {
+          open_smx_device(device);
+        }),
+      );
+      const ac = new AbortController();
+      navigator.hid.addEventListener(
+        "connect",
+        (ev) => {
+          open_smx_device(ev.device);
+        },
+        { signal: ac.signal },
+      );
+      navigator.hid.addEventListener(
+        "disconnect",
+        (ev) => {
+          const stage = devToStage.get(ev.device);
+          if (stage) {
+            const serial = stage.info?.serial;
+            if (serial) {
+              uiState.set(stages$, (prev) => {
+                const next = { ...prev };
+                delete next[serial];
+                return next;
+              });
+              if (uiState.get(selectedStageSerial$) === serial) {
+                uiState.set(selectedStageSerial$, undefined);
+              }
+            }
+          }
+        },
+        { signal: ac.signal },
+      );
+      return () => ac.abort();
+    }
+  }, []);
+}
+
+const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
 export async function promptSelectDevice() {
   const devices = await navigator.hid.requestDevice({
@@ -14,7 +59,7 @@ export async function promptSelectDevice() {
   await open_smx_device(devices[0], true);
 }
 
-export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
+async function open_smx_device(dev: HIDDevice, autoSelect = false) {
   if (!dev.opened) {
     try {
       await dev.open();
@@ -43,6 +88,7 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
     return;
   }
 
+  devToStage.set(dev, stage);
   uiState.set(stages$, (stages) => {
     return {
       ...stages,

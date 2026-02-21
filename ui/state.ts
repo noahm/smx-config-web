@@ -26,7 +26,7 @@ export const displayTestData$ = atom<"raw" | "calibrated" | "noise" | "tare">("c
 export const statusText$ = atom<Array<ReactNode>>(
   browserSupported
     ? ["no device connected"]
-    : ["HID API not supported, use Google Chrome or MS Edge browsers for this tool"],
+    : ["WebHID is not supported in your browser, try again with Chrome, Edge, Vivaldi, etc"],
 );
 
 /** write-only atom. write to this to append a line to statusText */
