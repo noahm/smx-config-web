@@ -97,10 +97,10 @@ function TestDataDisplayToggle() {
         disabled={!stage}
         value={testMode}
         options={[
-          ["calibrated", "Calibrated"],
           ["raw", "Raw"],
-          ["noise", "Noise"],
-          ["tare", "Tare"],
+          ["calibrated", "Calibrated"],
+          // ["noise", "Noise"],
+          // ["tare", "Tare"],
         ]}
         onOptSelected={(next) => setTestMode(next)}
       />
