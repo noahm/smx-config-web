@@ -37,7 +37,7 @@ export async function send_data(dev: HIDDevice, data: Uint8Array, debug = false)
   }
 }
 
-export function make_packets(data: Uint8Array): Array<Uint8Array> {
+export function make_packets(data: Uint8Array): Array<Uint8Array<ArrayBuffer>> {
   const packets = [];
   const data_len = data.length;
   let idx = 0;
