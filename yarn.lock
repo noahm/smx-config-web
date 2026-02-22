@@ -830,21 +830,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:^19.0.0":
-  version: 19.0.3
-  resolution: "@types/react-dom@npm:19.0.3"
+"@types/react-dom@npm:^19.2.0":
+  version: 19.2.3
+  resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:
-    "@types/react": ^19.0.0
-  checksum: 10c0/3867427b333cbe8cbba496d7cc20ec9676d32c25ae44f4d1263a4129d42e57cf4adf0039ad263432f1215b88075c27d326e7eb4ed646128235d01a76e661d48f
+    "@types/react": ^19.2.0
+  checksum: 10c0/b486ebe0f4e2fb35e2e108df1d8fc0927ca5d6002d5771e8a739de11239fe62d0e207c50886185253c99eb9dedfeeb956ea7429e5ba17f6693c7acb4c02f8cd1
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.0.0":
-  version: 19.0.5
-  resolution: "@types/react@npm:19.0.5"
+"@types/react@npm:^19.2.0":
+  version: 19.2.14
+  resolution: "@types/react@npm:19.2.14"
   dependencies:
-    csstype: "npm:^3.0.2"
-  checksum: 10c0/6f3a25c826e8b274cf26b25ef7bd4a97aaa4d7b30a0ea529bf252c6f0387d74f44940dea55cfcac75829bee53cd4c82fdb41653b978954a08036d2812a0ae6d6
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/7d25bf41b57719452d86d2ac0570b659210402707313a36ee612666bf11275a1c69824f8c3ee1fdca077ccfe15452f6da8f1224529b917050eb2d861e52b59b7
   languageName: node
   linkType: hard
 
@@ -1154,10 +1154,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.0.2":
-  version: 3.1.3
-  resolution: "csstype@npm:3.1.3"
-  checksum: 10c0/80c089d6f7e0c5b2bd83cf0539ab41474198579584fa10d86d0cafe0642202343cbc119e076a0b1aece191989477081415d66c9fefbf3c957fc2fc4b7009f248
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
   languageName: node
   linkType: hard
 
@@ -1884,14 +1884,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "react-dom@npm:19.0.0"
+"react-dom@npm:^19.2.0":
+  version: 19.2.4
+  resolution: "react-dom@npm:19.2.4"
   dependencies:
-    scheduler: "npm:^0.25.0"
+    scheduler: "npm:^0.27.0"
   peerDependencies:
-    react: ^19.0.0
-  checksum: 10c0/a36ce7ab507b237ae2759c984cdaad4af4096d8199fb65b3815c16825e5cfeb7293da790a3fc2184b52bfba7ba3ff31c058c01947aff6fd1a3701632aabaa6a9
+    react: ^19.2.4
+  checksum: 10c0/f0c63f1794dedb154136d4d0f59af00b41907f4859571c155940296808f4b94bf9c0c20633db75b5b2112ec13d8d7dd4f9bf57362ed48782f317b11d05a44f35
   languageName: node
   linkType: hard
 
@@ -1902,10 +1902,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "react@npm:19.0.0"
-  checksum: 10c0/9cad8f103e8e3a16d15cb18a0d8115d8bd9f9e1ce3420310aea381eb42aa0a4f812cf047bb5441349257a05fba8a291515691e3cb51267279b2d2c3253f38471
+"react@npm:^19.2.0":
+  version: 19.2.4
+  resolution: "react@npm:19.2.4"
+  checksum: 10c0/cd2c9ff67a720799cc3b38a516009986f7fc4cb8d3e15716c6211cf098d1357ee3e348ab05ad0600042bbb0fd888530ba92e329198c92eafa0994f5213396596
   languageName: node
   linkType: hard
 
@@ -2013,10 +2013,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scheduler@npm:^0.25.0":
-  version: 0.25.0
-  resolution: "scheduler@npm:0.25.0"
-  checksum: 10c0/a4bb1da406b613ce72c1299db43759526058fdcc413999c3c3e0db8956df7633acf395cb20eb2303b6a65d658d66b6585d344460abaee8080b4aa931f10eaafe
+"scheduler@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "scheduler@npm:0.27.0"
+  checksum: 10c0/4f03048cb05a3c8fddc45813052251eca00688f413a3cee236d984a161da28db28ba71bd11e7a3dd02f7af84ab28d39fb311431d3b3772fed557945beb00c452
   languageName: node
   linkType: hard
 
@@ -2083,16 +2083,16 @@ __metadata:
   dependencies:
     "@biomejs/biome": "npm:2.4.0"
     "@nmann/struct-buffer": "npm:^6.0.0-beta.1"
-    "@types/react": "npm:^19.0.0"
-    "@types/react-dom": "npm:^19.0.0"
+    "@types/react": "npm:^19.2.0"
+    "@types/react-dom": "npm:^19.2.0"
     "@types/w3c-web-hid": "patch:@types/w3c-web-hid@npm%3A1.0.6#~/.yarn/patches/@types-w3c-web-hid-npm-1.0.6-ca95fc3332.patch"
     "@vitejs/plugin-react": "npm:^5.0.0"
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
     jotai: "npm:^2.9.3"
-    react: "npm:^19.0.0"
-    react-dom: "npm:^19.0.0"
-    typescript: "npm:^5.5.4"
+    react: "npm:^19.2.0"
+    react-dom: "npm:^19.2.0"
+    typescript: "npm:^5.9.3"
     vite: "npm:^7.0.0"
     vitest: "npm:^4.0.0"
   languageName: unknown
@@ -2241,23 +2241,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.5.4":
-  version: 5.5.4
-  resolution: "typescript@npm:5.5.4"
+"typescript@npm:^5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/422be60f89e661eab29ac488c974b6cc0a660fb2228003b297c3d10c32c90f3bcffc1009b43876a082515a3c376b1eefcce823d6e78982e6878408b9a923199c
+  checksum: 10c0/6bd7552ce39f97e711db5aa048f6f9995b53f1c52f7d8667c1abdc1700c68a76a308f579cd309ce6b53646deb4e9a1be7c813a93baaf0a28ccd536a30270e1c5
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.5.4#optional!builtin<compat/typescript>":
-  version: 5.5.4
-  resolution: "typescript@patch:typescript@npm%3A5.5.4#optional!builtin<compat/typescript>::version=5.5.4&hash=379a07"
+"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
+  version: 5.9.3
+  resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/73409d7b9196a5a1217b3aaad929bf76294d3ce7d6e9766dd880ece296ee91cf7d7db6b16c6c6c630ee5096eccde726c0ef17c7dfa52b01a243e57ae1f09ef07
+  checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
   languageName: node
   linkType: hard
 
