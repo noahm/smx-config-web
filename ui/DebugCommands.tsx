@@ -24,7 +24,7 @@ export function DebugCommands() {
         <option disabled value="">
           Select Command
         </option>
-        {cmds.map(([k, v]) => (
+        {cmds.map(([k]) => (
           <option key={k} value={k}>
             {k}
           </option>

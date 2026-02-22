@@ -8,14 +8,14 @@ export function usePreviouslyPairedDevices() {
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          open_smx_device(device);
+          open_smx_device(device, "auto");
         }),
       );
       const ac = new AbortController();
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          open_smx_device(ev.device);
+          open_smx_device(ev.device, "auto");
         },
         { signal: ac.signal },
       );
@@ -59,7 +59,10 @@ export async function promptSelectDevice() {
   await open_smx_device(devices[0], true);
 }
 
-async function open_smx_device(dev: HIDDevice, autoSelect = false) {
+/**
+ * @param forceSelect when true, will make the currently selected stage. when auto, will make selected if no stage is currently selected
+ */
+async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = false): Promise<void> {
   if (!dev.opened) {
     try {
       await dev.open();
@@ -99,7 +102,9 @@ async function open_smx_device(dev: HIDDevice, autoSelect = false) {
     nextStatusTextLine$,
     `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
   );
-  if (autoSelect) {
+  if (forceSelect === true) {
+    uiState.set(selectedStageSerial$, serial);
+  } else if (forceSelect === "auto" && !uiState.get(selectedStageSerial$)) {
     uiState.set(selectedStageSerial$, serial);
   }
 }
@@ -108,8 +113,7 @@ async function open_smx_device(dev: HIDDevice, autoSelect = false) {
  * Resolves to a union of all keys of T which are functions
  */
 type FunctionKeys<T extends object> = keyof {
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  [K in keyof T as T[K] extends Function ? K : never]: T[K];
+  [K in keyof T as T[K] extends () => void ? K : never]: T[K];
 };
 
 /** anything here will appear in the debug UI to dispatch at will */
