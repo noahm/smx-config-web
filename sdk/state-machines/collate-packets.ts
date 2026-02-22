@@ -72,7 +72,7 @@ export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (st
      * TODO: Again, does this actually happen???!?
      */
     console.warn(
-      "Got PACKET_FLAG_OF_START_COMMAND, but we had ${current_packet.length} bytes in the buffer. Dropping it and continuing.",
+      `Got PACKET_FLAG_OF_START_COMMAND, but we had ${currentPacket.length} bytes in the buffer. Dropping it and continuing.`,
     );
     currentPacket = new Uint8Array(0);
   }
