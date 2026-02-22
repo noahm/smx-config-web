@@ -15,8 +15,8 @@ import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
-// import { SensorMeterInput } from "./common/sensor-meter-input.tsx";
-import { PanelMeters } from "./common/panel-meters.tsx";
+import { applySensitivityPreset } from "../sdk/presets.ts";
+// import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
   usePreviouslyPairedDevices();
@@ -31,9 +31,12 @@ export function UI() {
       <p>
         <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
+      <p>
+        <WritePresetButtons />
+      </p>
       <ConfigValues stageAtom={selectedStage$} />
 
-      <PanelMeters />
+      {/* <PanelMeters /> */}
       <StatusDisplay />
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
@@ -125,5 +128,44 @@ function PanelTestModeToggle() {
         }}
       />
     </label>
+  );
+}
+
+function WritePresetButtons() {
+  const stage = useAtomValue(selectedStage$);
+  return (
+    <>
+      Set Sensitivity (broken?):{" "}
+      <button
+        type="button"
+        disabled={!stage}
+        title="Use if panels are too easy to activate, or don't release fast enough."
+        onClick={() => {
+          applySensitivityPreset(stage!, "low");
+        }}
+      >
+        Low
+      </button>{" "}
+      <button
+        type="button"
+        disabled={!stage}
+        title="The default. Recommended for everyone to start with."
+        onClick={() => {
+          applySensitivityPreset(stage!, "normal");
+        }}
+      >
+        Normal
+      </button>{" "}
+      <button
+        type="button"
+        disabled={!stage}
+        title="Make the pannels easier to trigger. Try this if small children are having trouble activating panels."
+        onClick={() => {
+          applySensitivityPreset(stage!, "high");
+        }}
+      >
+        High
+      </button>
+    </>
   );
 }
