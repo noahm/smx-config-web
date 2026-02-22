@@ -92,11 +92,12 @@ function TestDataDisplayToggle() {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
     <label>
-      Read Test Values:{" "}
+      Display Sensor Values:{" "}
       <TypedSelect
         disabled={!stage}
         value={testMode}
         options={[
+          ["", "None"],
           ["raw", "Raw"],
           ["calibrated", "Calibrated"],
           // ["noise", "Noise"],
@@ -116,7 +117,7 @@ function PanelTestModeToggle() {
       Panel Test Mode:{" "}
       <input
         type="checkbox"
-        style={{ height: "2em", width: "2em" }}
+        style={{ height: "2em", width: "2em", verticalAlign: "top" }}
         disabled={!stage}
         defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
         onChange={(e) => {
