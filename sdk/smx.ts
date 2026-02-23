@@ -164,7 +164,7 @@ export class SMXStage {
     return this._config;
   }
 
-  async writeConfig(): Promise<AckPacket> {
+  async writeConfig(): Promise<SMXConfig> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -172,7 +172,10 @@ export class SMXStage {
     const encoded_config = config.encode();
     this.events.output$.push(new Uint8Array([command, encoded_config.length, ...encoded_config]));
 
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
+    // request a fresh config response back from the stage
+    // to trigger an event on this.configResponse$ and update UI
+    return this.updateConfig();
   }
 
   setLightStrip(color: RGB): Promise<AckPacket> {
