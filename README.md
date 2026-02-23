@@ -19,7 +19,11 @@ Add the following as its contents, which specifies SMX stages by their unique ve
 KERNEL=="hidraw*", ATTRS{idVendor}=="2341", ATTRS{idProduct}=="8037", MODE="0666", TAG+="uaccess", TAG+="udev-acl"
 ```
 
-Save your changes and run `sudo udevadm control --reload-rules` so the new rule takes effect. Then unplug and replug your SMX stages.
+Alternatively, if you can trust me absolutely:
+
+`sudo curl --output-dir /etc/udev/rules.d -O https://smx.tools/udev/95-smx.rules`
+
+Finally, run `sudo udevadm control --reload-rules` and `sudo udevadm trigger` to load and apply the new rule.
 
 You should find that your stages can now be fully configured within the web app. This has been tested as working on Linux Mint and Fedora Linux using both Chromium (system package) and Vivaldi (flatpak).
 
