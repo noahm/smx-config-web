@@ -3,6 +3,7 @@ import { FsrSensor, type SMXPanelTestData } from "../../sdk";
 import { useCallback } from "react";
 import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
 import { useAtomValue } from "jotai";
+import styles from "./stage.module.css";
 
 interface EnabledProps {
   testData: SMXPanelTestData | undefined;
@@ -26,7 +27,7 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
   const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
   const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
-    return <div className={cn("panel disabled", {})} />;
+    return <div className={cn(styles.panel, styles.disabled)} />;
   }
   const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
@@ -37,29 +38,29 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
       tabIndex={0}
       onKeyDown={handleKeydown}
       onClick={handleClick}
-      className={cn("panel", {
-        commErr: testData && !testData.have_data_from_panel,
-        active: active,
-        selected,
+      className={cn(styles.panel, {
+        [styles.commErr]: testData && !testData.have_data_from_panel,
+        [styles.active]: active,
+        [styles.selected]: selected,
       })}
     >
       <Fsr
-        className="top horiz"
+        className={cn(styles.top, styles.horiz)}
         badInput={testData?.bad_sensor_input[FsrSensor.Up]}
         value={testData?.sensor_level[FsrSensor.Up]}
       />
       <Fsr
-        className="right vert"
+        className={cn(styles.right, styles.vert)}
         badInput={testData?.bad_sensor_input[FsrSensor.Right]}
         value={testData?.sensor_level[FsrSensor.Right]}
       />
       <Fsr
-        className="bottom horiz"
+        className={cn(styles.bottom, styles.horiz)}
         badInput={testData?.bad_sensor_input[FsrSensor.Down]}
         value={testData?.sensor_level[FsrSensor.Down]}
       />
       <Fsr
-        className="left vert"
+        className={cn(styles.left, styles.vert)}
         badInput={testData?.bad_sensor_input[FsrSensor.Left]}
         value={testData?.sensor_level[FsrSensor.Left]}
       />
@@ -68,5 +69,5 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
 }
 
 function Fsr({ className, badInput, value }: { className?: string; badInput?: boolean; value?: number }) {
-  return <div className={cn("fsr", className)}>{badInput ? "!!" : value}</div>;
+  return <div className={cn(styles.fsr, className)}>{badInput ? "!!" : value}</div>;
 }

@@ -1,7 +1,8 @@
 import { useAtomValue } from "jotai";
 import { useState } from "react";
-import { DEBUG_COMMANDS } from "./pad-coms";
-import { selectedStage$ } from "./state.ts";
+import { DEBUG_COMMANDS } from "../pad-coms";
+import { selectedStage$ } from "../state.ts";
+import { Button, Select } from "antd";
 
 const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
 
@@ -17,22 +18,21 @@ export function DebugCommands() {
       : undefined;
   return (
     <>
-      <select
+      <Select
         value={selectedCommand}
-        onChange={(e) => setSelectedCommand(e.currentTarget.value as typeof selectedCommand)}
-      >
-        <option disabled value="">
-          Select Command
-        </option>
-        {cmds.map(([k]) => (
-          <option key={k} value={k}>
-            {k}
-          </option>
-        ))}
-      </select>{" "}
-      <button type="button" disabled={!handleSendCommand} onClick={handleSendCommand}>
+        disabled={!stage}
+        options={[
+          { value: "", label: "Select Command", disabled: true },
+          ...cmds.map(([k]) => ({
+            value: k,
+            label: k,
+          })),
+        ]}
+        onChange={(v) => setSelectedCommand(v)}
+      />{" "}
+      <Button disabled={!handleSendCommand || !stage} onClick={handleSendCommand}>
         Send
-      </button>
+      </Button>
     </>
   );
 }

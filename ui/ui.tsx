@@ -1,26 +1,17 @@
-import { useAtomValue, useAtom } from "jotai";
-import type React from "react";
-
-import { DebugCommands } from "./DebugCommands.tsx";
-import { promptSelectDevice, usePreviouslyPairedDevices } from "./pad-coms.tsx";
-import {
-  browserSupported,
-  displayTestData$,
-  selectedStage$,
-  selectedStageSerial$,
-  stages$,
-  statusText$,
-} from "./state.ts";
+import { DebugCommands } from "./controls/debug-commands.tsx";
+import { useHidDevices } from "./pad-coms.tsx";
+import { selectedStage$ } from "./state.ts";
 import { StageTest } from "./stage/stage-test.tsx";
-import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
-import { PanelTestMode } from "../sdk/api.ts";
-import { applySensitivityPreset } from "../sdk/presets.ts";
-import { useState } from "react";
+import { PickDevice } from "./controls/pick-device.tsx";
+import { TestDataMode } from "./controls/test-data-mode.tsx";
+import { PanelTestModeToggle } from "./controls/panel-test-mode.tsx";
+import { WritePresetButtons } from "./controls/apply-presets.tsx";
+import { Space } from "antd";
 // import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
-  usePreviouslyPairedDevices();
+  useHidDevices();
 
   return (
     <>
@@ -29,16 +20,16 @@ export function UI() {
       <p>
         <PickDevice /> <DebugCommands />
       </p>
-      <p>
-        <TestDataDisplayToggle /> <PanelTestModeToggle />
-      </p>
+      <Space>
+        <TestDataMode /> <PanelTestModeToggle />
+      </Space>
       <p>
         <WritePresetButtons />
       </p>
       <ConfigValues stageAtom={selectedStage$} />
 
       {/* <PanelMeters /> */}
-      <StatusDisplay />
+      {/* <StatusDisplay /> */}
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
         <a href="https://discord.gg/VjvCKYVxBR" target="_blank" rel="noreferrer">
@@ -46,144 +37,6 @@ export function UI() {
         </a>{" "}
         or <a href="https://github.com/noahm/smx-config-web">browse the source code</a>
       </footer>
-    </>
-  );
-}
-
-function PickDevice() {
-  const stages = useAtomValue(stages$);
-  const [selectedSerial, setSelectedSerial] = useAtom(selectedStageSerial$);
-  const handleChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
-    const newValue = e.currentTarget.value;
-    if (newValue === "pair-new") {
-      promptSelectDevice();
-    } else {
-      setSelectedSerial(newValue);
-    }
-  };
-
-  return (
-    <select value={selectedSerial || ""} disabled={!browserSupported} onChange={handleChange}>
-      {!selectedSerial ? (
-        <option disabled value="">
-          No Stage Selected
-        </option>
-      ) : null}
-      <option value="pair-new">Pair a stage...</option>
-      {Object.entries(stages).map(([serial, stage]) => (
-        <option value={serial} key={serial}>
-          P{stage.info?.player} - {serial}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function StatusDisplay() {
-  const statusText = useAtomValue(statusText$);
-  return (
-    <>
-      <h3>Event Log</h3>
-      <pre>{statusText}</pre>
-    </>
-  );
-}
-
-function TestDataDisplayToggle() {
-  const stage = useAtomValue(selectedStage$);
-  const [testMode, setTestMode] = useAtom(displayTestData$);
-
-  return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
-    <label>
-      Display Sensor Values:{" "}
-      <TypedSelect
-        disabled={!stage}
-        value={testMode}
-        options={[
-          ["", "None"],
-          ["raw", "Raw"],
-          ["calibrated", "Calibrated"],
-          // ["noise", "Noise"],
-          // ["tare", "Tare"],
-        ]}
-        onOptSelected={(next) => setTestMode(next)}
-      />
-    </label>
-  );
-}
-
-function PanelTestModeToggle() {
-  const stage = useAtomValue(selectedStage$);
-
-  return (
-    <label>
-      Panel Test Mode:{" "}
-      <input
-        type="checkbox"
-        style={{ height: "2em", width: "2em", verticalAlign: "top" }}
-        disabled={!stage}
-        defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
-        onChange={(e) => {
-          stage?.setPanelTestMode(e.currentTarget.checked ? PanelTestMode.PressureTest : PanelTestMode.Off);
-        }}
-      />
-    </label>
-  );
-}
-
-function WritePresetButtons() {
-  const stage = useAtomValue(selectedStage$);
-  // holds the stage serial that we were sending to
-  const [sendingToStage, updateSending] = useState<string | null>(null);
-  if (sendingToStage) {
-    if (!stage) {
-      // stage went away
-      updateSending(null);
-    } else if (stage.info?.serial !== sendingToStage) {
-      // stage changed
-      updateSending(null);
-    }
-  }
-  return (
-    <>
-      Set Sensitivity:{" "}
-      <button
-        type="button"
-        disabled={!stage || !!sendingToStage}
-        title="Use if panels are too easy to activate, or don't release fast enough."
-        onClick={() => {
-          if (!stage?.info) return;
-          updateSending(stage.info.serial);
-          applySensitivityPreset(stage, "low").then(() => updateSending(null));
-        }}
-      >
-        Low
-      </button>{" "}
-      <button
-        type="button"
-        disabled={!stage || !!sendingToStage}
-        title="The default. Recommended for everyone to start with."
-        onClick={() => {
-          if (!stage?.info) return;
-          updateSending(stage.info.serial);
-          applySensitivityPreset(stage, "normal").then(() => updateSending(null));
-        }}
-      >
-        Normal
-      </button>{" "}
-      <button
-        type="button"
-        disabled={!stage || !!sendingToStage}
-        title="Make the pannels easier to trigger. Try this if small children are having trouble activating panels."
-        onClick={() => {
-          if (!stage?.info) return;
-          updateSending(stage.info.serial);
-          applySensitivityPreset(stage, "high").then(() => updateSending(null));
-        }}
-      >
-        High
-      </button>
     </>
   );
 }

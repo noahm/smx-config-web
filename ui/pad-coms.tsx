@@ -1,21 +1,27 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { stages$, nextStatusTextLine$, uiState, selectedStageSerial$ } from "./state";
+import { stages$, uiState, selectedStageSerial$ } from "./state";
+import { App } from "antd";
 
-export function usePreviouslyPairedDevices() {
+export function useHidDevices() {
+  const { message, modal } = App.useApp();
   useEffect(() => {
     // once, on load, get paired devices and attempt connection
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          open_smx_device(device, "auto");
+          open_smx_device(device, "auto").then((output) => {
+            if (output) message.info({ content: output });
+          });
         }),
       );
       const ac = new AbortController();
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          open_smx_device(ev.device, "auto");
+          open_smx_device(ev.device, "auto").then((output) => {
+            if (output) message.info({ content: output });
+          });
         },
         { signal: ac.signal },
       );
@@ -40,45 +46,48 @@ export function usePreviouslyPairedDevices() {
         { signal: ac.signal },
       );
       return () => ac.abort();
+    } else {
+      modal.error({
+        title: "Browser unsupported",
+        content: "Your browser does not support WebHID. Try with a desktop version of Chrome, Vivaldi, Brave, etc.",
+        footer: null,
+        keyboard: false,
+      });
     }
-  }, []);
+  }, [modal.error, message.info]);
 }
 
 const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
-export async function promptSelectDevice() {
+export async function promptSelectDevice(): Promise<ReactNode> {
   const devices = await navigator.hid.requestDevice({
     filters: [{ vendorId: SMX_USB_VENDOR_ID, productId: SMX_USB_PRODUCT_ID }],
   });
 
   if (!devices.length || !devices[0]) {
-    uiState.set(nextStatusTextLine$, "no device selected in prompt");
-    return;
+    return "no device selected in prompt";
   }
 
-  await open_smx_device(devices[0], true);
+  return open_smx_device(devices[0], true);
 }
 
 /**
  * @param forceSelect when true, will make the currently selected stage. when auto, will make selected if no stage is currently selected
  */
-async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = false): Promise<void> {
+async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = false): Promise<ReactNode> {
   if (!dev.opened) {
     try {
       await dev.open();
     } catch (e) {
       console.error(e);
-      uiState.set(nextStatusTextLine$, "failed to open device; more details in the browser console.");
-      uiState.set(
-        nextStatusTextLine$,
+      return (
         <>
-          if you are using linux, see{" "}
+          failed to open device; more details in the browser console. if you are using linux, see{" "}
           <a href="https://docs.google.com/document/d/1p8d1dvOg4TofBjw_8f9Z5bXZe36b_iKThG4-Js9jM-k/edit?tab=t.0">
             these notes on Udev rules
           </a>
-        </>,
+        </>
       );
-      return;
     }
   }
 
@@ -87,8 +96,7 @@ async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = f
 
   const serial = stage.info?.serial;
   if (!serial) {
-    uiState.set(nextStatusTextLine$, "selected pad failed to report a serial number");
-    return;
+    return "selected pad failed to report a serial number";
   }
 
   devToStage.set(dev, stage);
@@ -98,15 +106,12 @@ async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = f
       [serial]: stage,
     };
   });
-  uiState.set(
-    nextStatusTextLine$,
-    `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
-  );
   if (forceSelect === true) {
     uiState.set(selectedStageSerial$, serial);
   } else if (forceSelect === "auto" && !uiState.get(selectedStageSerial$)) {
     uiState.set(selectedStageSerial$, serial);
   }
+  return `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`;
 }
 
 /**

@@ -8,6 +8,7 @@ import { LoadCellPanel } from "./load-cell-panel";
 import { useTestData, useInputState, useConfig } from "./hooks";
 import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
 import { useCallback } from "react";
+import styles from "./stage.module.css";
 
 export function StageTest({ stageAtom }: { stageAtom: Atom<SMXStage | undefined> }) {
   const stage = useAtomValue(stageAtom);
@@ -51,5 +52,5 @@ export function StageTest({ stageAtom }: { stageAtom: Atom<SMXStage | undefined>
     ));
   }
 
-  return <div className={cn("pad", { disabled: !stage })}>{panels}</div>;
+  return <div className={cn(styles.pad, { disabled: !stage })}>{panels}</div>;
 }
