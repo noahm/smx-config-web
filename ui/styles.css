@@ -4,10 +4,6 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: "Hanken Grotesk", sans-serif;
-}
-
 footer {
   position: fixed;
   bottom: 0em;
