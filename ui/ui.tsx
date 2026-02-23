@@ -16,6 +16,7 @@ import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
 import { applySensitivityPreset } from "../sdk/presets.ts";
+import { useState } from "react";
 // import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
@@ -133,35 +134,52 @@ function PanelTestModeToggle() {
 
 function WritePresetButtons() {
   const stage = useAtomValue(selectedStage$);
+  // holds the stage serial that we were sending to
+  const [sendingToStage, updateSending] = useState<string | null>(null);
+  if (sendingToStage) {
+    if (!stage) {
+      // stage went away
+      updateSending(null);
+    } else if (stage.info?.serial !== sendingToStage) {
+      // stage changed
+      updateSending(null);
+    }
+  }
   return (
     <>
-      Set Sensitivity (broken?):{" "}
+      Set Sensitivity:{" "}
       <button
         type="button"
-        disabled={!stage}
+        disabled={!stage || !!sendingToStage}
         title="Use if panels are too easy to activate, or don't release fast enough."
         onClick={() => {
-          applySensitivityPreset(stage!, "low");
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "low").then(() => updateSending(null));
         }}
       >
         Low
       </button>{" "}
       <button
         type="button"
-        disabled={!stage}
+        disabled={!stage || !!sendingToStage}
         title="The default. Recommended for everyone to start with."
         onClick={() => {
-          applySensitivityPreset(stage!, "normal");
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "normal").then(() => updateSending(null));
         }}
       >
         Normal
       </button>{" "}
       <button
         type="button"
-        disabled={!stage}
+        disabled={!stage || !!sendingToStage}
         title="Make the pannels easier to trigger. Try this if small children are having trouble activating panels."
         onClick={() => {
-          applySensitivityPreset(stage!, "high");
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "high").then(() => updateSending(null));
         }}
       >
         High
