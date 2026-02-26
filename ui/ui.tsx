@@ -7,7 +7,7 @@ import { PickDevice } from "./controls/pick-device.tsx";
 import { TestDataMode } from "./controls/test-data-mode.tsx";
 import { PanelTestModeToggle } from "./controls/panel-test-mode.tsx";
 import { WritePresetButtons } from "./controls/apply-presets.tsx";
-import { Space } from "antd";
+import { Fieldset, Group, Stack, Typography } from "@mantine/core";
 // import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
@@ -15,18 +15,24 @@ export function UI() {
 
   return (
     <>
-      <h1>SMX Web Config</h1>
+      <Typography m="lg">
+        <h1>SMX Web Config</h1>
+      </Typography>
       <StageTest stageAtom={selectedStage$} />
-      <p>
-        <PickDevice /> <DebugCommands />
-      </p>
-      <Space>
-        <TestDataMode /> <PanelTestModeToggle />
-      </Space>
-      <p>
-        <WritePresetButtons />
-      </p>
-      <ConfigValues stageAtom={selectedStage$} />
+      <Stack px="lg">
+        <Group>
+          <PickDevice />
+        </Group>
+        <Fieldset legend="Stage controls">
+          <Stack>
+            <DebugCommands />
+            <WritePresetButtons />
+            <TestDataMode />
+            <PanelTestModeToggle />
+          </Stack>
+        </Fieldset>
+        <ConfigValues stageAtom={selectedStage$} />
+      </Stack>
 
       {/* <PanelMeters /> */}
       {/* <StatusDisplay /> */}

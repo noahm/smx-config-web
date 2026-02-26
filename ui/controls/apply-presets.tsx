@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { applySensitivityPreset } from "../../sdk/presets";
 import { selectedStage$ } from "../state";
-import { Button } from "antd";
+import { Button, Group } from "@mantine/core";
 
 export function WritePresetButtons() {
   const stage = useAtomValue(selectedStage$);
@@ -18,8 +18,8 @@ export function WritePresetButtons() {
     }
   }
   return (
-    <>
-      Set Sensitivity:{" "}
+    <Group gap="xs">
+      Set Sensitivity:
       <Button
         disabled={!stage}
         loading={!!sendingToStage}
@@ -31,7 +31,7 @@ export function WritePresetButtons() {
         }}
       >
         Low
-      </Button>{" "}
+      </Button>
       <Button
         disabled={!stage}
         loading={!!sendingToStage}
@@ -43,7 +43,7 @@ export function WritePresetButtons() {
         }}
       >
         Normal
-      </Button>{" "}
+      </Button>
       <Button
         disabled={!stage}
         loading={!!sendingToStage}
@@ -56,6 +56,6 @@ export function WritePresetButtons() {
       >
         High
       </Button>
-    </>
+    </Group>
   );
 }

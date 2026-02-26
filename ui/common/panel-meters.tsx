@@ -1,10 +1,11 @@
+import type React from "react";
 import { useState, useCallback } from "react";
 import { useAtomValue } from "jotai";
 
 import { useTestData } from "../stage/hooks";
 import { selectedStage$, selectedPanelIdx$ } from "../state";
 import { SensorMeterInput } from "./sensor-meter-input";
-import { ToggleSwitch } from "./toggle-switch";
+import { Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 
 export function PanelMeters() {
@@ -43,9 +44,9 @@ export function PanelMeters() {
     [isLocked],
   );
 
-  const toggleLock = () => {
-    setIsLocked((prev) => !prev);
-    if (!isLocked) {
+  const toggleLock = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsLocked(e.currentTarget.checked);
+    if (e.currentTarget.checked) {
       // When locking, set all thresholds to the values of the first sensor
       const { activationThreshold, releaseThreshold } = sensors[0];
       setSensors((prevSensors) =>
@@ -62,7 +63,7 @@ export function PanelMeters() {
     <div className={classes.panelWrapper}>
       <h1 className={classes.title}>Sensor Thresholds</h1>
       <div className={classes.switchWrapper}>
-        <ToggleSwitch isOn={isLocked} onToggle={toggleLock} label="Lock Thresholds" />
+        <Switch checked={isLocked} onChange={toggleLock} label="Lock Thresholds" />
       </div>
       <div className={classes.meterGroup}>
         {sensors.map((sensor, index) => (

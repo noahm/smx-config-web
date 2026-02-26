@@ -1,17 +1,17 @@
 import { useEffect, type ReactNode } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
 import { stages$, uiState, selectedStageSerial$ } from "./state";
-import { App } from "antd";
+import { notifications } from "@mantine/notifications";
+import { modals } from "@mantine/modals";
 
 export function useHidDevices() {
-  const { message, modal } = App.useApp();
   useEffect(() => {
     // once, on load, get paired devices and attempt connection
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          open_smx_device(device, "auto").then((output) => {
-            if (output) message.info({ content: output });
+          open_smx_device(device, "auto").then((message) => {
+            if (message) notifications.show({ message });
           });
         }),
       );
@@ -19,8 +19,8 @@ export function useHidDevices() {
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          open_smx_device(ev.device, "auto").then((output) => {
-            if (output) message.info({ content: output });
+          open_smx_device(ev.device, "auto").then((message) => {
+            if (message) notifications.show({ message });
           });
         },
         { signal: ac.signal },
@@ -47,14 +47,14 @@ export function useHidDevices() {
       );
       return () => ac.abort();
     } else {
-      modal.error({
+      modals.open({
         title: "Browser unsupported",
         content: "Your browser does not support WebHID. Try with a desktop version of Chrome, Vivaldi, Brave, etc.",
-        footer: null,
-        keyboard: false,
+        closeOnClickOutside: false,
+        closeOnEscape: false,
       });
     }
-  }, [modal.error, message.info]);
+  }, []);
 }
 
 const devToStage = new WeakMap<HIDDevice, SMXStage>();
@@ -123,9 +123,9 @@ type FunctionKeys<T extends object> = keyof {
 
 /** anything here will appear in the debug UI to dispatch at will */
 export const DEBUG_COMMANDS = {
-  requestConfig: "updateConfig",
-  writeConfig: "writeConfig",
-  requestTestData: "updateTestData",
+  // requestConfig: "updateConfig",
+  // writeConfig: "writeConfig",
+  // requestTestData: "updateTestData",
   forceRecalibration: "forceRecalibration",
   factoryReset: "factoryReset",
 } as const satisfies Record<string, FunctionKeys<SMXStage>>;

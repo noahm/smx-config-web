@@ -1,6 +1,7 @@
 import { useAtomValue, type Atom } from "jotai";
 import type { SMXStage } from "../../sdk";
 import { useConfig } from "./hooks";
+import { Fieldset } from "@mantine/core";
 
 export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
   const stage = useAtomValue(props.stageAtom);
@@ -25,8 +26,7 @@ export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
   }
 
   return (
-    <>
-      <h3>Sensitivity settings</h3>
+    <Fieldset legend="Current settings">
       <ul>
         {ranges.map((range) => (
           <li key={range.idx}>
@@ -34,6 +34,6 @@ export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
           </li>
         ))}
       </ul>
-    </>
+    </Fieldset>
   );
 }

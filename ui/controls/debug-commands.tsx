@@ -2,13 +2,13 @@ import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "../pad-coms";
 import { selectedStage$ } from "../state.ts";
-import { Button, Select } from "antd";
+import { Button, Group, SegmentedControl } from "@mantine/core";
 
-const cmds = Array.from(Object.entries(DEBUG_COMMANDS));
+const cmds = Object.keys(DEBUG_COMMANDS) as Array<keyof typeof DEBUG_COMMANDS>;
 
 export function DebugCommands() {
   const stage = useAtomValue(selectedStage$);
-  const [selectedCommand, setSelectedCommand] = useState<keyof typeof DEBUG_COMMANDS | "">("");
+  const [selectedCommand, setSelectedCommand] = useState<keyof typeof DEBUG_COMMANDS>(cmds[0]);
   const handleSendCommand =
     selectedCommand && stage
       ? async () => {
@@ -17,22 +17,21 @@ export function DebugCommands() {
         }
       : undefined;
   return (
-    <>
-      <Select
+    <Group gap="0.3rem">
+      <SegmentedControl<keyof typeof DEBUG_COMMANDS>
         value={selectedCommand}
         disabled={!stage}
-        options={[
-          { value: "", label: "Select Command", disabled: true },
-          ...cmds.map(([k]) => ({
-            value: k,
-            label: k,
+        data={[
+          ...cmds.map((label) => ({
+            value: label,
+            label,
           })),
         ]}
         onChange={(v) => setSelectedCommand(v)}
-      />{" "}
+      />
       <Button disabled={!handleSendCommand || !stage} onClick={handleSendCommand}>
-        Send
+        Send to Stage
       </Button>
-    </>
+    </Group>
   );
 }

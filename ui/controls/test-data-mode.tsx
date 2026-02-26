@@ -1,4 +1,4 @@
-import { Form, Select } from "antd";
+import { SegmentedControl, Group } from "@mantine/core";
 import { useAtomValue, useAtom } from "jotai";
 import { selectedStage$, displayTestData$ } from "../state";
 
@@ -7,19 +7,20 @@ export function TestDataMode() {
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (
-    <Form.Item label="Display Sensor Values:">
-      <Select
+    <Group gap="xs">
+      Display sensor values:
+      <SegmentedControl
         disabled={!stage}
         value={testMode}
-        options={[
+        data={[
           { value: "", label: "None" },
           { value: "raw", label: "Raw" },
           { value: "calibrated", label: "Calibrated" },
           // ["noise", "Noise"],
           // ["tare", "Tare"],
         ]}
-        onChange={(next) => setTestMode(next)}
+        onChange={(value) => setTestMode(value)}
       />
-    </Form.Item>
+    </Group>
   );
 }
