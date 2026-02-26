@@ -1,0 +1,47 @@
+diff --git a/index.d.ts b/index.d.ts
+index 3ff5cdae34bab5e0db645126c05a1876a8b62751..b57a363cd7c55f858686ee4f189d840ff8eb9686 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -23,7 +23,7 @@ declare class HID extends EventTarget {
+     addEventListener(
+         type: "connect" | "disconnect",
+         listener: (this: this, ev: HIDConnectionEvent) => any,
+-        useCapture?: boolean,
++        options?: boolean | AddEventListenerOptions,
+     ): void;
+     addEventListener(
+         type: string,
+@@ -34,7 +34,7 @@ declare class HID extends EventTarget {
+     removeEventListener(
+         type: "connect" | "disconnect",
+         callback: (this: this, ev: HIDConnectionEvent) => any,
+-        useCapture?: boolean,
++        options?: EventListenerOptions | boolean,
+     ): void;
+     removeEventListener(
+         type: string,
+@@ -156,14 +156,22 @@ declare class HIDDevice extends EventTarget {
+ 
+     receiveFeatureReport(reportId: number): Promise<DataView>;
+ 
+-    addEventListener(type: "inputreport", listener: (this: this, ev: HIDInputReportEvent) => any): void;
++    addEventListener(
++        type: "inputreport",
++        listener: (this: this, ev: HIDInputReportEvent) => any,
++        options?: boolean | AddEventListenerOptions,
++    ): void;
+     addEventListener(
+         type: string,
+         listener: EventListenerOrEventListenerObject | null,
+         options?: boolean | AddEventListenerOptions,
+     ): void;
+ 
+-    removeEventListener(type: "inputreport", callback: (this: this, ev: HIDInputReportEvent) => any): void;
++    removeEventListener(
++        type: "inputreport",
++        callback: (this: this, ev: HIDInputReportEvent) => any,
++        options?: EventListenerOptions | boolean,
++    ): void;
+     removeEventListener(
+         type: string,
+         callback: EventListenerOrEventListenerObject | null,

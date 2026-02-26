@@ -11,5 +11,6 @@
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
-  }
+  },
+  "editor.defaultFormatter": "biomejs.biome"
 }

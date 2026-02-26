@@ -164,7 +164,7 @@ export class SMXStage {
     return this._config;
   }
 
-  async writeConfig(): Promise<AckPacket> {
+  async writeConfig(): Promise<SMXConfig> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -172,7 +172,10 @@ export class SMXStage {
     const encoded_config = config.encode();
     this.events.output$.push(new Uint8Array([command, encoded_config.length, ...encoded_config]));
 
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
+    // request a fresh config response back from the stage
+    // to trigger an event on this.configResponse$ and update UI
+    return this.updateConfig();
   }
 
   setLightStrip(color: RGB): Promise<AckPacket> {
@@ -285,13 +288,21 @@ export class SMXStage {
     // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
     this._config = new SMXConfig(data, this.info!.firmware_version);
 
-    // Right now I just want to confirm that decoding and encoding gives us back the same data
-    const encoded_config = this._config.encode();
-    if (encoded_config) {
-      this.debug &&
-        console.debug("Config Encodes Correctly: ", data.slice(2, -1).toString() === encoded_config.toString());
+    if (this.debug) {
+      // Right now I just want to confirm that decoding and encoding gives us back the same data
+      const encoded_config = this._config.encode();
+      if (encoded_config) {
+        const origData = data.slice(2, -1).toString();
+        const reEncodedData = encoded_config.toString();
+        const encodingMatch = origData === reEncodedData;
+        console.debug("Config Encodes Correctly: ", encodingMatch);
+        if (!encodingMatch) {
+          console.debug("ORIGINAL:", data.slice(2, -1));
+          console.debug("ENCODED CONFIG:", encoded_config);
+        }
+      }
+      console.info("Got Config: ", this.config);
     }
-    this.debug && console.info("Got Config: ", this.config);
 
     return this._config;
   }

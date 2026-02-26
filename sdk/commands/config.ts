@@ -191,7 +191,7 @@ export const smx_config_t = new StructBuffer({
    *
    * Applications should leave any data in here unchanged when setting the Config.
    */
-  padding: uint8_t[49],
+  padding: uint8_t[44],
 });
 
 const NEW_CONFIG_INIT = [

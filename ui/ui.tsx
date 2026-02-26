@@ -1,9 +1,8 @@
 import { useAtomValue, useAtom } from "jotai";
 import type React from "react";
-import { useEffect } from "react";
 
 import { DebugCommands } from "./DebugCommands.tsx";
-import { open_smx_device, promptSelectDevice } from "./pad-coms.tsx";
+import { promptSelectDevice, usePreviouslyPairedDevices } from "./pad-coms.tsx";
 import {
   browserSupported,
   displayTestData$,
@@ -16,19 +15,9 @@ import { StageTest } from "./stage/stage-test.tsx";
 import { TypedSelect } from "./common/typed-select.tsx";
 import { ConfigValues } from "./stage/config.tsx";
 import { PanelTestMode } from "../sdk/api.ts";
-
-function usePreviouslyPairedDevices() {
-  useEffect(() => {
-    // once, on load, get paired devices and attempt connection
-    if (browserSupported) {
-      navigator.hid.getDevices().then((devices) =>
-        devices.forEach((device) => {
-          open_smx_device(device);
-        }),
-      );
-    }
-  }, []);
-}
+import { applySensitivityPreset } from "../sdk/presets.ts";
+import { useState } from "react";
+// import { PanelMeters } from "./common/panel-meters.tsx";
 
 export function UI() {
   usePreviouslyPairedDevices();
@@ -43,7 +32,12 @@ export function UI() {
       <p>
         <TestDataDisplayToggle /> <PanelTestModeToggle />
       </p>
+      <p>
+        <WritePresetButtons />
+      </p>
       <ConfigValues stageAtom={selectedStage$} />
+
+      {/* <PanelMeters /> */}
       <StatusDisplay />
       <footer>
         A project of Cathadan and SenPi. This tool is unofficial and not affiliated with Step Revolution. Want to help?{" "}
@@ -102,16 +96,16 @@ function TestDataDisplayToggle() {
   return (
     // biome-ignore lint/a11y/noLabelWithoutControl: the control is in the TypedSelect
     <label>
-      Read Test Values:{" "}
+      Display Sensor Values:{" "}
       <TypedSelect
         disabled={!stage}
         value={testMode}
         options={[
           ["", "None"],
-          ["calibrated", "Calibrated"],
           ["raw", "Raw"],
-          ["noise", "Noise"],
-          ["tare", "Tare"],
+          ["calibrated", "Calibrated"],
+          // ["noise", "Noise"],
+          // ["tare", "Tare"],
         ]}
         onOptSelected={(next) => setTestMode(next)}
       />
@@ -127,7 +121,7 @@ function PanelTestModeToggle() {
       Panel Test Mode:{" "}
       <input
         type="checkbox"
-        style={{ height: "2em", width: "2em" }}
+        style={{ height: "2em", width: "2em", verticalAlign: "top" }}
         disabled={!stage}
         defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
         onChange={(e) => {
@@ -135,5 +129,61 @@ function PanelTestModeToggle() {
         }}
       />
     </label>
+  );
+}
+
+function WritePresetButtons() {
+  const stage = useAtomValue(selectedStage$);
+  // holds the stage serial that we were sending to
+  const [sendingToStage, updateSending] = useState<string | null>(null);
+  if (sendingToStage) {
+    if (!stage) {
+      // stage went away
+      updateSending(null);
+    } else if (stage.info?.serial !== sendingToStage) {
+      // stage changed
+      updateSending(null);
+    }
+  }
+  return (
+    <>
+      Set Sensitivity:{" "}
+      <button
+        type="button"
+        disabled={!stage || !!sendingToStage}
+        title="Use if panels are too easy to activate, or don't release fast enough."
+        onClick={() => {
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "low").then(() => updateSending(null));
+        }}
+      >
+        Low
+      </button>{" "}
+      <button
+        type="button"
+        disabled={!stage || !!sendingToStage}
+        title="The default. Recommended for everyone to start with."
+        onClick={() => {
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "normal").then(() => updateSending(null));
+        }}
+      >
+        Normal
+      </button>{" "}
+      <button
+        type="button"
+        disabled={!stage || !!sendingToStage}
+        title="Make the pannels easier to trigger. Try this if small children are having trouble activating panels."
+        onClick={() => {
+          if (!stage?.info) return;
+          updateSending(stage.info.serial);
+          applySensitivityPreset(stage, "high").then(() => updateSending(null));
+        }}
+      >
+        High
+      </button>
+    </>
   );
 }

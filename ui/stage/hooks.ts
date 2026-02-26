@@ -7,7 +7,7 @@ import { displayTestData$ } from "../state";
 const UI_UPDATE_RATE = 50;
 
 export function useInputState(stage: SMXStage | undefined) {
-  const readTestData = useAtomValue(displayTestData$);
+  // const readTestData = useAtomValue(displayTestData$);
   const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
   useEffect(() => {
     return stage?.inputState$.throttle(UI_UPDATE_RATE).onValue(setPanelStates);
@@ -44,6 +44,7 @@ export function useTestData(stage: SMXStage | undefined) {
     return stage?.testDataResponse$.onValue(setTestData);
   }, [stage]);
 
+  if (!testDataMode) return null;
   return testData;
 }
 

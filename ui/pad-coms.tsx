@@ -1,5 +1,50 @@
+import { useEffect } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
 import { stages$, nextStatusTextLine$, uiState, selectedStageSerial$ } from "./state";
+
+export function usePreviouslyPairedDevices() {
+  useEffect(() => {
+    // once, on load, get paired devices and attempt connection
+    if ("hid" in navigator) {
+      navigator.hid.getDevices().then((devices) =>
+        devices.forEach((device) => {
+          open_smx_device(device, "auto");
+        }),
+      );
+      const ac = new AbortController();
+      navigator.hid.addEventListener(
+        "connect",
+        (ev) => {
+          open_smx_device(ev.device, "auto");
+        },
+        { signal: ac.signal },
+      );
+      navigator.hid.addEventListener(
+        "disconnect",
+        (ev) => {
+          const stage = devToStage.get(ev.device);
+          if (stage) {
+            const serial = stage.info?.serial;
+            if (serial) {
+              uiState.set(stages$, (prev) => {
+                const next = { ...prev };
+                delete next[serial];
+                return next;
+              });
+              if (uiState.get(selectedStageSerial$) === serial) {
+                uiState.set(selectedStageSerial$, undefined);
+              }
+            }
+          }
+        },
+        { signal: ac.signal },
+      );
+      return () => ac.abort();
+    }
+  }, []);
+}
+
+const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
 export async function promptSelectDevice() {
   const devices = await navigator.hid.requestDevice({
@@ -14,7 +59,10 @@ export async function promptSelectDevice() {
   await open_smx_device(devices[0], true);
 }
 
-export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
+/**
+ * @param forceSelect when true, will make the currently selected stage. when auto, will make selected if no stage is currently selected
+ */
+async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = false): Promise<void> {
   if (!dev.opened) {
     try {
       await dev.open();
@@ -43,6 +91,7 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
     return;
   }
 
+  devToStage.set(dev, stage);
   uiState.set(stages$, (stages) => {
     return {
       ...stages,
@@ -53,7 +102,9 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
     nextStatusTextLine$,
     `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`,
   );
-  if (autoSelect) {
+  if (forceSelect === true) {
+    uiState.set(selectedStageSerial$, serial);
+  } else if (forceSelect === "auto" && !uiState.get(selectedStageSerial$)) {
     uiState.set(selectedStageSerial$, serial);
   }
 }
@@ -62,8 +113,7 @@ export async function open_smx_device(dev: HIDDevice, autoSelect = false) {
  * Resolves to a union of all keys of T which are functions
  */
 type FunctionKeys<T extends object> = keyof {
-  // biome-ignore lint/complexity/noBannedTypes: <explanation>
-  [K in keyof T as T[K] extends Function ? K : never]: T[K];
+  [K in keyof T as T[K] extends () => void ? K : never]: T[K];
 };
 
 /** anything here will appear in the debug UI to dispatch at will */

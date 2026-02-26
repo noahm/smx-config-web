@@ -41,7 +41,7 @@ function joinTwoSensors(
 
 const BYTE_LENGTH = 5;
 
-/** very simple custom type that conveniently packs and unpacks  */
+/** very simple custom type that conveniently packs and unpacks 9 panels worth of four booleans each into 5 bytes */
 export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<boolean>>>(
   // decode
   (view, offset) => {
