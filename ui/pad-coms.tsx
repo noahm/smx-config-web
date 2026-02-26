@@ -48,10 +48,10 @@ export function useHidDevices() {
       return () => ac.abort();
     } else {
       modals.open({
-        title: "Browser unsupported",
-        content: "Your browser does not support WebHID. Try with a desktop version of Chrome, Vivaldi, Brave, etc.",
+        centered: true,
+        title: <strong>Browser unsupported</strong>,
+        children: "Your browser does not support WebHID. Try with a desktop version of Chrome, Vivaldi, Brave, etc.",
         closeOnClickOutside: false,
-        closeOnEscape: false,
       });
     }
   }, []);
