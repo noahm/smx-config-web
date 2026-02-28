@@ -1708,18 +1708,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jotai@npm:^2.9.3":
-  version: 2.9.3
-  resolution: "jotai@npm:2.9.3"
+"jotai@npm:^2.18.0":
+  version: 2.18.0
+  resolution: "jotai@npm:2.18.0"
   peerDependencies:
+    "@babel/core": ">=7.0.0"
+    "@babel/template": ">=7.0.0"
     "@types/react": ">=17.0.0"
     react: ">=17.0.0"
   peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@babel/template":
+      optional: true
     "@types/react":
       optional: true
     react:
       optional: true
-  checksum: 10c0/d7a2aedeebd84f332b930c5dc06f6827c11a70c3b6bae0817e0c778f7c34996f3a47d5c544ff1b7ed2662083feed55ea6d77b281adf2e0fba65ad93b1723d687
+  checksum: 10c0/df40027ad6deef6b61e159ce311bc39bf7b3e5ee33b3289c94d3a6d55c552cc3bcf4fb2f7ad41d2f23f1ec10d3a511183bd3de6c89590e1391fa3e8d31610e41
   languageName: node
   linkType: hard
 
@@ -2484,7 +2490,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.0"
     baconjs: "patch:baconjs@npm%3A3.0.17#~/.yarn/patches/baconjs-npm-3.0.17-1a95474784.patch"
     classnames: "npm:^2.5.1"
-    jotai: "npm:^2.9.3"
+    jotai: "npm:^2.18.0"
     postcss: "npm:^8.5.6"
     postcss-load-config: "npm:^6.0.1"
     postcss-preset-mantine: "npm:^1.18.0"
