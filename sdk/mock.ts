@@ -1,4 +1,4 @@
-import { type Observable, repeatedly, constant } from "baconjs";
+import { type Observable, repeatedly, constant, interval } from "baconjs";
 import { PanelTestMode } from "./api";
 import type { ConfigShape } from "./commands/config";
 import type { SensorTestMode, SMXPanelTestData } from "./commands/sensor_test";
@@ -6,24 +6,16 @@ import type { StageInfo, StageLike } from "./interface";
 import { mockSensorValue } from "./mocks/test-data";
 import { fsrConfig } from "./mocks/config";
 
-const activityShape = new Array(30).fill(1).concat(new Array(300).fill(0));
+// const activityShape = new Array<0 | 1>(30).fill(1).concat(new Array(220).fill(0));
 
 export class StageMock implements StageLike {
-  public inputState$ = repeatedly(1000, [true, false]).map((centerPressed) => {
-    return [false, false, false, false, centerPressed, false, false, false, false];
+  public inputState$ = repeatedly(1000, [1, 3, 4, 5, 7]).map((idxPressed) => {
+    const out = new Array<boolean>(9).fill(false);
+    out[idxPressed] = true;
+    return out;
   });
-  public testDataResponse$ = repeatedly(20, activityShape).map<SMXPanelTestData[]>((highOrLow) => {
-    return [
-      mockSensorValue(),
-      mockSensorValue(),
-      mockSensorValue(),
-      mockSensorValue(),
-      mockSensorValue(highOrLow ? 235 : 0),
-      mockSensorValue(),
-      mockSensorValue(),
-      mockSensorValue(),
-      mockSensorValue(),
-    ];
+  public testDataResponse$ = interval(30, null).withLatestFrom(this.inputState$, (n, panels) => {
+    return panels.map((pressed) => mockSensorValue(pressed ? 235 : 0));
   });
   public configResponse$: Observable<ConfigShape>;
   public get config() {

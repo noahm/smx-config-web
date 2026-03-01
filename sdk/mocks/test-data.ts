@@ -5,10 +5,10 @@ export function mockSensorValue(baselineSensorValue = 0) {
     {
       dips: { dip: 0, bad_sensor_dip_0: 0, bad_sensor_dip_1: 0, bad_sensor_dip_2: 0, bad_sensor_dip_3: 0 },
       sensors: [
-        Math.round(Math.random() * 5 + baselineSensorValue),
-        Math.round(Math.random() * 5 + baselineSensorValue),
-        Math.round(Math.random() * 5 + baselineSensorValue),
-        Math.round(Math.random() * 5 + baselineSensorValue),
+        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
+        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
+        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
+        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
       ],
       sig_bad: {
         bad_sensor_0: false,
@@ -17,7 +17,7 @@ export function mockSensorValue(baselineSensorValue = 0) {
         bad_sensor_3: false,
         dummy: false,
         sig1: false,
-        sig2: false,
+        sig2: true,
         sig3: false,
       },
     },
