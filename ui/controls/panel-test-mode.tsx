@@ -1,10 +1,9 @@
 import { Switch } from "@mantine/core";
-import { useAtomValue } from "jotai";
 import { PanelTestMode } from "../../sdk/api";
-import { selectedStage$ } from "../state";
+import { useStage } from "../context";
 
 export function PanelTestModeToggle() {
-  const stage = useAtomValue(selectedStage$);
+  const stage = useStage();
 
   return (
     <Switch

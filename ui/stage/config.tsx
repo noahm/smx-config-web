@@ -1,11 +1,9 @@
-import { useAtomValue, type Atom } from "jotai";
 import type { SMXStage } from "../../sdk";
 import { useConfig } from "./hooks";
 import { Fieldset } from "@mantine/core";
 
-export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
-  const stage = useAtomValue(props.stageAtom);
-  const config = useConfig(stage);
+export function ConfigValues(props: { stage: SMXStage }) {
+  const config = useConfig(props.stage);
 
   const ranges = config?.enabledSensors.flatMap((panel, idx) => {
     if (!panel.some((sensor) => sensor)) {

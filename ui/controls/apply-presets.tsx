@@ -1,11 +1,10 @@
-import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { applySensitivityPreset } from "../../sdk/presets";
-import { selectedStage$ } from "../state";
 import { Button, Group } from "@mantine/core";
+import { useStage } from "../context";
 
 export function WritePresetButtons() {
-  const stage = useAtomValue(selectedStage$);
+  const stage = useStage();
   // holds the stage serial that we were sending to
   const [sendingToStage, updateSending] = useState<string | null>(null);
   if (sendingToStage) {

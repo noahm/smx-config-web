@@ -1,13 +1,12 @@
-import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { DEBUG_COMMANDS } from "../pad-coms";
-import { selectedStage$ } from "../state.ts";
 import { Button, Group, SegmentedControl } from "@mantine/core";
+import { useStage } from "../context.tsx";
 
 const cmds = Object.keys(DEBUG_COMMANDS) as Array<keyof typeof DEBUG_COMMANDS>;
 
 export function DebugCommands() {
-  const stage = useAtomValue(selectedStage$);
+  const stage = useStage();
   const [selectedCommand, setSelectedCommand] = useState<keyof typeof DEBUG_COMMANDS>(cmds[0]);
   const handleSendCommand =
     selectedCommand && stage

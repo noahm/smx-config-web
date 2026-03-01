@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { stages$, uiState, selectedStageSerial$ } from "./state";
+import { stagesBySerial, uiState, activeLeftStageSerial$, activeRightStageSerial$ } from "./state";
 import { notifications } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 
@@ -10,7 +10,7 @@ export function useHidDevices() {
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          open_smx_device(device, "auto").then((message) => {
+          open_smx_device(device).then((message) => {
             if (message) notifications.show({ message });
           });
         }),
@@ -19,7 +19,7 @@ export function useHidDevices() {
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          open_smx_device(ev.device, "auto").then((message) => {
+          open_smx_device(ev.device).then((message) => {
             if (message) notifications.show({ message });
           });
         },
@@ -32,13 +32,12 @@ export function useHidDevices() {
           if (stage) {
             const serial = stage.info?.serial;
             if (serial) {
-              uiState.set(stages$, (prev) => {
-                const next = { ...prev };
-                delete next[serial];
-                return next;
-              });
-              if (uiState.get(selectedStageSerial$) === serial) {
-                uiState.set(selectedStageSerial$, undefined);
+              uiState.set(stagesBySerial(serial), undefined);
+              if (uiState.get(activeLeftStageSerial$) === serial) {
+                uiState.set(activeLeftStageSerial$, undefined);
+              }
+              if (uiState.get(activeRightStageSerial$) === serial) {
+                uiState.set(activeRightStageSerial$, undefined);
               }
             }
           }
@@ -68,13 +67,13 @@ export async function promptSelectDevice(): Promise<ReactNode> {
     return "no device selected in prompt";
   }
 
-  return open_smx_device(devices[0], true);
+  return open_smx_device(devices[0]);
 }
 
 /**
  * @param forceSelect when true, will make the currently selected stage. when auto, will make selected if no stage is currently selected
  */
-async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = false): Promise<ReactNode> {
+async function open_smx_device(dev: HIDDevice): Promise<ReactNode> {
   if (!dev.opened) {
     try {
       await dev.open();
@@ -100,18 +99,22 @@ async function open_smx_device(dev: HIDDevice, forceSelect: boolean | "auto" = f
   }
 
   devToStage.set(dev, stage);
-  uiState.set(stages$, (stages) => {
-    return {
-      ...stages,
-      [serial]: stage,
-    };
-  });
-  if (forceSelect === true) {
-    uiState.set(selectedStageSerial$, serial);
-  } else if (forceSelect === "auto" && !uiState.get(selectedStageSerial$)) {
-    uiState.set(selectedStageSerial$, serial);
+  uiState.set(stagesBySerial(serial), stage);
+  /**
+   * an array that contains both left and right side "slots", where the first item is
+   * the one where this pad would natrually fit given it reporting P1 or P2.
+   */
+  const sidePrefOrder =
+    stage.info?.player === 1
+      ? [activeLeftStageSerial$, activeRightStageSerial$]
+      : [activeRightStageSerial$, activeLeftStageSerial$];
+  for (const padSlot$ of sidePrefOrder) {
+    if (!uiState.get(padSlot$)) {
+      uiState.set(padSlot$, serial);
+      return `device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`;
+    }
   }
-  return `status: device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`;
+  return `device opened, but no UI slots are available`;
 }
 
 /**

@@ -1,8 +1,6 @@
 import cn from "classnames";
 import { FsrSensor, type SMXPanelTestData } from "../../sdk";
 import { useCallback } from "react";
-import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
-import { useAtomValue } from "jotai";
 import styles from "./stage.module.css";
 
 interface EnabledProps {
@@ -10,11 +8,11 @@ interface EnabledProps {
   active: boolean | undefined;
   disabled: boolean | undefined;
   index: number;
-  stageSerial: string;
+  selected: boolean;
   onClick(index: number): void;
 }
 
-export function FsrPanel({ testData, active, disabled, index, onClick, stageSerial }: EnabledProps) {
+export function FsrPanel({ testData, active, disabled, index, onClick, selected }: EnabledProps) {
   const handleClick = useCallback(() => onClick(index), [index, onClick]);
   const handleKeydown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -24,12 +22,19 @@ export function FsrPanel({ testData, active, disabled, index, onClick, stageSeri
     },
     [handleClick],
   );
-  const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
-  const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
-    return <div className={cn(styles.panel, styles.disabled)} />;
+    return (
+      // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
+      <div
+        className={cn(styles.panel, styles.disabled)}
+        onClick={handleClick}
+        onKeyDown={handleKeydown}
+        role="radio"
+        aria-checked={selected}
+        tabIndex={0}
+      />
+    );
   }
-  const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
     // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
     <div

@@ -1,9 +1,9 @@
 import { SegmentedControl, Group } from "@mantine/core";
 import { useAtomValue, useAtom } from "jotai";
-import { selectedStage$, displayTestData$ } from "../state";
+import { hasActiveStage$, displayTestData$ } from "../state";
 
 export function TestDataMode() {
-  const stage = useAtomValue(selectedStage$);
+  const stage = useAtomValue(hasActiveStage$);
   const [testMode, setTestMode] = useAtom(displayTestData$);
 
   return (

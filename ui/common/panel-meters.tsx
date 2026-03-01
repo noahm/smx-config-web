@@ -1,18 +1,16 @@
 import type React from "react";
 import { useState, useCallback } from "react";
-import { useAtomValue } from "jotai";
 
 import { useTestData } from "../stage/hooks";
-import { selectedStage$, selectedPanelIdx$ } from "../state";
 import { SensorMeterInput } from "./sensor-meter-input";
 import { Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
+import type { SMXStage } from "../../sdk";
 
-export function PanelMeters() {
-  const stage = useAtomValue(selectedStage$);
-  const panelIdx = useAtomValue(selectedPanelIdx$);
+export function PanelMeters({ stage, panelIdx }: { stage: SMXStage; panelIdx: number }) {
   const testData = useTestData(stage);
   const panelData = panelIdx === undefined ? null : testData?.panels[panelIdx];
+  // TODO remove this internal state and use the config data directly from the stage!
   const [sensors, setSensors] = useState([
     { id: 1, activationThreshold: 70, releaseThreshold: 30 },
     { id: 2, activationThreshold: 60, releaseThreshold: 20 },
@@ -75,7 +73,8 @@ export function PanelMeters() {
             releaseThreshold={sensor.releaseThreshold}
             maxValue={255}
             updateThreshold={updateSensorThreshold}
-            showControls={!isLocked || index === sensors.length - 1}
+            // showControls={!isLocked || index === sensors.length - 1}
+            showControls={false}
             forFsr={isFsr}
           />
         ))}

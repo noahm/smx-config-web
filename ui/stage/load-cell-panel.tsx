@@ -2,8 +2,6 @@ import cn from "classnames";
 import type { SMXPanelTestData } from "../../sdk";
 import type React from "react";
 import { useCallback } from "react";
-import { useAtomValue } from "jotai";
-import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
 import styles from "./stage.module.css";
 
 interface EnabledProps {
@@ -11,11 +9,11 @@ interface EnabledProps {
   active: boolean | undefined;
   disabled: boolean | undefined;
   index: number;
-  stageSerial: string;
+  selected: boolean;
   onClick(index: number): void;
 }
 
-export function LoadCellPanel({ testData, active, disabled, onClick, index, stageSerial }: EnabledProps) {
+export function LoadCellPanel({ testData, active, disabled, onClick, index, selected }: EnabledProps) {
   const handleClick = useCallback(() => onClick(index), [index, onClick]);
   const handleKeydown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -25,12 +23,17 @@ export function LoadCellPanel({ testData, active, disabled, onClick, index, stag
     },
     [handleClick],
   );
-  const selectedPanelIdx = useAtomValue(selectedPanelIdx$);
-  const selectedStageSerial = useAtomValue(selectedStageSerial$);
   if (disabled) {
-    return <div className={cn(styles.panel, styles.disabled)} />;
+    // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
+    <div
+      className={cn(styles.panel, styles.disabled)}
+      onClick={handleClick}
+      onKeyDown={handleKeydown}
+      role="radio"
+      aria-checked={selected}
+      tabIndex={0}
+    />;
   }
-  const selected = stageSerial === selectedStageSerial && selectedPanelIdx === index;
   return (
     // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in the full UI rebuild
     <div
