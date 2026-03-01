@@ -1,15 +1,19 @@
 import { useHidDevices } from "./pad-coms.tsx";
-import { Center, Title } from "@mantine/core";
+import { Center, Stack, Title } from "@mantine/core";
 import { StagePair } from "./stage-pair.tsx";
+import { GlobalControls } from "./global-controls.tsx";
 
 export function UI() {
   useHidDevices();
 
   return (
     <>
-      <Title>SMX Web Config</Title>
       <Center>
-        <StagePair />
+        <Stack>
+          <Title ta="center">SMX Web Config</Title>
+          <GlobalControls />
+          <StagePair />
+        </Stack>
       </Center>
 
       {/* <PanelMeters /> */}
