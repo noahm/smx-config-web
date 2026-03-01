@@ -1,6 +1,4 @@
 import { StageContextProvider } from "../context";
-import { useAtomValue, type Atom } from "jotai";
-import { stagesBySerial } from "../state";
 import { StageTest } from "./stage-test";
 import { Stack, Fieldset } from "@mantine/core";
 import { WritePresetButtons } from "../controls/apply-presets";
@@ -8,14 +6,9 @@ import { DebugCommands } from "../controls/debug-commands";
 import { PanelTestModeToggle } from "../controls/panel-test-mode";
 import { TestDataMode } from "../controls/test-data-mode";
 import { ConfigValues } from "./config";
+import type { StageLike } from "../../sdk/interface";
 
-function useStageValue(stageSerial$: Atom<string | undefined>) {
-  const serial = useAtomValue(stageSerial$);
-  return useAtomValue(stagesBySerial(serial));
-}
-
-export function Stage(props: { stageSerialAtom: Atom<string | undefined> }) {
-  const stage = useStageValue(props.stageSerialAtom);
+export function Stage({ stage }: { stage: StageLike | null }) {
   if (!stage) return null;
   return (
     <StageContextProvider value={stage}>

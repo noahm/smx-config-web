@@ -1,8 +1,8 @@
-import type { SMXStage } from "../../sdk";
+import type { StageLike } from "../../sdk/interface";
 import { useConfig } from "./hooks";
 import { Fieldset } from "@mantine/core";
 
-export function ConfigValues(props: { stage: SMXStage }) {
+export function ConfigValues(props: { stage: StageLike }) {
   const config = useConfig(props.stage);
 
   const ranges = config?.enabledSensors.flatMap((panel, idx) => {

@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { stagesBySerial, uiState, activeLeftStageSerial$, activeRightStageSerial$ } from "./state";
+import { uiState, activeLeftStage$, activeRightStage$ } from "./state";
 import { notifications } from "@mantine/notifications";
 import { modals } from "@mantine/modals";
 
@@ -32,12 +32,11 @@ export function useHidDevices() {
           if (stage) {
             const serial = stage.info?.serial;
             if (serial) {
-              uiState.set(stagesBySerial(serial), undefined);
-              if (uiState.get(activeLeftStageSerial$) === serial) {
-                uiState.set(activeLeftStageSerial$, undefined);
+              if (uiState.get(activeLeftStage$) === stage) {
+                uiState.set(activeLeftStage$, null);
               }
-              if (uiState.get(activeRightStageSerial$) === serial) {
-                uiState.set(activeRightStageSerial$, undefined);
+              if (uiState.get(activeRightStage$) === stage) {
+                uiState.set(activeRightStage$, null);
               }
             }
           }
@@ -99,18 +98,15 @@ async function open_smx_device(dev: HIDDevice): Promise<ReactNode> {
   }
 
   devToStage.set(dev, stage);
-  uiState.set(stagesBySerial(serial), stage);
   /**
    * an array that contains both left and right side "slots", where the first item is
    * the one where this pad would natrually fit given it reporting P1 or P2.
    */
   const sidePrefOrder =
-    stage.info?.player === 1
-      ? [activeLeftStageSerial$, activeRightStageSerial$]
-      : [activeRightStageSerial$, activeLeftStageSerial$];
+    stage.info?.player === 1 ? [activeLeftStage$, activeRightStage$] : [activeRightStage$, activeLeftStage$];
   for (const padSlot$ of sidePrefOrder) {
     if (!uiState.get(padSlot$)) {
-      uiState.set(padSlot$, serial);
+      uiState.set(padSlot$, stage);
       return `device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`;
     }
   }

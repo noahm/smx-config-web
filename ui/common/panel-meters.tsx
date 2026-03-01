@@ -5,11 +5,11 @@ import { useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
 import { Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
-import type { SMXStage } from "../../sdk";
+import type { StageLike } from "../../sdk/interface";
 
-export function PanelMeters({ stage, panelIdx }: { stage: SMXStage; panelIdx: number }) {
+export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: number }) {
   const testData = useTestData(stage);
-  const panelData = panelIdx === undefined ? null : testData?.panels[panelIdx];
+  const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
   // TODO remove this internal state and use the config data directly from the stage!
   const [sensors, setSensors] = useState([
     { id: 1, activationThreshold: 70, releaseThreshold: 30 },

@@ -342,6 +342,8 @@ const _OLD_CONFIG_INIT = [
   "00".repeat(164),
 ];
 
+export type ConfigShape = Decoded<typeof smx_config_t>;
+
 /**
  * The configuration for a connected SMX Stage.
  */

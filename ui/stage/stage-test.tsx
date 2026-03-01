@@ -2,15 +2,15 @@ import cn from "classnames";
 import type React from "react";
 import { Popover } from "@mantine/core";
 import { FsrPanel } from "./fsr-panel";
-import type { SMXStage } from "../../sdk/";
 import { timez } from "./util";
 import { LoadCellPanel } from "./load-cell-panel";
 import { useTestData, useInputState, useConfig } from "./hooks";
 import styles from "./stage.module.css";
 import { useState } from "react";
 import { PanelMeters } from "../common/panel-meters";
+import type { StageLike } from "../../sdk/interface";
 
-export function StageTest({ stage }: { stage: SMXStage | undefined }) {
+export function StageTest({ stage }: { stage: StageLike | undefined }) {
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
   const config = useConfig(stage);
@@ -23,7 +23,7 @@ export function StageTest({ stage }: { stage: SMXStage | undefined }) {
         disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
         active={inputState?.[idx]}
         index={idx}
-        testData={testData?.panels[idx]}
+        testData={testData?.[idx]}
         onClick={setPopoverPanel}
         selected={popoverPanel === idx}
       />
@@ -34,7 +34,7 @@ export function StageTest({ stage }: { stage: SMXStage | undefined }) {
         disabled={!config || config?.enabledSensors[idx].every((enabled) => !enabled)}
         active={inputState?.[idx]}
         index={idx}
-        testData={testData?.panels[idx]}
+        testData={testData?.[idx]}
         onClick={setPopoverPanel}
         selected={popoverPanel === idx}
       />

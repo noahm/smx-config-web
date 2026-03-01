@@ -9,7 +9,7 @@ export function PanelTestModeToggle() {
     <Switch
       label="Panel Test Mode"
       disabled={!stage}
-      defaultChecked={stage?.getPanelTestMode() === PanelTestMode.PressureTest}
+      defaultChecked={stage?.panelTestMode === PanelTestMode.PressureTest}
       onChange={(v) => {
         stage?.setPanelTestMode(v ? PanelTestMode.PressureTest : PanelTestMode.Off);
       }}

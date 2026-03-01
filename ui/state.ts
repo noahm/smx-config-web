@@ -1,6 +1,8 @@
 import { atom, createStore } from "jotai";
-import { atomFamily } from "jotai-family";
-import type { SMXStage } from "../sdk";
+import type { StageLike } from "../sdk/interface";
+import { StageMock } from "../sdk/mock";
+// import { atomFamily } from "jotai-family";
+// import type { SMXStage } from "../sdk";
 
 export const browserSupported = "hid" in navigator;
 
@@ -8,14 +10,14 @@ export const browserSupported = "hid" in navigator;
 export const uiState = createStore();
 
 /** atom family of all opened stages */
-export const stagesBySerial = atomFamily((_serial: string | undefined) => atom<SMXStage | undefined>(undefined));
+// export const stagesBySerial = atomFamily((_serial: string | undefined) => atom<SMXStage | undefined>(undefined));
 
-export const activeLeftStageSerial$ = atom<string | undefined>(undefined);
+export const activeLeftStage$ = atom<StageLike | null>(new StageMock(1));
 
-export const activeRightStageSerial$ = atom<string | undefined>(undefined);
+export const activeRightStage$ = atom<StageLike | null>(new StageMock(2));
 
 export const hasActiveStage$ = atom<boolean>((get) => {
-  return !!get(activeLeftStageSerial$) || !!get(activeRightStageSerial$);
+  return !!get(activeLeftStage$) || !!get(activeRightStage$);
 });
 
 // TODO: make this a family per serial too? per side?

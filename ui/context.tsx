@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
-import type { SMXStage } from "../sdk";
+import type { StageLike } from "../sdk/interface";
 
-const StageContext = createContext<SMXStage | undefined>(undefined);
+const StageContext = createContext<StageLike | undefined>(undefined);
 
 export const StageContextProvider = StageContext.Provider;
 
