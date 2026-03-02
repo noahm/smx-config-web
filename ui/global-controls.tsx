@@ -36,16 +36,16 @@ function MockStageControls() {
               setRightStage(null);
               break;
             case 1:
-              setLeftStage(new StageMock(1));
+              leftStage || setLeftStage(new StageMock(1));
               setRightStage(null);
               break;
             case 2:
               setLeftStage(null);
-              setRightStage(new StageMock(2));
+              rightStage || setRightStage(new StageMock(2));
               break;
             case 3:
-              setLeftStage(new StageMock(1));
-              setRightStage(new StageMock(2));
+              leftStage || setLeftStage(new StageMock(1));
+              rightStage || setRightStage(new StageMock(2));
               break;
           }
         }}

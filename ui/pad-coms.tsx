@@ -112,19 +112,3 @@ async function open_smx_device(dev: HIDDevice): Promise<ReactNode> {
   }
   return `device opened, but no UI slots are available`;
 }
-
-/**
- * Resolves to a union of all keys of T which are functions
- */
-type FunctionKeys<T extends object> = keyof {
-  [K in keyof T as T[K] extends () => void ? K : never]: T[K];
-};
-
-/** anything here will appear in the debug UI to dispatch at will */
-export const DEBUG_COMMANDS = {
-  // requestConfig: "updateConfig",
-  // writeConfig: "writeConfig",
-  // requestTestData: "updateTestData",
-  forceRecalibration: "forceRecalibration",
-  factoryReset: "factoryReset",
-} as const satisfies Record<string, FunctionKeys<SMXStage>>;

@@ -13,9 +13,9 @@ export function StagePair() {
   }
 
   return (
-    <Group>
-      <Stage stage={leftStage} />
-      <Stage stage={rightStage} />
+    <Group wrap="nowrap">
+      <Stage stage={leftStage} pos="left" />
+      <Stage stage={rightStage} pos="right" />
     </Group>
   );
 }

@@ -1,27 +1,31 @@
 import { StageContextProvider } from "../context";
 import { StageTest } from "./stage-test";
-import { Stack, Fieldset } from "@mantine/core";
+import { Fieldset, Group, Stack } from "@mantine/core";
 import { WritePresetButtons } from "../controls/apply-presets";
-import { DebugCommands } from "../controls/debug-commands";
 import { PanelTestModeToggle } from "../controls/panel-test-mode";
 import { ConfigValues } from "./config";
 import type { StageLike } from "../../sdk/interface";
+import { ResetButton } from "../controls/reset-button";
 
-export function Stage({ stage }: { stage: StageLike | null }) {
+export function Stage({ stage, pos }: { stage: StageLike | null; pos: "left" | "right" }) {
   if (!stage) return null;
+  const stageEl = <StageTest stage={stage} />;
   return (
     <StageContextProvider value={stage}>
-      <Stack px="lg">
-        <StageTest stage={stage} />
-        <Fieldset legend="Stage controls">
-          <Stack>
-            <DebugCommands />
-            <WritePresetButtons />
-            <PanelTestModeToggle />
-          </Stack>
-        </Fieldset>
-        <ConfigValues stage={stage} />
-      </Stack>
+      <Group wrap="nowrap">
+        {pos === "right" && stageEl}
+        <Stack px="lg">
+          <Fieldset legend="Stage controls">
+            <Stack>
+              <WritePresetButtons />
+              <PanelTestModeToggle />
+              <ResetButton />
+            </Stack>
+          </Fieldset>
+          <ConfigValues stage={stage} />
+        </Stack>
+        {pos === "left" && stageEl}
+      </Group>
     </StageContextProvider>
   );
 }
