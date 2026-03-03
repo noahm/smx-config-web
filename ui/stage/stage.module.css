@@ -8,7 +8,7 @@
   height: 26em;
   width: 20em;
   margin-right: 1em;
-  background-color: silver;
+  background-color: var(--mantine-color-gray-4);
   padding: 4em 1em 4em;
   --corner-cut-size: 3em;
   clip-path: polygon(
@@ -39,20 +39,30 @@
 }
 
 .panel {
-  outline: 2px solid #ddd;
+  outline: 2px solid var(--mantine-color-gray-5);
   position: relative;
-}
-.panel.selected {
-  outline-color: var(--color-green-900);
-}
-.panel:not(.disabled) {
   cursor: pointer;
 }
+.panel.selected {
+  outline-color: var(--mantine-color-green-9);
+}
+.panel.disabled {
+  outline-style: dashed;
+  background-color: var(--mantine-color-gray-2);
+}
+.panel.disabled:hover {
+  background-color: var(--mantine-color-gray-3);
+  outline-color: var(--mantine-color-gray-6);
+}
+.panel:not(.disabled):hover {
+  background-color: var(--mantine-color-gray-5);
+  outline-color: var(--mantine-color-gray-6);
+}
 .panel.active {
-  background-color: #00ff00;
+  background-color: var(--mantine-color-green-4);
 }
 .panel.commErr {
-  background-color: red;
+  background-color: var(--mantine-color-error);
 }
 
 .fsr,
