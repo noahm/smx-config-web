@@ -55,8 +55,8 @@ export const FsrPanel = forwardRef<HTMLDivElement, EnabledProps>(
       >
         <Fsr
           className={cn(styles.top, styles.horiz)}
-          badInput={testData?.bad_sensor_input[FsrSensor.Up]}
-          value={testData?.sensor_level[FsrSensor.Up]}
+          badInput={testData?.bad_sensor_input[FsrSensor.Top]}
+          value={testData?.sensor_level[FsrSensor.Top]}
         />
         <Fsr
           className={cn(styles.right, styles.vert)}
@@ -65,8 +65,8 @@ export const FsrPanel = forwardRef<HTMLDivElement, EnabledProps>(
         />
         <Fsr
           className={cn(styles.bottom, styles.horiz)}
-          badInput={testData?.bad_sensor_input[FsrSensor.Down]}
-          value={testData?.sensor_level[FsrSensor.Down]}
+          badInput={testData?.bad_sensor_input[FsrSensor.Bottom]}
+          value={testData?.sensor_level[FsrSensor.Bottom]}
         />
         <Fsr
           className={cn(styles.left, styles.vert)}

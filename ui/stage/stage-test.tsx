@@ -51,7 +51,7 @@ export function StageTest({ stage }: { stage: StageLike | undefined }) {
           shadow="xl"
           position="right-start"
           // offset={{ crossAxis: -10, mainAxis: 17 }}
-          arrowOffset={105}
+          arrowOffset={75}
         >
           <Popover.Target>{p}</Popover.Target>
           <Popover.Dropdown>

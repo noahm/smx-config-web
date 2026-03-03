@@ -45,9 +45,10 @@ export enum Panel {
   DownRight = 8,
 }
 
+/** These names are expected to mirror css border sides for convenience */
 export enum FsrSensor {
   Left = 0,
   Right = 1,
-  Up = 2,
-  Down = 3,
+  Top = 2,
+  Bottom = 3,
 }
