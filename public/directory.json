@@ -1,0 +1,31 @@
+{
+  "sites": [
+    {
+      "label": "Web Config",
+      "description": "Configure your SMX stages on any computer",
+      "href": "https://smx.tools/"
+    },
+    {
+      "label": "OBS Sources",
+      "description": "Streamer widgets for SMX players.",
+      "href": "https://obs.smx.tools/"
+    },
+    {
+      "label": "Chart Voter",
+      "description": "Vote on chart difficulty ratings",
+      "href": "https://vote.smx.tools/"
+    }
+  ],
+  "others": [
+    {
+      "label": "Score Browser",
+      "description": "Browse every score ever submitted with powerful processing options",
+      "href": "https://smx.573.no/browser"
+    },
+    {
+      "label": "Personal Score Tracker",
+      "description": "A mobile-friendly way to track your own high scores",
+      "href": "https://smx.flag.sh/"
+    }
+  ]
+}
