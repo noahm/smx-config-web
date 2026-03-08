@@ -45,7 +45,6 @@ export function useTestData(stage: StageLike | undefined) {
     return stage?.testDataResponse$.onValue(setTestData);
   }, [stage]);
 
-  if (!testDataMode) return null;
   return testData;
 }
 
