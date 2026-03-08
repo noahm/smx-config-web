@@ -173,7 +173,7 @@ export class SMXPanelTestData {
 }
 
 export class SMXSensorTestData {
-  panels: Array<SMXPanelTestData> = [];
+  public panels: Array<SMXPanelTestData> = [];
 
   constructor(data: Uint8Array, mode: SensorTestMode, isFsr: boolean) {
     /**

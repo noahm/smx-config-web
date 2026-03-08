@@ -297,7 +297,7 @@ const smx_old_config_t = new StructBuffer({
   padding: uint8_t[164],
 });
 
-const OLD_CONFIG_INIT = [
+const _OLD_CONFIG_INIT = [
   // unused
   "FF".repeat(6),
   // masterDebounceMilliseconds
@@ -341,6 +341,8 @@ const OLD_CONFIG_INIT = [
   // padding
   "00".repeat(164),
 ];
+
+export type ConfigShape = Decoded<typeof smx_config_t>;
 
 /**
  * The configuration for a connected SMX Stage.

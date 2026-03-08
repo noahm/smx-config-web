@@ -1,12 +1,13 @@
 import { useAtomValue } from "jotai";
 import { useState, useEffect, useRef } from "react";
-import { type SMXStage, type SMXSensorTestData, SensorTestMode } from "../../sdk";
+import { type SMXPanelTestData, SensorTestMode } from "../../sdk";
 import { displayTestData$ } from "../state";
+import type { StageLike } from "../../sdk/interface";
 
 // UI Update Rate in Milliseconds
 const UI_UPDATE_RATE = 50;
 
-export function useInputState(stage: SMXStage | undefined) {
+export function useInputState(stage: StageLike | undefined) {
   // const readTestData = useAtomValue(displayTestData$);
   const [panelStates, setPanelStates] = useState<Array<boolean> | null>();
   useEffect(() => {
@@ -15,9 +16,9 @@ export function useInputState(stage: SMXStage | undefined) {
   return panelStates;
 }
 
-export function useTestData(stage: SMXStage | undefined) {
+export function useTestData(stage: StageLike | undefined) {
   const testDataMode = useAtomValue(displayTestData$);
-  const [testData, setTestData] = useState<SMXSensorTestData | null>(null);
+  const [testData, setTestData] = useState<SMXPanelTestData[] | null>(null);
 
   // request updates on an interval
   useEffect(() => {
@@ -44,11 +45,10 @@ export function useTestData(stage: SMXStage | undefined) {
     return stage?.testDataResponse$.onValue(setTestData);
   }, [stage]);
 
-  if (!testDataMode) return null;
   return testData;
 }
 
-export function useConfig(stage: SMXStage | undefined) {
+export function useConfig(stage: StageLike | undefined) {
   const stageRef = useRef(stage);
   const [configData, setConfig] = useState(stage?.config);
 
@@ -61,7 +61,7 @@ export function useConfig(stage: SMXStage | undefined) {
   }, [stage]);
 
   useEffect(() => {
-    return stage?.configResponse$.onValue((config) => setConfig(config.config));
+    return stage?.configResponse$.onValue(setConfig);
   }, [stage]);
 
   return configData;

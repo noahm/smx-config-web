@@ -1,55 +1,66 @@
 import cn from "classnames";
-import { useAtomValue, type Atom, useSetAtom } from "jotai";
 import type React from "react";
+import { Popover } from "@mantine/core";
 import { FsrPanel } from "./fsr-panel";
-import type { SMXStage } from "../../sdk/";
 import { timez } from "./util";
 import { LoadCellPanel } from "./load-cell-panel";
 import { useTestData, useInputState, useConfig } from "./hooks";
-import { selectedPanelIdx$, selectedStageSerial$ } from "../state";
-import { useCallback } from "react";
+import styles from "./stage.module.css";
+import { PanelMeters } from "../common/panel-meters";
+import type { StageLike } from "../../sdk/interface";
 
-export function StageTest({ stageAtom }: { stageAtom: Atom<SMXStage | undefined> }) {
-  const stage = useAtomValue(stageAtom);
+export function StageTest({ stage }: { stage: StageLike | undefined }) {
   const testData = useTestData(stage);
   const inputState = useInputState(stage);
   const config = useConfig(stage);
-  const setSelectedPanelIdx = useSetAtom(selectedPanelIdx$);
-  const setSelectedStateSerial = useSetAtom(selectedStageSerial$);
-  const handleSelectPanel = useCallback(
-    (panelIdx: number) => {
-      setSelectedPanelIdx(panelIdx);
-      setSelectedStateSerial(stage?.info?.serial);
-    },
-    [setSelectedPanelIdx, setSelectedStateSerial, stage],
-  );
+  // const [popoverPanel, setPopoverPanel] = useState(-1);
 
-  let panels: React.ReactNode;
+  let panels: React.ReactElement[];
   if (stage?.config?.flags.PlatformFlags_FSR) {
     panels = timez(9, (idx) => (
       <FsrPanel
+        key={idx}
         disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
         active={inputState?.[idx]}
-        key={idx}
         index={idx}
-        testData={testData?.panels[idx]}
-        onClick={handleSelectPanel}
-        stageSerial={stage?.info?.serial || ""}
+        testData={testData?.[idx]}
+        // onClick={setPopoverPanel}
       />
     ));
   } else {
     panels = timez(9, (idx) => (
       <LoadCellPanel
+        key={idx}
         disabled={!config || config?.enabledSensors[idx].every((enabled) => !enabled)}
         active={inputState?.[idx]}
-        key={idx}
         index={idx}
-        testData={testData?.panels[idx]}
-        onClick={handleSelectPanel}
-        stageSerial={stage?.info?.serial || ""}
+        testData={testData?.[idx]}
+        // onClick={setPopoverPanel}
       />
     ));
   }
 
-  return <div className={cn("pad", { disabled: !stage })}>{panels}</div>;
+  if (stage) {
+    panels = panels.map((p, idx) => {
+      return (
+        <Popover
+          // biome-ignore lint/suspicious/noArrayIndexKey: there is no better key than the index here
+          key={idx}
+          withArrow
+          arrowSize={20}
+          shadow="xl"
+          position="right-start"
+          // offset={{ crossAxis: -10, mainAxis: 17 }}
+          arrowOffset={75}
+        >
+          <Popover.Target>{p}</Popover.Target>
+          <Popover.Dropdown>
+            <PanelMeters stage={stage} panelIdx={idx} />
+          </Popover.Dropdown>
+        </Popover>
+      );
+    });
+  }
+
+  return <div className={cn(styles.pad, { disabled: !stage })}>{panels}</div>;
 }

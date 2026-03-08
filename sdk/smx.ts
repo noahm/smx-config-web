@@ -1,12 +1,13 @@
 import * as Bacon from "baconjs";
 import { collatePackets, type AckPacket, type DataPacket } from "./state-machines/collate-packets";
 import { API_COMMAND, PanelTestMode, char2byte } from "./api";
-import { SMXConfig, type Decoded } from "./commands/config";
+import { SMXConfig, type ConfigShape, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
-import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
+import { SMXSensorTestData, SensorTestMode, type SMXPanelTestData } from "./commands/sensor_test";
 import { RGB, padData } from "./utils";
+import type { StageLike } from "./interface";
 
 /**
  * Class purely to set up in/out event stream "pipes" to properly throttle and sync input/output from a stage
@@ -74,26 +75,30 @@ class SMXEvents {
   }
 }
 
-export class SMXStage {
+export class SMXStage implements StageLike {
   private dev: HIDDevice;
   private readonly events: SMXEvents;
   private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
   private debug = true;
   private _config: SMXConfig | null = null;
-  private panelTestMode = PanelTestMode.Off;
+  private _panelTestMode = PanelTestMode.Off;
   private cancelTestModeInterval: Bacon.Unsub | null = null;
 
+  public get panelTestMode() {
+    return this._panelTestMode;
+  }
   public get config() {
     return this._config?.config || null;
   }
-  info: SMXDeviceInfo | null = null;
-  test: SMXSensorTestData | null = null;
-  inputs: Array<boolean> | null = null;
+  public info: SMXDeviceInfo | null = null;
+  public test: SMXSensorTestData | null = null;
+  // todo make public???
+  private inputs: Array<boolean> | null = null;
 
   public readonly inputState$: Bacon.EventStream<boolean[]>;
-  public readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
-  public readonly configResponse$: Bacon.EventStream<SMXConfig>;
-  public readonly testDataResponse$: Bacon.EventStream<SMXSensorTestData>;
+  private readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
+  public readonly configResponse$: Bacon.EventStream<ConfigShape>;
+  public readonly testDataResponse$: Bacon.EventStream<SMXPanelTestData[]>;
 
   constructor(dev: HIDDevice) {
     this.dev = dev;
@@ -115,7 +120,7 @@ export class SMXStage {
     // Set the config request handler
     this.configResponse$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_CONFIG || e[0] === API_COMMAND.GET_CONFIG_V5)
-      .map((value) => this.handleConfig(value));
+      .map((value) => this.handleConfig(value).config);
     // note that the above map function only runs when there are listeners
     // subscribed to `this.configResponse$`, otherwise nothing happens!
 
@@ -130,14 +135,14 @@ export class SMXStage {
     this.inputState$ = this.events.inputState$.map((value) => this.handleInputs(value));
   }
 
-  async init(): Promise<SMXSensorTestData> {
+  public async init(): Promise<void> {
     // Request the device information
     await this.updateDeviceInfo();
     // Requesting the correct config requires having the device info first
     await this.updateConfig();
     // Requesting some initial test data requires we have the config first
     // so that we know how to interpret the data
-    return this.updateTestData();
+    await this.updateTestData();
   }
 
   /**
@@ -164,7 +169,8 @@ export class SMXStage {
     return this._config;
   }
 
-  async writeConfig(): Promise<SMXConfig> {
+  // TODO: pass in the new config as an arg here instead of expecting mutation?
+  public async writeConfig(): Promise<ConfigShape> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -178,7 +184,7 @@ export class SMXStage {
     return this.updateConfig();
   }
 
-  setLightStrip(color: RGB): Promise<AckPacket> {
+  public setLightStrip(color: RGB): Promise<AckPacket> {
     const led_strip_index = 0; // Always 0
     const number_of_leds = 44; // Always 44 (Unless some older or newer versions have more/less?)
     const rgb = color.toArray();
@@ -192,7 +198,7 @@ export class SMXStage {
     return this.events.ackReports$.firstToPromise();
   }
 
-  async factoryReset(): Promise<AckPacket> {
+  public async factoryReset(): Promise<void> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -208,20 +214,20 @@ export class SMXStage {
     }
 
     this.events.output$.push(Uint8Array.of(API_COMMAND.FACTORY_RESET));
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
   }
 
-  forceRecalibration(): Promise<AckPacket> {
+  public forceRecalibration(): Promise<AckPacket> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.FORCE_RECALIBRATION));
     return this.events.ackReports$.firstToPromise();
   }
 
-  updateDeviceInfo(): Promise<SMXDeviceInfo> {
+  private updateDeviceInfo(): Promise<SMXDeviceInfo> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_DEVICE_INFO));
     return this.deviceInfo$.firstToPromise();
   }
 
-  async updateConfig(): Promise<SMXConfig> {
+  private async updateConfig(): Promise<ConfigShape> {
     const info = await this.needsInfo();
 
     const command = info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
@@ -229,18 +235,14 @@ export class SMXStage {
     return this.configResponse$.firstToPromise();
   }
 
-  updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
+  public updateTestData(mode: SensorTestMode | null = null): Promise<SMXPanelTestData[]> {
     if (mode) this.test_mode = mode;
 
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
     return this.testDataResponse$.firstToPromise();
   }
 
-  getPanelTestMode() {
-    return this.panelTestMode;
-  }
-
-  setPanelTestMode(mode: PanelTestMode) {
+  public setPanelTestMode(mode: PanelTestMode) {
     // If we want to turn panel test mode off...
     if (mode === PanelTestMode.Off) {
       // We don't want to send the "Off" command multiple times, so only send it if
@@ -251,7 +253,7 @@ export class SMXStage {
           this.cancelTestModeInterval = null;
         }
         // Turn off panel test mode, and send "Off" event
-        this.panelTestMode = mode;
+        this._panelTestMode = mode;
         this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
       }
 
@@ -260,8 +262,8 @@ export class SMXStage {
     }
 
     // We only need to run this when the current mode is not the same as the requested mode
-    if (this.panelTestMode !== mode) {
-      this.panelTestMode = mode;
+    if (this._panelTestMode !== mode) {
+      this._panelTestMode = mode;
 
       /**
        * the 'l' command used to set lights, but it's now only used to turn lights off
@@ -307,13 +309,13 @@ export class SMXStage {
     return this._config;
   }
 
-  private handleTestData(data: Uint8Array): SMXSensorTestData {
+  private handleTestData(data: Uint8Array): SMXPanelTestData[] {
     // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
     this.test = new SMXSensorTestData(data, this.test_mode, this.config!.flags.PlatformFlags_FSR);
 
     this.debug && console.debug("Got Test: ", this.test);
 
-    return this.test;
+    return this.test.panels;
   }
 
   private handleDeviceInfo(data: Uint8Array): SMXDeviceInfo {
