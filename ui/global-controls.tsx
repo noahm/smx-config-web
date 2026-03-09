@@ -1,16 +1,10 @@
 import { useAtom } from "jotai";
-import { TestDataMode } from "./controls/test-data-mode";
 import { activeLeftStage$, activeRightStage$ } from "./state";
 import { Group, SegmentedControl } from "@mantine/core";
 import { StageMock } from "../sdk/mock";
 
 export function GlobalControls() {
-  return (
-    <>
-      <TestDataMode />
-      <MockStageControls />
-    </>
-  );
+  return <MockStageControls />;
 }
 
 function MockStageControls() {

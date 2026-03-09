@@ -1,17 +1,23 @@
 import { Switch } from "@mantine/core";
-import { PanelTestMode } from "../../sdk/api";
 import { useStage } from "../context";
+import { useEffect, useState } from "react";
 
 export function PanelTestModeToggle() {
   const stage = useStage();
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    if (enabled) {
+      return stage.engagePanelTestMode$.subscribe();
+    }
+  }, [enabled, stage]);
 
   return (
     <Switch
-      label="Panel Test Mode"
+      label="Show sensor pressure with stage LEDs"
       disabled={!stage}
-      defaultChecked={stage?.panelTestMode === PanelTestMode.PressureTest}
+      checked={enabled}
       onChange={(v) => {
-        stage?.setPanelTestMode(v ? PanelTestMode.PressureTest : PanelTestMode.Off);
+        setEnabled(v.currentTarget.checked);
       }}
     />
   );

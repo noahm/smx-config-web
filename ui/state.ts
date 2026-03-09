@@ -13,6 +13,3 @@ export const activeRightStage$ = atom<StageLike | null>(null);
 export const hasActiveStage$ = atom<boolean>((get) => {
   return !!get(activeLeftStage$) || !!get(activeRightStage$);
 });
-
-// TODO: make this a family per serial too? per side?
-export const displayTestData$ = atom<"raw" | "calibrated" | "noise" | "tare" | "">("");

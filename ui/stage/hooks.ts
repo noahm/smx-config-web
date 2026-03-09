@@ -1,7 +1,5 @@
-import { useAtomValue } from "jotai";
 import { useState, useEffect, useRef } from "react";
 import { type SMXPanelTestData, SensorTestMode } from "../../sdk";
-import { displayTestData$ } from "../state";
 import type { StageLike } from "../../sdk/interface";
 
 // UI Update Rate in Milliseconds
@@ -16,34 +14,17 @@ export function useInputState(stage: StageLike | undefined) {
   return panelStates;
 }
 
-export function useTestData(stage: StageLike | undefined) {
-  const testDataMode = useAtomValue(displayTestData$);
-  const [testData, setTestData] = useState<SMXPanelTestData[] | null>(null);
-
-  // request updates on an interval
-  useEffect(() => {
-    if (!stage || !testDataMode) {
-      return;
-    }
-    let testMode = SensorTestMode.UncalibratedValues;
-    switch (testDataMode) {
-      case "calibrated":
-        testMode = SensorTestMode.CalibratedValues;
-        break;
-      case "noise":
-        testMode = SensorTestMode.Noise;
-        break;
-      case "tare":
-        testMode = SensorTestMode.Tare;
-    }
-    const handle = setInterval(() => stage.updateTestData(testMode), UI_UPDATE_RATE);
-    return () => clearInterval(handle);
-  }, [stage, testDataMode]);
+export function useTestData(
+  stage: StageLike | undefined,
+  testMode: SensorTestMode.CalibratedValues | SensorTestMode.UncalibratedValues,
+) {
+  const [testData, setTestData] = useState<readonly SMXPanelTestData[] | null>(null);
 
   // ingest responses and display in UI
   useEffect(() => {
-    return stage?.testDataResponse$.onValue(setTestData);
-  }, [stage]);
+    if (testMode === SensorTestMode.CalibratedValues) return stage?.calibratedSensorData$.onValue(setTestData);
+    else return stage?.rawSensorData$.onValue(setTestData);
+  }, [stage, testMode]);
 
   return testData;
 }

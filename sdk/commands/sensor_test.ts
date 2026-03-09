@@ -87,11 +87,20 @@ const detail_data_t = new StructBuffer({
  * panel.
  */
 export class SMXPanelTestData {
-  have_data_from_panel: boolean;
-  sensor_level: Array<number> = Array(SENSOR_COUNT).fill(-1);
-  bad_sensor_input: Array<boolean> = Array(SENSOR_COUNT).fill(false);
-  dip_switch_value = -1;
-  bad_jumper: Array<boolean> = Array(SENSOR_COUNT).fill(false);
+  /** if this is false, this was an invalid data packet */
+  public readonly have_data_from_panel: boolean;
+  /** numeric reading of the current value of all four sensors on this panel */
+  public readonly sensor_level: ReadonlyArray<number> = Array(SENSOR_COUNT).fill(-1);
+  /**
+   * These bits are true if that sensor's most recent reading is invalid.
+   * A sensors reading could be considered invalid if the sensor has been turned
+   * off in the config tool.
+   */
+  public readonly bad_sensor_input: ReadonlyArray<boolean> = Array(SENSOR_COUNT).fill(false);
+  /** This is waht the dipswitch is set to for this panel */
+  public readonly dip_switch_value: number = -1;
+  /** These are true if the sensor has the incorrect jumper set */
+  public readonly bad_jumper: ReadonlyArray<boolean> = Array(SENSOR_COUNT).fill(false);
 
   constructor(data: Decoded<typeof detail_data_t>, mode: SensorTestMode, isFsr: boolean) {
     /**
@@ -106,11 +115,6 @@ export class SMXPanelTestData {
     // Assuming the sig bits are correct, we can confirm here that we have proper data
     this.have_data_from_panel = true;
 
-    /**
-     * These bits are true if that sensor's most recent reading is invalid.
-     * A sensors reading could be considered invalid if the sensor has been turned
-     * off in the config tool.
-     */
     this.bad_sensor_input = [
       data.sig_bad.bad_sensor_0,
       data.sig_bad.bad_sensor_1,
@@ -173,9 +177,10 @@ export class SMXPanelTestData {
 }
 
 export class SMXSensorTestData {
-  public panels: Array<SMXPanelTestData> = [];
+  public readonly mode: SensorTestMode;
+  public readonly panels: ReadonlyArray<SMXPanelTestData>;
 
-  constructor(data: Uint8Array, mode: SensorTestMode, isFsr: boolean) {
+  constructor(data: Uint8Array, isFsr: boolean) {
     /**
      * The first 3 bytes are the preamble.
      *
@@ -194,10 +199,7 @@ export class SMXSensorTestData {
     // Expected to be 'y'
     console.assert(data[0] === API_COMMAND.GET_SENSOR_TEST_DATA, `Unknown PanelTestData Response: ${data[0]}`);
 
-    // Make sure we have the correct mode
-    const data_mode = data[1];
-    console.assert(SensorTestMode[data_mode] !== undefined, `Unknown SensorTestMode: ${mode}`);
-    console.assert(mode === data_mode, `Test Mode is Unexpected: ${mode} !== ${data_mode}`);
+    this.mode = data[1];
 
     const size = data[2];
     console.assert(size === 80, `Unknown PanelTestData Size: ${size}`);
@@ -208,6 +210,7 @@ export class SMXSensorTestData {
     const sensor_data_t = new StructBuffer({ data: uint16_t[size] });
     const decoded_data = sensor_data_t.decode(data.slice(preamble), { littleEndian: true });
 
+    const panels: SMXPanelTestData[] = [];
     // Cycle through each panel and grab the data
     for (let panel = 0; panel < PANEL_COUNT; panel++) {
       let idx = 0;
@@ -231,7 +234,8 @@ export class SMXSensorTestData {
       }
 
       // Generate an SMXPanelTestData object for each panel
-      this.panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, { littleEndian: true }), data_mode, isFsr));
+      panels.push(new SMXPanelTestData(detail_data_t.decode(out_bytes, { littleEndian: true }), this.mode, isFsr));
     }
+    this.panels = panels;
   }
 }

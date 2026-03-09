@@ -8,9 +8,10 @@ import { useTestData, useInputState, useConfig } from "./hooks";
 import styles from "./stage.module.css";
 import { PanelMeters } from "../common/panel-meters";
 import type { StageLike } from "../../sdk/interface";
+import { SensorTestMode } from "../../sdk";
 
 export function StageTest({ stage }: { stage: StageLike | undefined }) {
-  const testData = useTestData(stage);
+  const testData = useTestData(stage, SensorTestMode.UncalibratedValues);
   const inputState = useInputState(stage);
   const config = useConfig(stage);
   // const [popoverPanel, setPopoverPanel] = useState(-1);

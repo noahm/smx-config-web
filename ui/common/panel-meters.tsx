@@ -4,9 +4,10 @@ import { Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
+import { SensorTestMode } from "../../sdk";
 
 export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: number }) {
-  const testData = useTestData(stage);
+  const testData = useTestData(stage, SensorTestMode.CalibratedValues);
   const config = useConfig(stage);
   const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
   const isFsr = stage?.config?.flags.PlatformFlags_FSR;
