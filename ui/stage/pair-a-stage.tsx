@@ -1,14 +1,17 @@
-import { Center, Overlay, Title } from "@mantine/core";
+import { Button, Center, Overlay } from "@mantine/core";
 import { StageTest } from "./stage-test";
 import { promptSelectDevice } from "../pad-coms";
+import { IconCirclePlus } from "@tabler/icons-react";
 
 export function PairAStage() {
   return (
-    <div style={{ position: "relative", cursor: "pointer", display: "inline-block", padding: "1em" }}>
+    <div style={{ position: "relative", display: "inline-block", padding: "1em" }}>
       <StageTest stage={undefined} />
-      <Overlay blur={5} onClick={promptSelectDevice} backgroundOpacity={0}>
+      <Overlay blur={5} backgroundOpacity={0}>
         <Center h="100%">
-          <Title order={1}>Pair a stage</Title>
+          <Button fz="h2" onClick={promptSelectDevice}>
+            <IconCirclePlus /> Pair a stage
+          </Button>
         </Center>
       </Overlay>
     </div>
