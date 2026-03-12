@@ -4,6 +4,8 @@ import { Stage } from "./stage";
 import { useAtomValue } from "jotai";
 import { PairAStage } from "./stage/pair-a-stage.tsx";
 import { PairAnother } from "./stage/pair-another.tsx";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErroredStage } from "./stage/errored-stage.tsx";
 
 export function StagePair() {
   const leftStage = useAtomValue(activeLeftStage$);
@@ -24,8 +26,12 @@ export function StagePair() {
 
   return (
     <Group wrap="nowrap" gap={0}>
-      <Stage stage={leftStage} pos="left" />
-      <Stage stage={rightStage} pos="right" />
+      <ErrorBoundary FallbackComponent={ErroredStage}>
+        <Stage stage={leftStage} pos="left" />
+      </ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErroredStage}>
+        <Stage stage={rightStage} pos="right" />
+      </ErrorBoundary>
     </Group>
   );
 }
