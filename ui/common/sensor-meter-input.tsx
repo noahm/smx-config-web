@@ -18,6 +18,7 @@ interface SensorProps {
   showControls?: boolean;
   forFsr?: boolean;
   disabled?: boolean;
+  badJumper?: boolean;
 }
 
 function useSensorActive(value: number, atk: number, rls: number) {
@@ -47,6 +48,7 @@ export function SensorMeterInput({
   showControls,
   forFsr,
   disabled,
+  badJumper,
 }: SensorProps) {
   if (disabled) {
     value = 0;
@@ -139,6 +141,11 @@ export function SensorMeterInput({
       <div className={classes.bottomLabel}>
         {forFsr && <FsrIndicator index={id} />}
         <p>Value: {value === undefined || disabled ? "--" : value}</p>
+        {badJumper && (
+          <p className={classes.badJumper} title="Incorrect jumper set for this sensor">
+            Bad jumper
+          </p>
+        )}
         <Checkbox label="Enabled" defaultChecked={!disabled} />
       </div>
     </div>

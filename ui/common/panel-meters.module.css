@@ -22,3 +22,51 @@
   justify-content: center;
   gap: 32px;
 }
+
+.dipSection {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.dipRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.dipLabel {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mantine-color-dimmed);
+  flex-shrink: 0;
+}
+
+.dipValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.dipSeparator {
+  color: var(--mantine-color-dimmed);
+}
+
+.dipCurrentOk {
+  color: var(--mantine-color-green-6);
+  font-weight: 600;
+}
+
+.dipCurrentBad {
+  color: var(--mantine-color-orange-6);
+  font-weight: 600;
+}
+
+.dipAlert {
+  padding: 6px 10px;
+  font-size: 0.82rem;
+}

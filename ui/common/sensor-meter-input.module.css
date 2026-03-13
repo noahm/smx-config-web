@@ -99,3 +99,8 @@
   width: 2em;
   border: 1px solid var(--mantine-color-gray-7);
 }
+
+.badJumper {
+  color: var(--mantine-color-red-6);
+  font-weight: 600;
+}

@@ -1,6 +1,6 @@
 import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
-import { Switch } from "@mantine/core";
+import { Alert, Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
@@ -53,9 +53,39 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   // };
   const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
 
+  const dipCurrent = panelData?.dip_switch_value;
+  const dipExpected = panelIdx;
+  const dipMismatch = dipCurrent !== undefined && dipCurrent >= 0 && dipCurrent !== dipExpected;
+  const anyBadJumper = panelData?.bad_jumper.some((b) => b) ?? false;
+  // Only warn about bad jumpers when sensors are responding (not flagged as bad input)
+  const sensorsResponding = panelData?.bad_sensor_input.some((b) => b) === false;
+  const showBadJumperWarning = anyBadJumper && sensorsResponding;
+
   return (
     <div className={classes.panelWrapper}>
       {/* <h1 className={classes.title}>Sensor Thresholds</h1> */}
+      <div className={classes.dipSection}>
+        <div className={classes.dipRow}>
+          <span className={classes.dipLabel}>DIP Switch</span>
+          <span className={classes.dipValue}>
+            <span className={dipMismatch ? classes.dipCurrentBad : classes.dipCurrentOk}>
+              Current: {dipCurrent !== undefined && dipCurrent >= 0 ? dipCurrent : "—"}
+            </span>
+            <span className={classes.dipSeparator}>/</span>
+            <span>Expected: {dipExpected}</span>
+          </span>
+        </div>
+        {dipMismatch && (
+          <Alert color="orange" className={classes.dipAlert}>
+            DIP switch mismatch — set the physical switch to position {dipExpected}
+          </Alert>
+        )}
+        {showBadJumperWarning && (
+          <Alert color="red" className={classes.dipAlert}>
+            Incorrect sensor jumper(s) detected on this panel
+          </Alert>
+        )}
+      </div>
       <div className={classes.switchWrapper}>
         <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
       </div>
@@ -74,6 +104,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             showControls={false}
             forFsr={isFsr}
             disabled={!config?.enabledSensors[panelIdx][index]}
+            badJumper={panelData?.bad_jumper[index]}
           />
         ))}
       </div>
