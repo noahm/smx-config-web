@@ -12,14 +12,14 @@ export class StageMock implements StageLike {
     out[idxPressed] = true;
     return out;
   });
-  public calibratedSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (n, panels) => {
+  public calibratedSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
     return panels.map((pressed) => mockSensorValue(pressed ? 230 : 0));
   });
-  public rawSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (n, panels) => {
+  public rawSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
     return panels.map((pressed) => mockSensorValue(pressed ? 235 : 5));
   });
   public engagePanelTestMode$ = constant(undefined);
-  public testDataResponse$ = interval(50, null).withLatestFrom(this.inputState$, (n, panels) => {
+  public testDataResponse$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
     return panels.map((pressed) => mockSensorValue(pressed ? 235 : 0));
   });
   public configResponse$: Observable<ConfigShape>;
