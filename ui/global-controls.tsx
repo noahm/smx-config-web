@@ -3,7 +3,11 @@ import { activeLeftStage$, activeRightStage$ } from "./state";
 import { Group, SegmentedControl } from "@mantine/core";
 import { StageMock } from "../sdk/mock";
 
+const showMockControls =
+  import.meta.env.DEV || import.meta.env.VERCEL_ENV === "preview";
+
 export function GlobalControls() {
+  if (!showMockControls) return null;
   return <MockStageControls />;
 }
 
