@@ -5,9 +5,7 @@ import { lazy, Suspense } from "react";
 // Rollup dead-code elimination then drops the dynamic import entirely, so the
 // mock-controls chunk is never included in the production bundle.
 const MockStageControls =
-  import.meta.env.DEV || import.meta.env.VERCEL_ENV === "preview"
-    ? lazy(() => import("./mock-controls"))
-    : null;
+  import.meta.env.DEV || import.meta.env.VERCEL_ENV === "preview" ? lazy(() => import("./mock-controls")) : null;
 
 export function GlobalControls() {
   if (!MockStageControls) return null;
