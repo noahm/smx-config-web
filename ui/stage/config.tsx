@@ -1,22 +1,18 @@
-import { useAtomValue, type Atom } from "jotai";
-import type { SMXStage } from "../../sdk";
+import type { StageLike } from "../../sdk/interface";
 import { useConfig } from "./hooks";
+import { Fieldset } from "@mantine/core";
+import { sensitivityLevelsForPanel } from "./util";
 
-export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
-  const stage = useAtomValue(props.stageAtom);
-  const config = useConfig(stage);
+export function ConfigValues(props: { stage: StageLike }) {
+  const config = useConfig(props.stage);
 
   const ranges = config?.enabledSensors.flatMap((panel, idx) => {
     if (!panel.some((sensor) => sensor)) {
       return []; // skip panels will all disabled sensors
     }
-
-    const { fsrHighThreshold: highs, fsrLowThreshold: lows } = config.panelSettings[idx];
-
     return {
       idx,
-      lows,
-      highs,
+      ...sensitivityLevelsForPanel(config, idx),
     };
   });
 
@@ -25,8 +21,7 @@ export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
   }
 
   return (
-    <>
-      <h3>Sensitivity settings</h3>
+    <Fieldset legend="Current settings">
       <ul>
         {ranges.map((range) => (
           <li key={range.idx}>
@@ -34,6 +29,6 @@ export function ConfigValues(props: { stageAtom: Atom<SMXStage | undefined> }) {
           </li>
         ))}
       </ul>
-    </>
+    </Fieldset>
   );
 }

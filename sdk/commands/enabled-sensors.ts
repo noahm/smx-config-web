@@ -30,12 +30,12 @@ function joinTwoSensors(
   return {
     left0: sensorA[FsrSensor.Left],
     right0: sensorA[FsrSensor.Right],
-    up0: sensorA[FsrSensor.Up],
-    down0: sensorA[FsrSensor.Down],
+    up0: sensorA[FsrSensor.Top],
+    down0: sensorA[FsrSensor.Bottom],
     left1: sensorB[FsrSensor.Left],
     right1: sensorB[FsrSensor.Right],
-    up1: sensorB[FsrSensor.Up],
-    down1: sensorB[FsrSensor.Down],
+    up1: sensorB[FsrSensor.Top],
+    down1: sensorB[FsrSensor.Bottom],
   };
 }
 
