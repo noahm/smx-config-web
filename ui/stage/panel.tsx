@@ -2,7 +2,7 @@ import cn from "classnames";
 import { FsrSensor, type SMXPanelTestData } from "../../sdk";
 import { useCallback, forwardRef } from "react";
 import styles from "./stage.module.css";
-import { IconAlertCircle, IconAlertTriangleFilled } from "@tabler/icons-react";
+import { IconAlertCircleFilled, IconAlertHexagonFilled, IconAlertTriangleFilled } from "@tabler/icons-react";
 
 interface EnabledProps {
   type: "fsr" | "loadcell";
@@ -72,22 +72,26 @@ function FsrReadings({ testData }: { testData: SMXPanelTestData }) {
     <>
       <SensorReading
         className={cn(styles.top, styles.horiz)}
-        badInput={testData.bad_sensor_input[FsrSensor.Top] || testData.bad_jumper[FsrSensor.Top]}
+        badSensor={testData.bad_sensor_input[FsrSensor.Top]}
+        badJumper={testData.bad_jumper[FsrSensor.Top]}
         value={testData.sensor_level[FsrSensor.Top]}
       />
       <SensorReading
         className={cn(styles.right, styles.vert)}
-        badInput={testData.bad_sensor_input[FsrSensor.Right] || testData.bad_jumper[FsrSensor.Right]}
+        badSensor={testData.bad_sensor_input[FsrSensor.Right]}
+        badJumper={testData.bad_jumper[FsrSensor.Right]}
         value={testData.sensor_level[FsrSensor.Right]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.horiz)}
-        badInput={testData.bad_sensor_input[FsrSensor.Bottom] || testData.bad_jumper[FsrSensor.Bottom]}
+        badSensor={testData.bad_sensor_input[FsrSensor.Bottom]}
+        badJumper={testData.bad_jumper[FsrSensor.Bottom]}
         value={testData.sensor_level[FsrSensor.Bottom]}
       />
       <SensorReading
         className={cn(styles.left, styles.vert)}
-        badInput={testData.bad_sensor_input[FsrSensor.Left] || testData.bad_jumper[FsrSensor.Left]}
+        badSensor={testData.bad_sensor_input[FsrSensor.Left]}
+        badJumper={testData.bad_jumper[FsrSensor.Left]}
         value={testData.sensor_level[FsrSensor.Left]}
       />
     </>
@@ -99,28 +103,48 @@ function LoadCellReadings({ testData }: { testData: SMXPanelTestData }) {
     <>
       <SensorReading
         className={cn(styles.top, styles.left)}
-        badInput={testData?.bad_sensor_input[0]}
+        badSensor={testData.bad_sensor_input[0]}
+        badJumper={testData.bad_jumper[0]}
         value={testData?.sensor_level[0]}
       />
       <SensorReading
         className={cn(styles.top, styles.right)}
-        badInput={testData?.bad_sensor_input[1]}
+        badSensor={testData.bad_sensor_input[1]}
+        badJumper={testData.bad_jumper[1]}
         value={testData?.sensor_level[1]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.left)}
-        badInput={testData?.bad_sensor_input[2]}
+        badSensor={testData.bad_sensor_input[2]}
+        badJumper={testData.bad_jumper[2]}
         value={testData?.sensor_level[2]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.right)}
-        badInput={testData?.bad_sensor_input[3]}
+        badSensor={testData.bad_sensor_input[3]}
+        badJumper={testData.bad_jumper[3]}
         value={testData?.sensor_level[3]}
       />
     </>
   );
 }
 
-function SensorReading({ className, badInput, value }: { className?: string; badInput?: boolean; value?: number }) {
-  return <div className={cn(styles.fsr, className)}>{badInput ? <IconAlertCircle /> : value}</div>;
+function SensorReading({
+  className,
+  badSensor,
+  badJumper,
+  value,
+}: {
+  className?: string;
+  badSensor?: boolean;
+  badJumper?: boolean;
+  value?: number;
+}) {
+  return (
+    <div className={cn(styles.fsr, className)}>
+      {badJumper && <IconAlertHexagonFilled color="var(--mantine-color-red-6)" />}
+      {badSensor && <IconAlertCircleFilled color="var(--mantine-color-red-6)" />}
+      {!badJumper && !badSensor && value}
+    </div>
+  );
 }

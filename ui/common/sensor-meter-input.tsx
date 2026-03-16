@@ -2,7 +2,8 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import classes from "./sensor-meter-input.module.css";
 import classNames from "classnames";
 import { FsrSensor } from "../../sdk";
-import { Checkbox } from "@mantine/core";
+import { IconAlertCircleFilled, IconAlertHexagonFilled } from "@tabler/icons-react";
+// import { Checkbox } from "@mantine/core";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -19,7 +20,7 @@ interface SensorProps {
   forFsr?: boolean;
   disabled?: boolean;
   badJumper: boolean;
-  invalidReading: boolean;
+  badSensor: boolean;
 }
 
 function useSensorActive(value: number, atk: number, rls: number) {
@@ -50,6 +51,7 @@ export function SensorMeterInput({
   forFsr,
   disabled,
   badJumper,
+  badSensor,
 }: SensorProps) {
   if (disabled) {
     value = 0;
@@ -141,13 +143,18 @@ export function SensorMeterInput({
       </div>
       <div className={classes.bottomLabel}>
         {forFsr && <FsrIndicator index={id} />}
-        <p>Value: {value === undefined || disabled ? "--" : value}</p>
+        {!badJumper && !badSensor && <p>Value: {value === undefined || disabled ? "--" : value}</p>}
         {badJumper && (
-          <p className={classes.badJumper} title="Incorrect jumper set for this sensor">
-            Bad jumper
+          <p className={classes.bad} title="Incorrect jumper set for this sensor">
+            <IconAlertHexagonFilled size={18} /> Jumper
           </p>
         )}
-        <Checkbox label="Enabled" defaultChecked={!disabled} />
+        {badSensor && (
+          <p className={classes.bad} title="Bad readings from this sensor">
+            <IconAlertCircleFilled size={18} /> Sensor
+          </p>
+        )}
+        {/* <Checkbox label="Enabled" defaultChecked={!disabled} /> */}
       </div>
     </div>
   );

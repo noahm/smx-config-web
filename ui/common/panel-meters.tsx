@@ -55,7 +55,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
       {dipMismatch && (
         <>
           <Alert color="orange" className={classes.dipAlert}>
-            <IconAlertTriangle style={{ verticalAlign: "text-bottom" }} size={20} /> DIP switch mismatch — update the
+            <IconAlertTriangle style={{ verticalAlign: "text-bottom" }} size={20} /> DIP switch mismatch — update PCB
             switches as shown
           </Alert>
           <Group>
@@ -73,7 +73,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
       {/* <div className={classes.switchWrapper}>
         <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
       </div> */}
-      <Group justify="center" gap="xl">
+      <Group justify="center" align="flex-start" gap="xl">
         {orderedSensorLevel
           .map((index) => [panelData?.sensor_level[index], index] as const)
           .map(([level, index]) => (
@@ -90,7 +90,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
               forFsr={isFsr}
               disabled={!config?.enabledSensors[panelIdx][index]}
               badJumper={!!panelData?.bad_jumper[index]}
-              invalidReading={!!panelData?.bad_sensor_input[index]}
+              badSensor={!!panelData?.bad_sensor_input[index]}
             />
           ))}
       </Group>

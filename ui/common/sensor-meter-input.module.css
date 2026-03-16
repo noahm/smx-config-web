@@ -100,7 +100,8 @@
   border: 1px solid var(--mantine-color-gray-7);
 }
 
-.badJumper {
+.bad {
   color: var(--mantine-color-red-6);
   font-weight: 600;
+  text-wrap: nowrap;
 }
