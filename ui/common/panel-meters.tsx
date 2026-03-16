@@ -5,6 +5,7 @@ import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
 import { FsrSensor, SensorTestMode } from "../../sdk";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
 function DipSwitchDisplay({ value, mismatch }: { value: number | undefined; mismatch?: boolean }) {
   const isUnknown = value === undefined || value < 0;
@@ -54,7 +55,8 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
       {dipMismatch && (
         <>
           <Alert color="orange" className={classes.dipAlert}>
-            DIP switch mismatch — update the switches as shown
+            <IconAlertTriangle style={{ verticalAlign: "text-bottom" }} size={20} /> DIP switch mismatch — update the
+            switches as shown
           </Alert>
           <Group>
             <Group>
@@ -87,7 +89,8 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
               showControls={false}
               forFsr={isFsr}
               disabled={!config?.enabledSensors[panelIdx][index]}
-              badJumper={panelData?.bad_jumper[index]}
+              badJumper={!!panelData?.bad_jumper[index]}
+              invalidReading={!!panelData?.bad_sensor_input[index]}
             />
           ))}
       </Group>

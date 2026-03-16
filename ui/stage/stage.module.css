@@ -5,11 +5,11 @@
   grid-template-columns: 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr 1fr;
   gap: 1em 1em;
-  height: 26em;
-  width: 20em;
+  height: 32em;
+  width: 25em;
   background-color: var(--mantine-color-gray-4);
-  padding: 4em 1em 4em;
-  --corner-cut-size: 3em;
+  padding: 5em 1em 5em;
+  --corner-cut-size: 4em;
   clip-path: polygon(
     var(--corner-cut-size) 0,
     calc(100% - var(--corner-cut-size)) 0,
@@ -39,15 +39,22 @@
 
 .panel {
   outline: 2px solid var(--mantine-color-gray-5);
+  background-color: var(--mantine-color-gray-1);
   position: relative;
   cursor: pointer;
-}
-.panel.selected {
-  outline-color: var(--mantine-color-green-9);
+  display: flex;
+  place-items: center;
+  justify-content: center;
 }
 .panel.disabled {
   outline-style: dashed;
-  background-color: var(--mantine-color-gray-2);
+  background-image: repeating-linear-gradient(
+    -45deg,
+    var(--mantine-color-gray-3),
+    var(--mantine-color-gray-3) 10px,
+    var(--mantine-color-gray-1) 10px,
+    var(--mantine-color-gray-1) 20px
+  );
 }
 .panel.disabled:hover {
   background-color: var(--mantine-color-gray-3);
@@ -74,10 +81,10 @@
   top: 0;
 }
 .left {
-  left: 0;
+  left: 0.2em;
 }
 .right {
-  right: 0;
+  right: 0.2em;
 }
 .bottom {
   bottom: 0;
@@ -85,7 +92,10 @@
 
 .fsr.vert {
   top: 50%;
+  margin-top: -0.75em;
 }
 .fsr.horiz {
-  left: 50%;
+  width: 100%;
+  text-align: center;
+  /* margin-left: 0.5em; */
 }

@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+svg.tabler-icon {
+  vertical-align: text-bottom;
+  flex: 1 0 auto;
+}
+
 footer {
   position: fixed;
   bottom: 0em;

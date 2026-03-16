@@ -97,7 +97,7 @@ export class SMXPanelTestData {
    * off in the config tool.
    */
   public readonly bad_sensor_input: ReadonlyArray<boolean> = Array(SENSOR_COUNT).fill(false);
-  /** This is waht the dipswitch is set to for this panel */
+  /** This is what the dipswitch is set to for this panel */
   public readonly dip_switch_value: number = -1;
   /** These are true if the sensor has the incorrect jumper set */
   public readonly bad_jumper: ReadonlyArray<boolean> = Array(SENSOR_COUNT).fill(false);

@@ -1,12 +1,12 @@
 import { Overlay, Center, Button, Title } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import type { FallbackProps } from "react-error-boundary";
-import { StageTest } from "./stage-test";
+import { StageLayout } from "./stage-test";
 
 export function ErroredStage(props: FallbackProps) {
   return (
     <div style={{ position: "relative", display: "inline-block", padding: "1em" }}>
-      <StageTest stage={undefined} />
+      <StageLayout stage={undefined} />
       <Overlay blur={5} backgroundOpacity={0}>
         <Center h="100%">
           <Title>Uh-oh, app broke</Title>

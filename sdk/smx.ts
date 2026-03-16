@@ -252,9 +252,9 @@ export class SMXStage implements StageLike {
     await this.events.ackReports$.firstToPromise();
   }
 
-  public forceRecalibration(): Promise<AckPacket> {
+  public async forceRecalibrate(): Promise<void> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.FORCE_RECALIBRATION));
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
   }
 
   public close() {

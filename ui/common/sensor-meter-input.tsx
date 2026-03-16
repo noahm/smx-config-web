@@ -18,7 +18,8 @@ interface SensorProps {
   showControls?: boolean;
   forFsr?: boolean;
   disabled?: boolean;
-  badJumper?: boolean;
+  badJumper: boolean;
+  invalidReading: boolean;
 }
 
 function useSensorActive(value: number, atk: number, rls: number) {
