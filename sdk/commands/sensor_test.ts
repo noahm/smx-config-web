@@ -3,7 +3,7 @@ import { API_COMMAND, PANEL_COUNT, SENSOR_COUNT } from "../api";
 import type { Decoded } from "./config";
 
 /**
- * Sensor Test Mode values the stages expect
+ * Types of data that can be requested by a GET_SENSOR_TEST_DATA request
  */
 export enum SensorTestMode {
   /** Actual 0 value */
