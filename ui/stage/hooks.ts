@@ -16,14 +16,15 @@ export function useInputState(stage: StageLike | undefined) {
 
 export function useTestData(
   stage: StageLike | undefined,
-  testMode: SensorTestMode.CalibratedValues | SensorTestMode.UncalibratedValues,
+  testMode: SensorTestMode.CalibratedValues | SensorTestMode.UncalibratedValues | SensorTestMode.Tare,
 ) {
   const [testData, setTestData] = useState<readonly SMXPanelTestData[] | null>(null);
 
   // ingest responses and display in UI
   useEffect(() => {
+    if (testMode === SensorTestMode.Tare) return stage?.sensorTareData$.onValue(setTestData);
     if (testMode === SensorTestMode.CalibratedValues) return stage?.calibratedSensorData$.onValue(setTestData);
-    else return stage?.rawSensorData$.onValue(setTestData);
+    return stage?.rawSensorData$.onValue(setTestData);
   }, [stage, testMode]);
 
   return testData;

@@ -1,14 +1,14 @@
 import { SensorTestMode, SMXPanelTestData } from "../commands/sensor_test";
 
-export function mockFsrSensorValue(baselineSensorValue = 0) {
+export function mockFsrSensorValue(baselineSensorValue = 0, jitterBy = 5) {
   return new SMXPanelTestData(
     {
       dips: { dip: 0, bad_sensor_dip_0: 0, bad_sensor_dip_1: 0, bad_sensor_dip_2: 0, bad_sensor_dip_3: 0 },
       sensors: [
-        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
-        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
-        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
-        Math.round((Math.random() * 5 + baselineSensorValue) << 2),
+        Math.round((Math.random() * jitterBy + baselineSensorValue) << 2),
+        Math.round((Math.random() * jitterBy + baselineSensorValue) << 2),
+        Math.round((Math.random() * jitterBy + baselineSensorValue) << 2),
+        Math.round((Math.random() * jitterBy + baselineSensorValue) << 2),
       ],
       sig_bad: {
         bad_sensor_0: false,
@@ -26,15 +26,15 @@ export function mockFsrSensorValue(baselineSensorValue = 0) {
   );
 }
 
-export function mockLoadCellSensorValue(baselineSensorValue = 0) {
+export function mockLoadCellSensorValue(baselineSensorValue = 0, jitterBy = 10) {
   return new SMXPanelTestData(
     {
       dips: { dip: 0, bad_sensor_dip_0: 0, bad_sensor_dip_1: 0, bad_sensor_dip_2: 0, bad_sensor_dip_3: 0 },
       sensors: [
-        Math.round(Math.random() * 10 + baselineSensorValue),
-        Math.round(Math.random() * 10 + baselineSensorValue),
-        Math.round(Math.random() * 10 + baselineSensorValue),
-        Math.round(Math.random() * 10 + baselineSensorValue),
+        Math.round(Math.random() * jitterBy + baselineSensorValue),
+        Math.round(Math.random() * jitterBy + baselineSensorValue),
+        Math.round(Math.random() * jitterBy + baselineSensorValue),
+        Math.round(Math.random() * jitterBy + baselineSensorValue),
       ],
       sig_bad: {
         bad_sensor_0: false,

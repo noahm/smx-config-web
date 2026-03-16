@@ -20,6 +20,7 @@ export interface StageLike {
   readonly configResponse$: Observable<ConfigShape>;
   readonly rawSensorData$: Observable<readonly SMXPanelTestData[]>;
   readonly calibratedSensorData$: Observable<readonly SMXPanelTestData[]>;
+  readonly sensorTareData$: Observable<readonly SMXPanelTestData[]>;
   /** as long as anything remains subscribed, the stages will be kept in test mode */
   readonly engagePanelTestMode$: Observable<void>;
   init(): Promise<void>;

@@ -76,7 +76,7 @@ class SMXEvents {
 }
 
 // UI Update Rate in Milliseconds for sensor values
-const TEST_DATA_REQUEST_RATE = 50;
+const TEST_DATA_REQUEST_RATE = 100;
 
 export class SMXStage implements StageLike {
   private dev: HIDDevice;
@@ -97,6 +97,7 @@ export class SMXStage implements StageLike {
   public readonly configResponse$: Bacon.EventStream<ConfigShape>;
   public readonly calibratedSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
   public readonly rawSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
+  public readonly sensorTareData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
   public readonly engagePanelTestMode$: Bacon.EventStream<void>;
 
   constructor(dev: HIDDevice) {
@@ -127,9 +128,9 @@ export class SMXStage implements StageLike {
       .filter((e) => e[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
       .map((value) => this.handleTestData(value));
 
-    const sensorTestObservable = (forType: SensorTestMode) =>
+    const sensorTestObservable = (forType: SensorTestMode, updateRateMs: number) =>
       Bacon.fromBinder<readonly SMXPanelTestData[]>((sink) => {
-        const stopInterval = Bacon.interval(TEST_DATA_REQUEST_RATE, null).subscribe(() => {
+        const stopInterval = Bacon.interval(updateRateMs, null).subscribe(() => {
           this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType));
         });
         const endMainSub = sensorTestReports$
@@ -142,8 +143,10 @@ export class SMXStage implements StageLike {
         };
       });
 
-    this.rawSensorData$ = sensorTestObservable(SensorTestMode.UncalibratedValues);
-    this.calibratedSensorData$ = sensorTestObservable(SensorTestMode.CalibratedValues);
+    this.rawSensorData$ = sensorTestObservable(SensorTestMode.UncalibratedValues, TEST_DATA_REQUEST_RATE);
+    this.calibratedSensorData$ = sensorTestObservable(SensorTestMode.CalibratedValues, TEST_DATA_REQUEST_RATE);
+    // slower update rate for tare values
+    this.sensorTareData$ = sensorTestObservable(SensorTestMode.Tare, 5_000);
 
     this.engagePanelTestMode$ = Bacon.fromBinder(() => {
       /**
