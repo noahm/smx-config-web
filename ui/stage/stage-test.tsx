@@ -22,7 +22,9 @@ import {
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { applySensitivityPreset, type PresetName } from "../../sdk/presets";
 
-export function StageLayout({ stage, onClose }: { stage: StageLike | undefined; onClose(): void }) {
+type Props = { stage: StageLike | undefined; onClose(): void } | { stage: undefined; onClose?: undefined };
+
+export function StageLayout({ stage, onClose }: Props) {
   const testData = useTestData(stage, SensorTestMode.UncalibratedValues);
   const inputState = useInputState(stage);
   const config = useConfig(stage);

@@ -11,7 +11,7 @@ export default function MockStageControls() {
     return null;
   }
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" style={{ position: "absolute", left: 15, top: 15 }}>
       {!leftStage && (
         <Group gap="xs">
           Mock P1 as <AddStageBtns setStage={setLeftStage} />

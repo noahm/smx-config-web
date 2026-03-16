@@ -2,7 +2,7 @@
   transform-origin: center;
   position: absolute;
   top: -15px;
-  border-radius: var(--mantine-radius-lg) var(--mantine-radius-lg) 0 0;
+  border-radius: var(--mantine-radius-md) var(--mantine-radius-md) 0 0;
   width: 300px;
 }
 
