@@ -1,25 +1,34 @@
 import { Group } from "@mantine/core";
 import { activeLeftStage$, activeRightStage$ } from "./state.ts";
 import { Stage } from "./stage";
-import { useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { PairAStage } from "./stage/pair-a-stage.tsx";
 import { PairAnother } from "./stage/pair-another.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErroredStage } from "./stage/errored-stage.tsx";
 
 export function StagePair() {
-  const leftStage = useAtomValue(activeLeftStage$);
-  const rightStage = useAtomValue(activeRightStage$);
+  const [leftStage, setLeftStage] = useAtom(activeLeftStage$);
+  const [rightStage, setRightStage] = useAtom(activeRightStage$);
 
   if (!leftStage && !rightStage) {
     return <PairAStage />;
   }
 
+  const closeLeftStage = () => {
+    leftStage?.close();
+    setLeftStage(null);
+  };
+  const closeRightStage = () => {
+    rightStage?.close();
+    setRightStage(null);
+  };
+
   if (!rightStage || !leftStage) {
     return (
       <Group wrap="nowrap">
         <PairAnother side="left" />
-        <Stage stage={leftStage || rightStage} pos="right" />
+        <Stage stage={leftStage || rightStage} pos="right" onClose={leftStage ? closeLeftStage : closeRightStage} />
       </Group>
     );
   }
@@ -27,10 +36,10 @@ export function StagePair() {
   return (
     <Group wrap="nowrap" gap={0}>
       <ErrorBoundary FallbackComponent={ErroredStage}>
-        <Stage stage={leftStage} pos="left" />
+        <Stage stage={leftStage} pos="left" onClose={closeLeftStage} />
       </ErrorBoundary>
       <ErrorBoundary FallbackComponent={ErroredStage}>
-        <Stage stage={rightStage} pos="right" />
+        <Stage stage={rightStage} pos="right" onClose={closeRightStage} />
       </ErrorBoundary>
     </Group>
   );

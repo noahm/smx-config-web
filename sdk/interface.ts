@@ -25,4 +25,6 @@ export interface StageLike {
   init(): Promise<void>;
   writeConfig(): Promise<ConfigShape>;
   factoryReset(): Promise<void>;
+  /** close the underlying WebHID device */
+  close(): void;
 }

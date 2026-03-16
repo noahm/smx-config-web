@@ -10,6 +10,6 @@ export const activeLeftStage$ = atom<StageLike | null>(null);
 
 export const activeRightStage$ = atom<StageLike | null>(null);
 
-export const hasActiveStage$ = atom<boolean>((get) => {
-  return !!get(activeLeftStage$) || !!get(activeRightStage$);
-});
+// export const hasActiveStage$ = atom<boolean>((get) => {
+//   return !!get(activeLeftStage$) || !!get(activeRightStage$);
+// });

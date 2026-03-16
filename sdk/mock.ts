@@ -39,6 +39,7 @@ export class FsrStageMock implements StageLike {
   public async factoryReset(): Promise<void> {
     return later<void>(750, undefined).toPromise();
   }
+  public close() {}
 }
 
 export class LoadCellStageMock implements StageLike {
@@ -76,4 +77,5 @@ export class LoadCellStageMock implements StageLike {
   public async factoryReset(): Promise<void> {
     return later<void>(750, undefined).toPromise();
   }
+  public close() {}
 }

@@ -257,6 +257,10 @@ export class SMXStage implements StageLike {
     return this.events.ackReports$.firstToPromise();
   }
 
+  public close() {
+    this.dev.close();
+  }
+
   private updateDeviceInfo(): Promise<SMXDeviceInfo> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_DEVICE_INFO));
     return this.deviceInfo$.firstToPromise();
