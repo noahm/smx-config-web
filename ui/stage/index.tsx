@@ -1,5 +1,5 @@
 import { StageContextProvider } from "../context";
-import { StageLayout } from "./stage-test";
+import { StageLayout } from "./stage-layout";
 import { Group, Stack } from "@mantine/core";
 import { ConfigValues } from "./config";
 import type { StageLike } from "../../sdk/interface";

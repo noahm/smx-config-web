@@ -1,7 +1,7 @@
 import { Overlay, Center, Button, Title } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import type { FallbackProps } from "react-error-boundary";
-import { StageLayout } from "./stage-test";
+import { StageLayout } from "./stage-layout";
 
 export function ErroredStage(props: FallbackProps) {
   return (

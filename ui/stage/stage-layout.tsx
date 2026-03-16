@@ -1,5 +1,5 @@
 import cn from "classnames";
-import { Button, Menu, Popover } from "@mantine/core";
+import { ActionIcon, Menu, Popover } from "@mantine/core";
 import { StagePanel } from "./panel";
 import { timez } from "./util";
 import { useTestData, useInputState, useConfig } from "./hooks";
@@ -13,11 +13,11 @@ import {
   IconArrowNarrowDownDashed,
   IconEraser,
   IconMenu2,
-  IconPlayerEject,
   IconScale,
   IconSend,
   IconSquare,
   IconSquareCheckFilled,
+  IconSquareX,
 } from "@tabler/icons-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { applySensitivityPreset, type PresetName } from "../../sdk/presets";
@@ -95,9 +95,9 @@ function StageMenu({ stage, onClose }: { stage: StageLike; onClose(): void }) {
   return (
     <Menu>
       <Menu.Target>
-        <Button pos="absolute" top={18} left={"44%"} p="xs">
+        <ActionIcon pos="absolute" top={20} left="45%" p="md">
           <IconMenu2 />
-        </Button>
+        </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>Apply Sensitivty Preset</Menu.Label>
@@ -137,8 +137,8 @@ function StageMenu({ stage, onClose }: { stage: StageLike; onClose(): void }) {
             </Menu.Item>
           </Menu.Sub.Dropdown>
         </Menu.Sub>
-        <Menu.Item color="orange" leftSection={<IconPlayerEject size={18} />} onClick={onClose}>
-          Close
+        <Menu.Item color="orange" leftSection={<IconSquareX size={18} />} onClick={onClose}>
+          Remove
         </Menu.Item>
       </Menu.Dropdown>
     </Menu>
