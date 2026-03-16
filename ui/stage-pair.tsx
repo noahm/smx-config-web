@@ -6,8 +6,10 @@ import { PairAStage } from "./stage/pair-a-stage.tsx";
 import { PairAnother } from "./stage/pair-another.tsx";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErroredStage } from "./stage/errored-stage.tsx";
+import { useHidDevices } from "./pad-coms.tsx";
 
 export function StagePair() {
+  useHidDevices();
   const [leftStage, setLeftStage] = useAtom(activeLeftStage$);
   const [rightStage, setRightStage] = useAtom(activeRightStage$);
 
