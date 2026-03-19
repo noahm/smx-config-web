@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
 import { uiState, activeLeftStage$, activeRightStage$ } from "./state";
 import { notifications } from "@mantine/notifications";
@@ -10,18 +10,14 @@ export function useHidDevices() {
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          open_smx_device(device).then((message) => {
-            if (message) notifications.show({ message });
-          });
+          openAndWrap(device);
         }),
       );
       const ac = new AbortController();
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          open_smx_device(ev.device).then((message) => {
-            if (message) notifications.show({ message });
-          });
+          openAndWrap(ev.device);
         },
         { signal: ac.signal },
       );
@@ -57,47 +53,55 @@ export function useHidDevices() {
 
 const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
-export async function promptSelectDevice(): Promise<ReactNode> {
+export async function promptSelectDevice(): Promise<SMXStage | null> {
   const devices = await navigator.hid.requestDevice({
     filters: [{ vendorId: SMX_USB_VENDOR_ID, productId: SMX_USB_PRODUCT_ID }],
   });
 
   if (!devices.length || !devices[0]) {
-    return "no device selected in prompt";
+    return null;
   }
 
-  return open_smx_device(devices[0]);
+  return openAndWrap(devices[0]);
 }
 
 /**
- * @param forceSelect when true, will make the currently selected stage. when auto, will make selected if no stage is currently selected
+ * Opens a selected device and wraps it with our SMXStage class, handling error
+ * messaging in the case that opening the stage fails.
+ * @param forceSelect when true, will make the currently selected stage.
+ * when auto, will make selected if no stage is currently selected
  */
-async function open_smx_device(dev: HIDDevice): Promise<ReactNode> {
+async function openAndWrap(dev: HIDDevice): Promise<SMXStage | null> {
   if (!dev.opened) {
     try {
       await dev.open();
     } catch (e) {
       console.error(e);
-      return (
-        <>
-          failed to open device; more details in the browser console. if you are using linux, see{" "}
-          <a href="https://docs.google.com/document/d/1p8d1dvOg4TofBjw_8f9Z5bXZe36b_iKThG4-Js9jM-k/edit?tab=t.0">
-            these notes on Udev rules
-          </a>
-        </>
-      );
+      notifications.show({
+        autoClose: false,
+        message: (
+          <>
+            failed to open device; more details in the browser console. if you are using linux, see{" "}
+            <a href="https://docs.google.com/document/d/1p8d1dvOg4TofBjw_8f9Z5bXZe36b_iKThG4-Js9jM-k/edit?tab=t.0">
+              these notes on Udev rules
+            </a>
+          </>
+        ),
+      });
+      return null;
     }
   }
 
   const stage = new SMXStage(dev);
   await stage.init();
 
-  const serial = stage.info?.serial;
-  if (!serial) {
-    return "selected pad failed to report a serial number";
-  }
-
   devToStage.set(dev, stage);
+  return stage;
+}
+
+export async function promptAndAutoAssignStage() {
+  const stage = await promptSelectDevice();
+  if (!stage) return;
   /**
    * an array that contains both left and right side "slots", where the first item is
    * the one where this pad would natrually fit given it reporting P1 or P2.
@@ -107,8 +111,10 @@ async function open_smx_device(dev: HIDDevice): Promise<ReactNode> {
   for (const padSlot$ of sidePrefOrder) {
     if (!uiState.get(padSlot$)) {
       uiState.set(padSlot$, stage);
-      return `device opened: ${dev.productName}:P${stage.info?.player}:${stage.info?.serial}`;
+      notifications.show({
+        message: `Device opened:  ${stage.info?.serial} (P${stage.info?.player || "?"})`,
+      });
     }
   }
-  return `device opened, but no UI slots are available`;
+  notifications.show({ message: `device opened, but no UI slots are available` });
 }

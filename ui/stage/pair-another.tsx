@@ -2,7 +2,7 @@ import { IconSquarePlus } from "@tabler/icons-react";
 import { Box, Button } from "@mantine/core";
 import styles from "./pair-another.module.css";
 import classNames from "classnames";
-import { promptSelectDevice } from "../pad-coms";
+import { promptAndAutoAssignStage } from "../pad-coms";
 
 export function PairAnother(props: { side: "left" | "right" }) {
   return (
@@ -11,7 +11,7 @@ export function PairAnother(props: { side: "left" | "right" }) {
         leftSection={<IconSquarePlus />}
         className={classNames(styles.base, styles[props.side])}
         fz="h3"
-        onClick={promptSelectDevice}
+        onClick={promptAndAutoAssignStage}
       >
         Pair another?
       </Button>

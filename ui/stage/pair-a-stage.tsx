@@ -1,6 +1,6 @@
 import { Button, Center, Overlay } from "@mantine/core";
 import { StageLayout } from "./stage-layout";
-import { promptSelectDevice } from "../pad-coms";
+import { promptAndAutoAssignStage } from "../pad-coms";
 import { IconSquarePlus } from "@tabler/icons-react";
 
 export function PairAStage() {
@@ -9,7 +9,13 @@ export function PairAStage() {
       <StageLayout stage={undefined} />
       <Overlay blur={5} backgroundOpacity={0}>
         <Center h="100%">
-          <Button leftSection={<IconSquarePlus size={32} />} size="xl" fz="h1" onClick={promptSelectDevice} radius="md">
+          <Button
+            leftSection={<IconSquarePlus size={32} />}
+            size="xl"
+            fz="h1"
+            onClick={promptAndAutoAssignStage}
+            radius="md"
+          >
             Pair a stage
           </Button>
         </Center>
