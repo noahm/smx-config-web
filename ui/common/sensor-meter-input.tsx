@@ -143,13 +143,13 @@ export function SensorMeterInput({
       </div>
       <div className={classes.bottomLabel}>
         {forFsr && <FsrIndicator index={id} />}
-        {!badJumper && !badSensor && <p>Value: {value === undefined || disabled ? "--" : value}</p>}
+        {!badJumper && !(badSensor && !disabled) && <p>Value: {value === undefined || disabled ? "--" : value}</p>}
         {badJumper && (
           <p className={classes.bad} title="Incorrect jumper set for this sensor">
             <IconAlertHexagonFilled size={18} /> Jumper
           </p>
         )}
-        {badSensor && (
+        {badSensor && !disabled && (
           <p className={classes.bad} title="Bad readings from this sensor">
             <IconAlertCircleFilled size={18} /> Sensor
           </p>

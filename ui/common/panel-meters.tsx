@@ -1,6 +1,6 @@
 import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
-import { Alert, Group, Stack } from "@mantine/core";
+import { Alert, Group, Stack, Text } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
@@ -32,7 +32,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
   const isFsr = stage?.config?.flags.PlatformFlags_FSR;
   // has at least one enabled sensor
-  // const panelIsEnabled = config?.enabledSensors[panelIdx].some((p) => p);
+  const panelIsEnabled = config?.enabledSensors[panelIdx].some((p) => p);
 
   const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
 
@@ -40,8 +40,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const dipExpected = panelIdx;
   const dipMismatch = dipCurrent !== undefined && dipCurrent >= 0 && dipCurrent !== dipExpected;
   const anyBadJumper = panelData?.bad_jumper.some((b) => b) ?? false;
-  // Only warn about bad jumpers when sensors are responding (not flagged as bad input)
-  const anyBadSensorReading = panelData?.bad_sensor_input.some((b) => b);
+  const anyBadSensorReading = panelData?.bad_sensor_input.some((b, idx) => b && config?.enabledSensors[panelIdx][idx]);
   const showBadJumperWarning = anyBadJumper && !anyBadSensorReading;
   const orderedSensorLevel = [FsrSensor.Left, FsrSensor.Bottom, FsrSensor.Top, FsrSensor.Right];
 
@@ -98,6 +97,11 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             />
           ))}
       </Group>
+      {panelIsEnabled && (
+        <Text fz={14} ta="center">
+          using <b>Calibrated</b> (Raw - Tare) readings here
+        </Text>
+      )}
     </Stack>
   );
 }
