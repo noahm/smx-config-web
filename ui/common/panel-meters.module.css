@@ -75,9 +75,3 @@
   color: var(--mantine-color-dimmed);
   line-height: 1;
 }
-
-.dipAlert {
-  padding: 6px 10px;
-  font-size: 0.82rem;
-  margin-top: 6px;
-}

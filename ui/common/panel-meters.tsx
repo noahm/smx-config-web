@@ -5,7 +5,7 @@ import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
 import { FsrSensor, SensorTestMode } from "../../sdk";
-import { IconAlertTriangle } from "@tabler/icons-react";
+import { IconAlertCircle, IconAlertHexagon, IconAlertTriangle } from "@tabler/icons-react";
 
 function DipSwitchDisplay({ value, mismatch }: { value: number | undefined; mismatch?: boolean }) {
   const isUnknown = value === undefined || value < 0;
@@ -41,22 +41,16 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const dipMismatch = dipCurrent !== undefined && dipCurrent >= 0 && dipCurrent !== dipExpected;
   const anyBadJumper = panelData?.bad_jumper.some((b) => b) ?? false;
   // Only warn about bad jumpers when sensors are responding (not flagged as bad input)
-  const sensorsResponding = panelData?.bad_sensor_input.some((b) => b) === false;
-  const showBadJumperWarning = anyBadJumper && sensorsResponding;
+  const anyBadSensorReading = panelData?.bad_sensor_input.some((b) => b);
+  const showBadJumperWarning = anyBadJumper && !anyBadSensorReading;
   const orderedSensorLevel = [FsrSensor.Left, FsrSensor.Bottom, FsrSensor.Top, FsrSensor.Right];
 
   return (
     <Stack p="sm">
-      {showBadJumperWarning && (
-        <Alert color="red" className={classes.dipAlert}>
-          Incorrect sensor jumper(s) detected on this panel
-        </Alert>
-      )}
       {dipMismatch && (
         <>
-          <Alert color="orange" className={classes.dipAlert}>
-            <IconAlertTriangle style={{ verticalAlign: "text-bottom" }} size={20} /> DIP switch mismatch — update PCB
-            switches as shown
+          <Alert color="orange" icon={<IconAlertTriangle size={20} />} p="sm">
+            DIP switch mismatch — update PCB switches as shown
           </Alert>
           <Group>
             <Group>
@@ -69,6 +63,16 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             </Group>
           </Group>
         </>
+      )}
+      {anyBadSensorReading && (
+        <Alert color="red" icon={<IconAlertCircle size={20} />} p="sm">
+          Bad sensor readings detected by this panel
+        </Alert>
+      )}
+      {showBadJumperWarning && (
+        <Alert color="red" icon={<IconAlertHexagon size={20} />} p="sm">
+          Incorrect sensor jumper(s) detected on this panel
+        </Alert>
       )}
       {/* <div className={classes.switchWrapper}>
         <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
@@ -89,8 +93,8 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
               showControls={false}
               forFsr={isFsr}
               disabled={!config?.enabledSensors[panelIdx][index]}
-              badJumper={!!panelData?.bad_jumper[index]}
               badSensor={!!panelData?.bad_sensor_input[index]}
+              badJumper={!!panelData?.bad_jumper[index]}
             />
           ))}
       </Group>
