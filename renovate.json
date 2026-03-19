@@ -6,5 +6,11 @@
     "group:allNonMajor",
     "group:linters",
     "group:react"
+  ],
+  "packageRules": [
+    {
+      "groupName": "vite",
+      "matchPackageNames": ["vite", "vitest", "/^@vitejs\\//", "/^@vitest\\//", "/vite-plugin-/"]
+    }
   ]
 }

@@ -970,6 +970,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/node@npm:^24.0.0":
+  version: 24.12.0
+  resolution: "@types/node@npm:24.12.0"
+  dependencies:
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/8b31c0af5b5474f13048a4e77c57f22cd4f8fe6e58c4b6fde9456b0c13f46a5bfaf5744ff88fd089581de9f0d6e99c584e022681de7acb26a58d258c654c4843
+  languageName: node
+  linkType: hard
+
 "@types/react-dom@npm:^19.2.0":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
@@ -2521,6 +2530,7 @@ __metadata:
     "@mantine/notifications": "npm:^9.0.0-alpha.3"
     "@nmann/struct-buffer": "npm:^6.0.0-beta.1"
     "@tabler/icons-react": "npm:^3.40.0"
+    "@types/node": "npm:^24.0.0"
     "@types/react": "npm:^19.2.0"
     "@types/react-dom": "npm:^19.2.0"
     "@types/w3c-web-hid": "patch:@types/w3c-web-hid@npm%3A1.0.6#~/.yarn/patches/@types-w3c-web-hid-npm-1.0.6-ca95fc3332.patch"
@@ -2732,6 +2742,13 @@ __metadata:
     tsc: bin/tsc
     tsserver: bin/tsserver
   checksum: 10c0/ad09fdf7a756814dce65bc60c1657b40d44451346858eea230e10f2e95a289d9183b6e32e5c11e95acc0ccc214b4f36289dcad4bf1886b0adb84d711d336a430
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 
