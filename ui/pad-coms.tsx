@@ -10,14 +10,14 @@ export function useHidDevices() {
     if ("hid" in navigator) {
       navigator.hid.getDevices().then((devices) =>
         devices.forEach((device) => {
-          openAndWrap(device);
+          openAndWrap(device).then(autoAssignStage);
         }),
       );
       const ac = new AbortController();
       navigator.hid.addEventListener(
         "connect",
         (ev) => {
-          openAndWrap(ev.device);
+          openAndWrap(ev.device).then(autoAssignStage);
         },
         { signal: ac.signal },
       );
@@ -90,6 +90,7 @@ async function openAndWrap(dev: HIDDevice): Promise<SMXStage | null> {
       });
       return null;
     }
+  } else if (devToStage.has(dev)) {
   }
 
   const stage = new SMXStage(dev);
@@ -100,7 +101,10 @@ async function openAndWrap(dev: HIDDevice): Promise<SMXStage | null> {
 }
 
 export async function promptAndAutoAssignStage() {
-  const stage = await promptSelectDevice();
+  autoAssignStage(await promptSelectDevice());
+}
+
+function autoAssignStage(stage: SMXStage | null) {
   if (!stage) return;
   /**
    * an array that contains both left and right side "slots", where the first item is
