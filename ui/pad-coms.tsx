@@ -112,8 +112,9 @@ export async function promptAndAutoAssignStage() {
     if (!uiState.get(padSlot$)) {
       uiState.set(padSlot$, stage);
       notifications.show({
-        message: `Device opened:  ${stage.info?.serial} (P${stage.info?.player || "?"})`,
+        message: `Device opened: ${stage.info?.serial} (P${stage.info?.player || "?"})`,
       });
+      return;
     }
   }
   notifications.show({ message: `device opened, but no UI slots are available` });
