@@ -61,11 +61,16 @@
   outline-color: var(--mantine-color-gray-6);
 }
 .panel:not(.disabled):hover {
-  background-color: var(--mantine-color-gray-5);
+  background-color: var(--mantine-color-gray-3);
   outline-color: var(--mantine-color-gray-6);
 }
 .panel.active {
+  background-color: var(--mantine-color-green-2);
+  outline-color: var(--mantine-color-green-7);
+}
+.panel.active:hover {
   background-color: var(--mantine-color-green-4);
+  outline-color: var(--mantine-color-green-6);
 }
 .panel.commErr {
   background-color: var(--mantine-color-error);

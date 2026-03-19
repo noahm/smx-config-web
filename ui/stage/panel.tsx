@@ -29,9 +29,7 @@ export const StagePanel = forwardRef<HTMLDivElement, EnabledProps>(
       [handleClick],
     );
     const warningIcon =
-      testData && testData.dip_switch_value !== index ? (
-        <IconAlertTriangleFilled color="var(--mantine-color-yellow-7)" />
-      ) : null;
+      testData?.dip_switch_value !== index ? <IconAlertTriangleFilled color="var(--mantine-color-yellow-8)" /> : null;
     if (disabled) {
       return (
         // biome-ignore lint/a11y/useSemanticElements: may use actual radio buttons in full UI rebuild
