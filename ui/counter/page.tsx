@@ -1,30 +1,44 @@
-import { useAtom } from "jotai";
-
-import { promptSelectDevice, usePreviouslyPairedDevices } from "../pad-coms.tsx";
-import { browserSupported, stages$ } from "../state.ts";
+import { promptSelectDevice, useHidDevices } from "../pad-coms.tsx";
+import { browserSupported } from "../state.ts";
 import { StepCounter } from "./step-counter.tsx";
+import type { SMXStage } from "../../sdk/smx.ts";
+import { useState, useTransition } from "react";
+import { ActionIcon, Button } from "@mantine/core";
+import { IconX } from "@tabler/icons-react";
 
 export function CounterPage() {
-  usePreviouslyPairedDevices();
-  const [stages, setStages] = useAtom(stages$);
+  useHidDevices();
+  const [inTransition, startTransition] = useTransition();
+  const [stages, setStages] = useState<Record<string, SMXStage>>({});
 
   if (!browserSupported) {
     return "must use a chrome-like browser... sorry.";
   }
 
+  async function addStageAction() {
+    const stage = await promptSelectDevice();
+    const serial = stage?.info?.serial;
+    if (!stage || !serial) return;
+    setStages((prev) => {
+      return {
+        ...prev,
+        [serial]: stage,
+      };
+    });
+  }
+
   return (
     <>
-      <StepCounter />
+      <StepCounter stages={stages} />
       <p>
-        <button type="button" onClick={() => promptSelectDevice()}>
+        <Button disabled={inTransition} onClick={() => startTransition(addStageAction)}>
           Add Stage
-        </button>
+        </Button>
         <ul>
           {Object.keys(stages).map((serial) => (
             <li key={serial}>
               {serial}{" "}
-              <button
-                type="button"
+              <ActionIcon
                 onClick={() => {
                   setStages((prev) => {
                     const next = { ...prev };
@@ -33,8 +47,8 @@ export function CounterPage() {
                   });
                 }}
               >
-                X
-              </button>
+                <IconX />
+              </ActionIcon>
             </li>
           ))}
         </ul>

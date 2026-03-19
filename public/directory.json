@@ -18,6 +18,11 @@
   ],
   "others": [
     {
+      "label": "StatManiaX",
+      "description": "Official score tracking website from Step Revolution",
+      "href": "https://statmaniax.com/"
+    },
+    {
       "label": "Score Browser",
       "description": "Browse every score ever submitted with powerful processing options",
       "href": "https://smx.573.no/browser"

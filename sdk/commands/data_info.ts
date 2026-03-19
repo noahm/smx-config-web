@@ -1,4 +1,5 @@
 import { StructBuffer, char, uint8_t, uint16_t } from "@nmann/struct-buffer";
+import type { StageInfo } from "../interface";
 
 const data_info_packet_t = new StructBuffer({
   /** Always 'I' */
@@ -17,7 +18,7 @@ const data_info_packet_t = new StructBuffer({
   unused3: char,
 });
 
-export class SMXDeviceInfo {
+export class SMXDeviceInfo implements StageInfo {
   serial = "";
   firmware_version = 0;
   player = 0;
@@ -30,7 +31,7 @@ export class SMXDeviceInfo {
   #decode(data: Uint8Array) {
     const info_packet = data_info_packet_t.decode(data, { littleEndian: true });
 
-    this.player = Number.parseInt(String.fromCharCode(info_packet.player)) + 1;
+    this.player = Number.parseInt(String.fromCharCode(info_packet.player), 10) + 1;
     this.serial = info_packet.serial.map((x) => `00${x.toString(16).toUpperCase()}`.slice(-2)).join("");
     this.firmware_version = info_packet.firmware_version;
   }

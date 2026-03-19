@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import classes from "./sensor-meter-input.module.css";
 import classNames from "classnames";
+import { FsrSensor } from "../../sdk";
+import { IconAlertCircleFilled, IconAlertHexagonFilled } from "@tabler/icons-react";
+// import { Checkbox } from "@mantine/core";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -9,12 +12,15 @@ function clamp(value: number, min: number, max: number) {
 interface SensorProps {
   id: number;
   value?: number | undefined;
-  activationThreshold: number;
-  releaseThreshold: number;
+  activationThreshold?: number;
+  releaseThreshold?: number;
   maxValue: number;
   updateThreshold?: (id: number, type: "activation" | "release", value: number) => void;
   showControls?: boolean;
   forFsr?: boolean;
+  disabled?: boolean;
+  badJumper: boolean;
+  badSensor: boolean;
 }
 
 function useSensorActive(value: number, atk: number, rls: number) {
@@ -43,12 +49,18 @@ export function SensorMeterInput({
   updateThreshold,
   showControls,
   forFsr,
+  disabled,
+  badJumper,
+  badSensor,
 }: SensorProps) {
+  if (disabled) {
+    value = 0;
+  }
   const valuePct = (100 * (value || 0)) / maxValue;
-  const releaseThresholdPct = (100 * releaseThreshold) / maxValue;
-  const activationThresholdPct = (100 * activationThreshold) / maxValue;
+  const releaseThresholdPct = (100 * (releaseThreshold || 0)) / maxValue;
+  const activationThresholdPct = (100 * (activationThreshold || 0)) / maxValue;
   const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | null>(null);
-  const isActive = useSensorActive(value || 0, activationThreshold, releaseThreshold);
+  const isActive = useSensorActive(value || 0, activationThreshold || 0, releaseThreshold || 0);
   const meterRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (type: "activation" | "release") => {
@@ -89,14 +101,18 @@ export function SensorMeterInput({
             className={classNames(classes.meterValueFill, { [classes.meterValueFillActive]: isActive })}
             style={{ height: `${valuePct}%` }}
           />
-          <div
-            className={classNames(classes.meterThresholdLine, classes.atkColorBg)}
-            style={{ bottom: `${activationThresholdPct}%` }}
-          />
-          <div
-            className={classNames(classes.meterThresholdLine, classes.rlsColorBg)}
-            style={{ bottom: `${releaseThresholdPct}%` }}
-          />
+          {!disabled && activationThreshold !== undefined && (
+            <div
+              className={classNames(classes.meterThresholdLine, classes.atkColorBg)}
+              style={{ bottom: `${activationThresholdPct}%` }}
+            />
+          )}
+          {!disabled && releaseThreshold !== undefined && (
+            <div
+              className={classNames(classes.meterThresholdLine, classes.rlsColorBg)}
+              style={{ bottom: `${releaseThresholdPct}%` }}
+            />
+          )}
         </div>
         {showControls && (
           <div ref={meterRef} className={classes.controlsContainer}>
@@ -127,20 +143,26 @@ export function SensorMeterInput({
       </div>
       <div className={classes.bottomLabel}>
         {forFsr && <FsrIndicator index={id} />}
-        <p>Value: {value === undefined ? "--" : value}</p>
+        {!badJumper && !(badSensor && !disabled) && <p>Value: {value === undefined || disabled ? "--" : value}</p>}
+        {badJumper && (
+          <p className={classes.bad} title="Incorrect jumper set for this sensor">
+            <IconAlertHexagonFilled size={18} /> Jumper
+          </p>
+        )}
+        {badSensor && !disabled && (
+          <p className={classes.bad} title="Bad readings from this sensor">
+            <IconAlertCircleFilled size={18} /> Sensor
+          </p>
+        )}
+        {/* <Checkbox label="Enabled" defaultChecked={!disabled} /> */}
       </div>
     </div>
   );
 }
 
-const fsrSidesByIndex = ["Left", "Right", "Top", "Bottom"] as const;
-
 function FsrIndicator({ index }: { index: number }) {
-  const side = fsrSidesByIndex[index];
+  const side = FsrSensor[index];
   return (
-    <div
-      className={classes.fsrIndicator}
-      style={{ [`border${side}Width`]: "4px", [`border${side}Color`]: "var(--color-gray-700)" }}
-    />
+    <div className={classes.fsrIndicator} style={{ [`border${side}`]: "4px solid var(--mantine-color-gray-7)" }} />
   );
 }

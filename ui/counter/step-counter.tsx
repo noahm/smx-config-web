@@ -1,9 +1,8 @@
-import { useAtomValue } from "jotai";
 import { useState, useEffect } from "react";
-import { stages$ } from "../state";
+import type { SMXStage } from "../../sdk";
 
-export function StepCounter() {
-  const stages = useAtomValue(stages$);
+export function StepCounter(props: { stages: Record<string, SMXStage> }) {
+  const stages = Object.values(props.stages);
   const [steps, setSteps] = useState(0);
 
   useEffect(() => {

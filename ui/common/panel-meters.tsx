@@ -1,84 +1,107 @@
-import { useState, useCallback } from "react";
-import { useAtomValue } from "jotai";
-
-import { useTestData } from "../stage/hooks";
-import { selectedStage$, selectedPanelIdx$ } from "../state";
+import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
-import { ToggleSwitch } from "./toggle-switch";
+import { Alert, Group, Stack, Text } from "@mantine/core";
 import classes from "./panel-meters.module.css";
+import type { StageLike } from "../../sdk/interface";
+import { sensitivityLevelsForPanel } from "../stage/util";
+import { FsrSensor, SensorTestMode } from "../../sdk";
+import { IconAlertCircle, IconAlertHexagon, IconAlertTriangle } from "@tabler/icons-react";
 
-export function PanelMeters() {
-  const stage = useAtomValue(selectedStage$);
-  const panelIdx = useAtomValue(selectedPanelIdx$);
-  const testData = useTestData(stage);
-  const panelData = panelIdx === undefined ? null : testData?.panels[panelIdx];
-  const [sensors, setSensors] = useState([
-    { id: 1, activationThreshold: 70, releaseThreshold: 30 },
-    { id: 2, activationThreshold: 60, releaseThreshold: 20 },
-    { id: 3, activationThreshold: 80, releaseThreshold: 40 },
-    { id: 4, activationThreshold: 75, releaseThreshold: 25 },
-  ]);
-  const isFsr = stage?.config?.flags.PlatformFlags_FSR;
-
-  const [isLocked, setIsLocked] = useState(false);
-
-  const updateSensorThreshold = useCallback(
-    (id: number, type: "activation" | "release", value: number) => {
-      setSensors((prevSensors) => {
-        const updatedSensors = prevSensors.map((sensor) =>
-          sensor.id === id ? { ...sensor, [`${type}Threshold`]: value } : sensor,
+function DipSwitchDisplay({ value, mismatch }: { value: number | undefined; mismatch?: boolean }) {
+  const isUnknown = value === undefined || value < 0;
+  return (
+    <div className={`${classes.dipSwitches} ${mismatch ? classes.dipSwitchesMismatch : ""}`}>
+      {[0, 1, 2, 3].map((bit) => {
+        const on = isUnknown ? null : Boolean(value & (1 << bit));
+        return (
+          <div key={bit} className={classes.dipSwitch}>
+            <div
+              className={`${classes.dipNub} ${on === true ? classes.dipNubOn : on === false ? classes.dipNubOff : classes.dipNubUnknown}`}
+            />
+            <span className={classes.dipBitLabel}>{bit + 1}</span>
+          </div>
         );
-
-        if (isLocked) {
-          // If locked, update all sensors with the same threshold
-          return updatedSensors.map((sensor) => ({
-            ...sensor,
-            [`${type}Threshold`]: value,
-          }));
-        }
-
-        return updatedSensors;
-      });
-    },
-    [isLocked],
+      })}
+    </div>
   );
+}
 
-  const toggleLock = () => {
-    setIsLocked((prev) => !prev);
-    if (!isLocked) {
-      // When locking, set all thresholds to the values of the first sensor
-      const { activationThreshold, releaseThreshold } = sensors[0];
-      setSensors((prevSensors) =>
-        prevSensors.map((sensor) => ({
-          ...sensor,
-          activationThreshold,
-          releaseThreshold,
-        })),
-      );
-    }
-  };
+export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: number }) {
+  const testData = useTestData(stage, SensorTestMode.CalibratedValues);
+  const config = useConfig(stage);
+  const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
+  const isFsr = stage?.config?.flags.PlatformFlags_FSR;
+  // has at least one enabled sensor
+  const panelIsEnabled = config?.enabledSensors[panelIdx].some((p) => p);
+
+  const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
+
+  const dipCurrent = panelData?.dip_switch_value;
+  const dipExpected = panelIdx;
+  const dipMismatch = dipCurrent !== undefined && dipCurrent >= 0 && dipCurrent !== dipExpected;
+  const anyBadJumper = panelData?.bad_jumper.some((b) => b) ?? false;
+  const anyBadSensorReading = panelData?.bad_sensor_input.some((b, idx) => b && config?.enabledSensors[panelIdx][idx]);
+  const showBadJumperWarning = anyBadJumper && !anyBadSensorReading;
+  const orderedSensorLevel = [FsrSensor.Left, FsrSensor.Bottom, FsrSensor.Top, FsrSensor.Right];
 
   return (
-    <div className={classes.panelWrapper}>
-      <h1 className={classes.title}>Sensor Thresholds</h1>
-      <div className={classes.switchWrapper}>
-        <ToggleSwitch isOn={isLocked} onToggle={toggleLock} label="Lock Thresholds" />
-      </div>
-      <div className={classes.meterGroup}>
-        {sensors.map((sensor, index) => (
-          <SensorMeterInput
-            key={sensor.id}
-            value={panelData?.sensor_level[index]}
-            id={sensor.id}
-            activationThreshold={sensor.activationThreshold}
-            releaseThreshold={sensor.releaseThreshold}
-            maxValue={255}
-            updateThreshold={updateSensorThreshold}
-            showControls={!isLocked || index === sensors.length - 1}
-            forFsr={isFsr}
-          />
-        ))}
-      </div>
-    </div>
+    <Stack p="sm">
+      {dipMismatch && (
+        <>
+          <Alert color="orange" icon={<IconAlertTriangle size={20} />} p="sm">
+            DIP switch mismatch — update PCB switches as shown
+          </Alert>
+          <Group>
+            <Group>
+              <span className={classes.dipRowLabel}>Current</span>
+              <DipSwitchDisplay value={dipCurrent} mismatch={dipMismatch} />
+            </Group>
+            <Group>
+              <span className={classes.dipRowLabel}>Expected</span>
+              <DipSwitchDisplay value={dipExpected} />
+            </Group>
+          </Group>
+        </>
+      )}
+      {anyBadSensorReading && (
+        <Alert color="red" icon={<IconAlertCircle size={20} />} p="sm">
+          Bad sensor readings detected by this panel
+        </Alert>
+      )}
+      {showBadJumperWarning && (
+        <Alert color="red" icon={<IconAlertHexagon size={20} />} p="sm">
+          Incorrect sensor jumper(s) detected on this panel
+        </Alert>
+      )}
+      {/* <div className={classes.switchWrapper}>
+        <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
+      </div> */}
+      <Group justify="center" align="flex-start" gap="xl">
+        {orderedSensorLevel
+          .map((index) => [panelData?.sensor_level[index], index] as const)
+          .map(([level, index]) => (
+            <SensorMeterInput
+              key={index}
+              value={level}
+              id={index}
+              activationThreshold={levels?.highs[index]}
+              releaseThreshold={levels?.lows[index]}
+              maxValue={255}
+              // updateThreshold={updateSensorThreshold}
+              // showControls={!isLocked || index === sensors.length - 1}
+              showControls={false}
+              forFsr={isFsr}
+              disabled={!config?.enabledSensors[panelIdx][index]}
+              badSensor={!!panelData?.bad_sensor_input[index]}
+              badJumper={!!panelData?.bad_jumper[index]}
+            />
+          ))}
+      </Group>
+      {panelIsEnabled && (
+        <Text fz={14} ta="center">
+          using <b>Calibrated</b> (Raw - Tare) readings here
+        </Text>
+      )}
+    </Stack>
   );
 }

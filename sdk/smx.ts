@@ -1,12 +1,13 @@
 import * as Bacon from "baconjs";
 import { collatePackets, type AckPacket, type DataPacket } from "./state-machines/collate-packets";
 import { API_COMMAND, PanelTestMode, char2byte } from "./api";
-import { SMXConfig, type Decoded } from "./commands/config";
+import { SMXConfig, type ConfigShape, type Decoded } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
-import { SMXSensorTestData, SensorTestMode } from "./commands/sensor_test";
+import { SMXSensorTestData, SensorTestMode, type SMXPanelTestData } from "./commands/sensor_test";
 import { RGB, padData } from "./utils";
+import type { StageLike } from "./interface";
 
 /**
  * Class purely to set up in/out event stream "pipes" to properly throttle and sync input/output from a stage
@@ -74,26 +75,30 @@ class SMXEvents {
   }
 }
 
-export class SMXStage {
+// UI Update Rate in Milliseconds for sensor values
+const TEST_DATA_REQUEST_RATE = 100;
+
+export class SMXStage implements StageLike {
   private dev: HIDDevice;
   private readonly events: SMXEvents;
-  private test_mode: SensorTestMode = SensorTestMode.CalibratedValues;
   private debug = true;
   private _config: SMXConfig | null = null;
-  private panelTestMode = PanelTestMode.Off;
-  private cancelTestModeInterval: Bacon.Unsub | null = null;
 
   public get config() {
     return this._config?.config || null;
   }
-  info: SMXDeviceInfo | null = null;
-  test: SMXSensorTestData | null = null;
-  inputs: Array<boolean> | null = null;
+  public info: SMXDeviceInfo | null = null;
+  public test: SMXSensorTestData | null = null;
+  // todo make public???
+  private inputs: Array<boolean> | null = null;
 
   public readonly inputState$: Bacon.EventStream<boolean[]>;
-  public readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
-  public readonly configResponse$: Bacon.EventStream<SMXConfig>;
-  public readonly testDataResponse$: Bacon.EventStream<SMXSensorTestData>;
+  private readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
+  public readonly configResponse$: Bacon.EventStream<ConfigShape>;
+  public readonly calibratedSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
+  public readonly rawSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
+  public readonly sensorTareData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
+  public readonly engagePanelTestMode$: Bacon.EventStream<void>;
 
   constructor(dev: HIDDevice) {
     this.dev = dev;
@@ -115,38 +120,76 @@ export class SMXStage {
     // Set the config request handler
     this.configResponse$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_CONFIG || e[0] === API_COMMAND.GET_CONFIG_V5)
-      .map((value) => this.handleConfig(value));
+      .map((value) => this.handleConfig(value).config);
     // note that the above map function only runs when there are listeners
     // subscribed to `this.configResponse$`, otherwise nothing happens!
 
-    // Set the test data request handler
-    this.testDataResponse$ = this.events.otherReports$
+    const sensorTestReports$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
       .map((value) => this.handleTestData(value));
-    // note that the above map function only runs when there are listeners
-    // subscribed to `this.testDataResponse$`, otherwise nothing happens!
+
+    const sensorTestObservable = (forType: SensorTestMode, updateRateMs: number) =>
+      Bacon.fromBinder<readonly SMXPanelTestData[]>((sink) => {
+        const stopInterval = Bacon.interval(updateRateMs, null).subscribe(() => {
+          this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType));
+        });
+        const endMainSub = sensorTestReports$
+          .filter((r) => r.mode === forType)
+          .map((t) => t.panels)
+          .subscribe(sink);
+        return () => {
+          stopInterval();
+          endMainSub();
+        };
+      });
+
+    this.rawSensorData$ = sensorTestObservable(SensorTestMode.UncalibratedValues, TEST_DATA_REQUEST_RATE);
+    this.calibratedSensorData$ = sensorTestObservable(SensorTestMode.CalibratedValues, TEST_DATA_REQUEST_RATE);
+    // slower update rate for tare values
+    this.sensorTareData$ = sensorTestObservable(SensorTestMode.Tare, 5_000);
+
+    this.engagePanelTestMode$ = Bacon.fromBinder(() => {
+      /**
+       * the 'l' command used to set lights, but it's now only used to turn lights off
+       * for cases like this
+       * 1 pad * 9 panels * 25 lights each * 3 (RGB) = 675
+       * The source code uses `108` instead and I'm really unsure why,
+       * but we're gonna do the same thing here because it works.
+       */
+      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
+
+      // Send the Panel Test Mode command
+      const setTestMode = () =>
+        this.events.output$.push(
+          Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.PressureTest, char2byte("\n")),
+        );
+      setTestMode();
+      // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
+      // auto time out and turn off Panel Test Mode itself
+      const cancelTestModeInterval = Bacon.interval(1000, null).subscribe(setTestMode);
+
+      return () => {
+        cancelTestModeInterval();
+        this.events.output$.push(
+          Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.Off, char2byte("\n")),
+        );
+      };
+    });
 
     // Set the inputs data request handler
     this.inputState$ = this.events.inputState$.map((value) => this.handleInputs(value));
   }
 
-  async init(): Promise<SMXSensorTestData> {
+  public async init(): Promise<void> {
     // Request the device information
     await this.updateDeviceInfo();
     // Requesting the correct config requires having the device info first
     await this.updateConfig();
-    // Requesting some initial test data requires we have the config first
-    // so that we know how to interpret the data
-    return this.updateTestData();
   }
 
   /**
    * TODO: To Implement:
-
-   * Stretch Goal:
-   * SET_PANEL_TEST_MODE
    *
-   * Double Stretch Goal:
    * SET_SERIAL_NUMBERS
    */
 
@@ -164,7 +207,8 @@ export class SMXStage {
     return this._config;
   }
 
-  async writeConfig(): Promise<SMXConfig> {
+  // TODO: pass in the new config as an arg here instead of expecting mutation?
+  public async writeConfig(): Promise<ConfigShape> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -178,7 +222,7 @@ export class SMXStage {
     return this.updateConfig();
   }
 
-  setLightStrip(color: RGB): Promise<AckPacket> {
+  public setLightStrip(color: RGB): Promise<AckPacket> {
     const led_strip_index = 0; // Always 0
     const number_of_leds = 44; // Always 44 (Unless some older or newer versions have more/less?)
     const rgb = color.toArray();
@@ -192,7 +236,7 @@ export class SMXStage {
     return this.events.ackReports$.firstToPromise();
   }
 
-  async factoryReset(): Promise<AckPacket> {
+  public async factoryReset(): Promise<void> {
     const info = await this.needsInfo();
     const config = await this.needsConfig();
 
@@ -208,80 +252,29 @@ export class SMXStage {
     }
 
     this.events.output$.push(Uint8Array.of(API_COMMAND.FACTORY_RESET));
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
   }
 
-  forceRecalibration(): Promise<AckPacket> {
+  public async forceRecalibrate(): Promise<void> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.FORCE_RECALIBRATION));
-    return this.events.ackReports$.firstToPromise();
+    await this.events.ackReports$.firstToPromise();
   }
 
-  updateDeviceInfo(): Promise<SMXDeviceInfo> {
+  public close() {
+    this.dev.close();
+  }
+
+  private updateDeviceInfo(): Promise<SMXDeviceInfo> {
     this.events.output$.push(Uint8Array.of(API_COMMAND.GET_DEVICE_INFO));
     return this.deviceInfo$.firstToPromise();
   }
 
-  async updateConfig(): Promise<SMXConfig> {
+  private async updateConfig(): Promise<ConfigShape> {
     const info = await this.needsInfo();
 
     const command = info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
     this.events.output$.push(Uint8Array.of(command));
     return this.configResponse$.firstToPromise();
-  }
-
-  updateTestData(mode: SensorTestMode | null = null): Promise<SMXSensorTestData> {
-    if (mode) this.test_mode = mode;
-
-    this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, this.test_mode));
-    return this.testDataResponse$.firstToPromise();
-  }
-
-  getPanelTestMode() {
-    return this.panelTestMode;
-  }
-
-  setPanelTestMode(mode: PanelTestMode) {
-    // If we want to turn panel test mode off...
-    if (mode === PanelTestMode.Off) {
-      // We don't want to send the "Off" command multiple times, so only send it if
-      // it's currently activated
-      if (this.panelTestMode !== PanelTestMode.Off) {
-        if (this.cancelTestModeInterval) {
-          this.cancelTestModeInterval();
-          this.cancelTestModeInterval = null;
-        }
-        // Turn off panel test mode, and send "Off" event
-        this.panelTestMode = mode;
-        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
-      }
-
-      // Either we're already off, or we sent the off command, so just return.
-      return;
-    }
-
-    // We only need to run this when the current mode is not the same as the requested mode
-    if (this.panelTestMode !== mode) {
-      this.panelTestMode = mode;
-
-      /**
-       * the 'l' command used to set lights, but it's now only used to turn lights off
-       * for cases like this
-       * 1 pad * 9 panels * 25 lights each * 3 (RGB) = 675
-       * The source code uses `108` instead and I'm really unsure why,
-       * but we're gonna do the same thing here because it works.
-       */
-      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
-
-      // Send the Panel Test Mode command
-      this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
-
-      // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
-      // auto time out and turn off Panel Test Mode itself
-      this.cancelTestModeInterval = Bacon.interval(1000, null).subscribe(() => {
-        console.log("Test Mode Push Interval");
-        this.events.output$.push(Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), mode, char2byte("\n")));
-      });
-    }
   }
 
   private handleConfig(data: Uint8Array): SMXConfig {
@@ -309,7 +302,7 @@ export class SMXStage {
 
   private handleTestData(data: Uint8Array): SMXSensorTestData {
     // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
-    this.test = new SMXSensorTestData(data, this.test_mode, this.config!.flags.PlatformFlags_FSR);
+    this.test = new SMXSensorTestData(data, this.config!.flags.PlatformFlags_FSR);
 
     this.debug && console.debug("Got Test: ", this.test);
 

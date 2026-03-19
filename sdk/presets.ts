@@ -1,4 +1,4 @@
-import type { SMXStage } from "./smx";
+import type { StageLike } from "./interface";
 
 export type SensitivityThreshold = readonly [release: number, activate: number];
 
@@ -30,12 +30,14 @@ const presets = {
   } as SensitivityPreset,
 };
 
+export type PresetName = keyof typeof presets;
+
 /**
  * Apply sensitivity presets to all sensors on a stage and writes config back to the stage.
  * @param stage
  * @param presetKey a string of high/normal/low or a custom sensitivity profile
  */
-export async function applySensitivityPreset(stage: SMXStage, presetKey: SensitivityPreset | keyof typeof presets) {
+export async function applySensitivityPreset(stage: StageLike, presetKey: SensitivityPreset | PresetName) {
   const config = stage.config;
   if (!config) throw new Error("Config not available");
   const preset = typeof presetKey === "string" ? presets[presetKey] : presetKey;
