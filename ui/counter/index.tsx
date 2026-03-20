@@ -4,6 +4,8 @@ import { createRoot } from "react-dom/client";
 import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import "@mantine/core/styles.css";
+import "@mantine/notifications/styles.css";
 
 import { uiState } from "../state.ts";
 import { CounterPage } from "./page.tsx";
