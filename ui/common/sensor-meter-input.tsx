@@ -16,6 +16,8 @@ interface SensorProps {
   releaseThreshold?: number;
   maxValue: number;
   updateThreshold?: (id: number, type: "activation" | "release", value: number) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
   showControls?: boolean;
   forFsr?: boolean;
   disabled?: boolean;
@@ -47,6 +49,8 @@ export function SensorMeterInput({
   releaseThreshold,
   activationThreshold,
   updateThreshold,
+  onDragStart,
+  onDragEnd,
   showControls,
   forFsr,
   disabled,
@@ -63,8 +67,12 @@ export function SensorMeterInput({
   const isActive = useSensorActive(value || 0, activationThreshold || 0, releaseThreshold || 0);
   const meterRef = useRef<HTMLDivElement>(null);
 
+  const onDragEndRef = useRef(onDragEnd);
+  onDragEndRef.current = onDragEnd;
+
   const handleMouseDown = (type: "activation" | "release") => {
     setIsDragging(type);
+    onDragStart?.();
   };
 
   const handleMouseMove = useCallback(
@@ -88,8 +96,22 @@ export function SensorMeterInput({
     document.addEventListener("selectstart", (e) => e.preventDefault(), { signal: controller.signal });
     document.addEventListener("touchmove", handleMouseMove, { signal: controller.signal });
     document.addEventListener("mousemove", handleMouseMove, { signal: controller.signal });
-    document.addEventListener("mouseup", () => setIsDragging(null), { signal: controller.signal });
-    document.addEventListener("touchend", () => setIsDragging(null), { signal: controller.signal });
+    document.addEventListener(
+      "mouseup",
+      () => {
+        setIsDragging(null);
+        onDragEndRef.current?.();
+      },
+      { signal: controller.signal },
+    );
+    document.addEventListener(
+      "touchend",
+      () => {
+        setIsDragging(null);
+        onDragEndRef.current?.();
+      },
+      { signal: controller.signal },
+    );
     return () => controller.abort();
   }, [currentDraggingHandle, handleMouseMove]);
 

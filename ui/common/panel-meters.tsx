@@ -1,3 +1,4 @@
+import { useCallback, useOptimistic, useTransition } from "react";
 import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
 import { Alert, Group, Stack, Text } from "@mantine/core";
@@ -35,6 +36,43 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const panelIsEnabled = config?.enabledSensors[panelIdx].some((p) => p);
 
   const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
+
+  const [optimisticLevels, setOptimisticLevels] = useOptimistic(
+    levels,
+    (current, update: { sensorIdx: number; type: "activation" | "release"; value: number }) => {
+      if (!current) return current;
+      const highs = [...current.highs];
+      const lows = [...current.lows];
+      if (update.type === "activation") {
+        if (isFsr) highs[update.sensorIdx] = update.value;
+        else highs.fill(update.value);
+      } else {
+        if (isFsr) lows[update.sensorIdx] = update.value;
+        else lows.fill(update.value);
+      }
+      return { highs, lows };
+    },
+  );
+
+  const [, startTransition] = useTransition();
+  const updateThreshold = useCallback(
+    (sensorIdx: number, type: "activation" | "release", value: number) => {
+      if (!stage.config) return;
+      const panel = stage.config.panelSettings[panelIdx];
+      startTransition(async () => {
+        setOptimisticLevels({ sensorIdx, type, value });
+        if (type === "activation") {
+          if (isFsr) panel.fsrHighThreshold[sensorIdx] = value;
+          else panel.loadCellHighThreshold = value;
+        } else {
+          if (isFsr) panel.fsrLowThreshold[sensorIdx] = value;
+          else panel.loadCellLowThreshold = value;
+        }
+        await stage.writeConfig();
+      });
+    },
+    [stage, panelIdx, isFsr, setOptimisticLevels],
+  );
 
   const dipCurrent = panelData?.dip_switch_value;
   const dipExpected = panelIdx;
@@ -84,12 +122,11 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
               key={index}
               value={level}
               id={index}
-              activationThreshold={levels?.highs[index]}
-              releaseThreshold={levels?.lows[index]}
+              activationThreshold={optimisticLevels?.highs[index]}
+              releaseThreshold={optimisticLevels?.lows[index]}
               maxValue={255}
-              // updateThreshold={updateSensorThreshold}
-              // showControls={!isLocked || index === sensors.length - 1}
-              showControls={false}
+              updateThreshold={updateThreshold}
+              showControls={true}
               forFsr={isFsr}
               disabled={!config?.enabledSensors[panelIdx][index]}
               badSensor={!!panelData?.bad_sensor_input[index]}
