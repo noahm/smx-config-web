@@ -164,6 +164,8 @@ graph TD
         D --> F["Component receives\nsensor readings at ~10Hz"]
     end
 
+    F ~~~ G
+
     subgraph "Unsubscribe (component unmounts)"
         G["Component unmounts\n(unsubscribes)"] --> H["fromBinder cleanup\nruns automatically"]
         H --> I["Cancels interval timer"]
