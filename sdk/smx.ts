@@ -85,13 +85,12 @@ export class SMXStage implements StageLike {
   private dev: HIDDevice;
   private readonly events: SMXEvents;
   private debug: boolean;
-  private _config: SMXConfig | null = null;
 
+  public info: SMXDeviceInfo | null = null;
+  private _config: SMXConfig | null = null;
   public get config() {
     return this._config?.config || null;
   }
-  public info: SMXDeviceInfo | null = null;
-  public test: SMXSensorTestData | null = null;
 
   public readonly inputState$: Bacon.EventStream<boolean[]>;
   private readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
@@ -154,22 +153,21 @@ export class SMXStage implements StageLike {
       .map((data) => {
         // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
         const testData = new SMXSensorTestData(data, this.config!.flags.PlatformFlags_FSR);
-        this.test = testData;
         this.debug && console.debug("Got Test: ", testData);
         return testData;
       });
 
     const sensorTestObservable = (forType: SensorTestMode, updateRateMs: number) =>
       Bacon.fromBinder<readonly SMXPanelTestData[]>((sink) => {
-        const stopInterval = Bacon.interval(updateRateMs, null).subscribe(() => {
-          this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType));
-        });
+        const unplugInterval = this.events.output$.plug(
+          Bacon.interval(updateRateMs, Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType)),
+        );
         const endMainSub = sensorTestReports$
           .filter((r) => r.mode === forType)
           .map((t) => t.panels)
           .subscribe(sink);
         return () => {
-          stopInterval();
+          unplugInterval?.();
           endMainSub();
         };
       });
@@ -189,18 +187,18 @@ export class SMXStage implements StageLike {
        */
       this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
 
-      // Send the Panel Test Mode command
-      const setTestMode = () =>
-        this.events.output$.push(
-          Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.PressureTest, char2byte("\n")),
-        );
-      setTestMode();
+      const testModeCmd = Uint8Array.of(
+        API_COMMAND.SET_PANEL_TEST_MODE,
+        char2byte(" "),
+        PanelTestMode.PressureTest,
+        char2byte("\n"),
+      );
       // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
       // auto time out and turn off Panel Test Mode itself
-      const cancelTestModeInterval = Bacon.interval(1000, null).subscribe(setTestMode);
+      const unplugTestModeInterval = this.events.output$.plug(Bacon.interval(1000, testModeCmd).startWith(testModeCmd));
 
       return () => {
-        cancelTestModeInterval();
+        unplugTestModeInterval?.();
         this.events.output$.push(
           Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.Off, char2byte("\n")),
         );
@@ -255,7 +253,7 @@ export class SMXStage implements StageLike {
 
     const command = info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
     const encoded_config = config.encode();
-    this.events.output$.push(new Uint8Array([command, encoded_config.length, ...encoded_config]));
+    this.events.output$.push(Uint8Array.of(command, encoded_config.length, ...encoded_config));
 
     await this.events.ackReports$.firstToPromise();
     // request a fresh config response back from the stage
