@@ -24,14 +24,12 @@ Key Bacon.js concepts used here:
 
 ## High-Level Architecture
 
-```
-+---------------------+          +---------------------------+          +------------------+
-|                     |  USB IN  |                           |  React   |                  |
-|   SMX Dance Pad     | -------> |   Bacon.js Observable     | -------> |   UI Components  |
-|   (WebHID Device)   |          |       Pipelines           |          |   (React Hooks)  |
-|                     | <------- |                           | <------- |                  |
-|                     |  USB OUT |                           |  Push    |                  |
-+---------------------+          +---------------------------+          +------------------+
+```mermaid
+graph LR
+    A["SMX Dance Pad\n(WebHID Device)"] -- "USB IN\nHID Reports" --> B["Bacon.js Observable\nPipelines"]
+    B -- "React Hooks\n.onValue(setState)" --> C["UI Components\n(React)"]
+    C -- "Push commands\noutput$.push(...)" --> B
+    B -- "USB OUT\nsend_data()" --> A
 ```
 
 ---
@@ -40,56 +38,25 @@ Key Bacon.js concepts used here:
 
 When the device sends data, it flows through this pipeline:
 
-```
-  USB Device sends HID report
-         |
-         v
-  +----------------------------------------------+
-  | rawReport$                                    |
-  | Bacon.fromEvent(dev, "inputreport")           |
-  | Listens to ALL incoming USB HID events        |
-  +----------------------------------------------+
-         |                           |
-         | reportId = 0x03           | reportId = 0x06
-         | (Panel Press/Release)     | (Command Responses)
-         v                           v
-  +-----------------------+   +-------------------------------------------+
-  | inputState$           |   | report$                                   |
-  | filter by report ID   |   | filter by report ID                       |
-  | map: decode binary    |   | filter out empty packets                  |
-  |   -> boolean[9]       |   | withStateMachine(collatePackets)          |
-  | (one bool per panel)  |   | reassembles multi-packet responses        |
-  +-----------------------+   +-------------------------------------------+
-         |                      |               |                |
-         |                      | type="data"   | type="ack"     | type="host_cmd_finished"
-         v                      v               v                v
-  +--------------+   +----------------+  +--------------+  +-------------------+
-  | useInputState|   | otherReports$  |  | ackReports$  |  | finishedCommand$  |
-  | React Hook   |   | map: extract   |  | used to      |  | signals "ok to    |
-  | -> panel     |   |   payload      |  | resolve      |  |  send next cmd"   |
-  |   highlight  |   | bytes          |  | Promises     |  |                   |
-  +--------------+   +----------------+  +--------------+  +-------------------+
-                        |       |       |
-         +--------------+       |       +----------------+
-         |                      |                        |
-         v                      v                        v
-  +-----------------+  +------------------+  +------------------------+
-  | deviceInfo$     |  | configResponse$  |  | sensorTestReports$     |
-  | filter: "I" cmd |  | filter: config   |  | filter: test data cmd  |
-  | map: decode     |  |   command byte   |  | map: decode sensor     |
-  |   device info   |  | map: decode      |  |   readings (9 panels   |
-  |                 |  |   config struct  |  |   x 4 sensors each)    |
-  +-----------------+  +------------------+  +------------------------+
-                              |                        |
-                              v                        v
-                       +--------------+   +---------------------------+
-                       | useConfig    |   | useTestData React Hook    |
-                       | React Hook   |   | subscribes to one of:     |
-                       | -> settings  |   |  - rawSensorData$         |
-                       |   UI         |   |  - calibratedSensorData$  |
-                       +--------------+   |  - sensorTareData$        |
-                                          | -> sensor visualization   |
-                                          +---------------------------+
+```mermaid
+graph TD
+    USB["USB Device sends HID report"] --> raw["<b>rawReport$</b>\nBacon.fromEvent(dev, 'inputreport')\nListens to ALL incoming USB HID events"]
+
+    raw -- "reportId = 0x03\n(Panel Press/Release)" --> input["<b>inputState$</b>\nfilter by report ID\nmap: decode binary → boolean[9]\n(one bool per panel)"]
+    raw -- "reportId = 0x06\n(Command Responses)" --> report["<b>report$</b>\nfilter by report ID\nfilter out empty packets\nwithStateMachine(collatePackets)\nreassembles multi-packet responses"]
+
+    input --> useInput["<b>useInputState</b>\nReact Hook → panel highlight"]
+
+    report -- "type = data" --> other["<b>otherReports$</b>\nmap: extract payload bytes"]
+    report -- "type = ack" --> ack["<b>ackReports$</b>\nused to resolve Promises"]
+    report -- "type = host_cmd_finished" --> finished["<b>finishedCommand$</b>\nsignals 'ok to send next cmd'"]
+
+    other -- "filter: 'I' cmd\nmap: decode" --> devInfo["<b>deviceInfo$</b>\ndevice info"]
+    other -- "filter: config cmd\nmap: decode" --> configResp["<b>configResponse$</b>\nconfig struct"]
+    other -- "filter: test data cmd\nmap: decode" --> sensorReports["<b>sensorTestReports$</b>\n9 panels × 4 sensors each"]
+
+    configResp --> useConfig["<b>useConfig</b>\nReact Hook → settings UI"]
+    sensorReports --> useTest["<b>useTestData</b>\nReact Hook subscribes to one of:\nrawSensorData$ · calibratedSensorData$ · sensorTareData$\n→ sensor visualization"]
 ```
 
 ### How Multi-Packet Reassembly Works
@@ -97,10 +64,12 @@ When the device sends data, it flows through this pipeline:
 USB HID has a max packet size, so large responses arrive in pieces.
 The `withStateMachine(collatePackets)` step remembers previous chunks:
 
-```
-  Packet 1 arrives: [partial data...]     -> state machine buffers it
-  Packet 2 arrives: [more data...]        -> state machine appends
-  Packet 3 arrives: [end marker]          -> state machine emits complete message
+```mermaid
+graph LR
+    P1["Packet 1\n[partial data...]"] --> SM["State Machine\n(buffer)"]
+    P2["Packet 2\n[more data...]"] --> SM
+    P3["Packet 3\n[end marker]"] --> SM
+    SM -- "emits complete message" --> OUT["Complete\nResponse"]
 ```
 
 ---
@@ -109,59 +78,22 @@ The `withStateMachine(collatePackets)` step remembers previous chunks:
 
 When the UI sends a command, it flows through this pipeline:
 
-```
-  UI Action (e.g. "Write Config", "Recalibrate", "Get Sensor Data")
-         |
-         v
-  +-----------------------------------------------+
-  | output$  (Bacon.Bus)                           |
-  | Any code can push commands into this bus:      |
-  |   this.events.output$.push(Uint8Array.of(...)) |
-  +-----------------------------------------------+
-         |                             |
-         | Config write commands       | All other commands
-         | (WRITE_CONFIG,              | (GET_INFO, GET_CONFIG,
-         |  WRITE_CONFIG_V5)           |  RECALIBRATE, etc.)
-         v                             v
-  +---------------------+    +---------------------+
-  | configOutput$       |    | otherOutput$        |
-  | throttle(1000)      |    | passed through      |
-  | max 1 write/second  |    | immediately         |
-  | to protect device   |    |                     |
-  +---------------------+    +---------------------+
-         |                             |
-         +----------+  +---------------+
-                    |  |
-                    v  v
-             +-----------------+
-             | merge()         |
-             | combine into    |
-             | single stream   |
-             +-----------------+
-                    |
-                    v
-             +-------------------------------+       +-------------------+
-             | .zip(okSend$, ...)            | <---- | okSend$           |
-             | pairs each command with an    |       | starts with: true |
-             | "ok to send" signal           |       | then: each        |
-             | (sends one cmd at a time)     |       | host_cmd_finished |
-             +-------------------------------+       +-------------------+
-                    |
-                    v
-             +--------------------------+
-             | eventsToSend$            |
-             | commands ready to send   |
-             +--------------------------+
-                    |
-                    v
-             +--------------------------+
-             | onValue(send_data)       |
-             | actually writes bytes    |
-             | to USB via WebHID API    |
-             +--------------------------+
-                    |
-                    v
-              USB Device receives command
+```mermaid
+graph TD
+    UI["UI Action\ne.g. 'Write Config', 'Recalibrate', 'Get Sensor Data'"] --> bus["<b>output$</b> (Bacon.Bus)\nAny code can push commands:\noutput$.push(Uint8Array.of(...))"]
+
+    bus -- "Config write commands\n(WRITE_CONFIG,\nWRITE_CONFIG_V5)" --> configOut["<b>configOutput$</b>\nthrottle(1000)\nmax 1 write/second\nto protect device"]
+    bus -- "All other commands\n(GET_INFO, GET_CONFIG,\nRECALIBRATE, etc.)" --> otherOut["<b>otherOutput$</b>\npassed through immediately"]
+
+    configOut --> merged["<b>merge()</b>\ncombine into single stream"]
+    otherOut --> merged
+
+    okSend["<b>okSend$</b>\nstarts with: true\nthen: each host_cmd_finished"] --> zipped
+    merged --> zipped["<b>.zip(okSend$)</b>\npairs each command with an\n'ok to send' signal\n(sends one cmd at a time)"]
+
+    zipped --> ready["<b>eventsToSend$</b>\ncommands ready to send"]
+    ready --> send["<b>onValue(send_data)</b>\nactually writes bytes\nto USB via WebHID API"]
+    send --> device["USB Device receives command"]
 ```
 
 ### Why zip() Matters
@@ -170,15 +102,23 @@ The `zip()` operator ensures **one command at a time**. It pairs each outgoing
 command with an "ok to send" signal from the device. Without this, we could
 flood the device with commands faster than it can process them.
 
-```
-  Commands waiting:   [cmd1] [cmd2] [cmd3]
-  Ok signals:         [true] ...waiting...
+```mermaid
+sequenceDiagram
+    participant Q as Command Queue
+    participant Z as zip()
+    participant D as USB Device
 
-  zip produces:       [cmd1] -> sent!
-                               device processes...
-                               device says "finished"
-                      [cmd2] -> sent!
-                               device processes...
+    Note over Z: okSend$ starts with true
+    Q->>Z: cmd1
+    Z->>D: cmd1 sent
+    Note over D: processing...
+    D->>Z: "host_cmd_finished"
+    Q->>Z: cmd2
+    Z->>D: cmd2 sent
+    Note over D: processing...
+    D->>Z: "host_cmd_finished"
+    Q->>Z: cmd3
+    Z->>D: cmd3 sent
 ```
 
 ---
@@ -213,25 +153,23 @@ This converts the observable pattern into familiar async/await:
 The sensor test feature uses `fromBinder()` to create streams that **automatically
 manage their own setup and teardown**:
 
-```
-  Component subscribes to rawSensorData$
-         |
-         v
-  fromBinder starts:
-    1. Creates interval timer (every 100ms)
-    2. Timer pushes GET_SENSOR_TEST_DATA command to output$
-    3. Pipes matching responses to subscriber
-         |
-         v
-  Component receives sensor readings at ~10Hz
-         |
-  Component unmounts (unsubscribes)
-         |
-         v
-  fromBinder cleanup runs automatically:
-    1. Cancels interval timer
-    2. Stops listening for responses
-    -> No more USB traffic for this feature
+```mermaid
+graph TD
+    subgraph "Subscribe (component mounts)"
+        A["Component subscribes\nto rawSensorData$"] --> B["fromBinder starts"]
+        B --> C["Creates interval timer\n(every 100ms)"]
+        B --> D["Listens for matching\nresponse packets"]
+        C -- "each tick" --> E["Pushes GET_SENSOR_TEST_DATA\ncommand to output$"]
+        D --> F["Component receives\nsensor readings at ~10Hz"]
+    end
+
+    subgraph "Unsubscribe (component unmounts)"
+        G["Component unmounts\n(unsubscribes)"] --> H["fromBinder cleanup\nruns automatically"]
+        H --> I["Cancels interval timer"]
+        H --> J["Stops listening\nfor responses"]
+        I --> K["No more USB traffic\nfor this feature"]
+        J --> K
+    end
 ```
 
 Similarly, `engagePanelTestMode$` keeps the device in test mode only while
@@ -271,42 +209,30 @@ The pattern is always the same:
 
 **User changes a config setting and clicks Save:**
 
-```
-  1. React component calls stage.writeConfig()
+```mermaid
+sequenceDiagram
+    participant UI as React Component
+    participant Stage as SMXStage
+    participant Bus as output$ Bus
+    participant Pipe as Observable Pipeline
+    participant Dev as USB Device
 
-  2. writeConfig() encodes the config to bytes
-     and pushes to output$ Bus
-       output$.push([WRITE_CONFIG, length, ...bytes])
+    UI->>Stage: writeConfig()
+    Stage->>Bus: push([WRITE_CONFIG, length, ...bytes])
+    Note over Bus,Pipe: configOutput$ throttles to 1/sec<br/>merge → zip(okSend$)
+    Pipe->>Dev: send_data(dev, bytes)
 
-  3. output$ -> configOutput$ (throttled to 1/sec)
-          -> merge with otherOutput$
-          -> zip with okSend$ (wait for device ready)
-          -> eventsToSend$ emits the command
+    Dev->>Pipe: ACK packet (HID report)
+    Note over Pipe: rawReport$ → report$<br/>(collatePackets reassembles)<br/>→ ackReports$ emits
+    Pipe->>Stage: ackReports$.firstToPromise() resolves
 
-  4. onValue callback sends bytes over USB
-       await send_data(dev, bytes)
+    Stage->>Bus: push([GET_CONFIG])
+    Pipe->>Dev: send_data(dev, bytes)
+    Dev->>Pipe: Config response bytes
+    Note over Pipe: rawReport$ → report$<br/>→ otherReports$<br/>→ configResponse$ (filter + decode)
 
-  5. Device processes config, sends ACK packet
-
-  6. rawReport$ receives HID report
-       -> report$ (collatePackets reassembles)
-       -> ackReports$ emits { type: "ack" }
-
-  7. writeConfig() was awaiting:
-       this.events.ackReports$.firstToPromise()
-     Promise resolves!
-
-  8. writeConfig() then requests fresh config back:
-       output$.push([GET_CONFIG])
-
-  9. Device responds with current config bytes
-
-  10. rawReport$ -> report$ -> otherReports$
-        -> configResponse$ (filter + decode)
-
-  11. useConfig hook's onValue fires
-        -> setPanelStates(newConfig)
-        -> React re-renders with updated settings
+    Pipe->>UI: useConfig hook onValue fires
+    Note over UI: React re-renders with<br/>updated settings
 ```
 
 ---
