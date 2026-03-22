@@ -88,7 +88,8 @@ graph TD
     configOut --> merged["<b>merge()</b>\ncombine into single stream"]
     otherOut --> merged
 
-    okSend["<b>okSend$</b>\nstarts with: true\nthen: each host_cmd_finished"] --> zipped
+    finished["<b>finishedCommand$</b>\n(from inbound pipeline above)"] -. "feeds into" .-> okSend["<b>okSend$</b>\nstartsWith(true)\n.merge(finishedCommand$)"]
+    okSend --> zipped
     merged --> zipped["<b>.zip(okSend$)</b>\npairs each command with an\n'ok to send' signal\n(sends one cmd at a time)"]
 
     zipped --> ready["<b>eventsToSend$</b>\ncommands ready to send"]
