@@ -1,7 +1,6 @@
 import * as Bacon from "baconjs";
 import type { StateF } from "baconjs/types/withstatemachine";
 import {
-  PACKET_FLAG_DEVICE_INFO,
   PACKET_FLAG_END_OF_COMMAND,
   PACKET_FLAG_HOST_CMD_FINISHED,
   PACKET_FLAG_START_OF_COMMAND,
@@ -22,35 +21,21 @@ export type Packet = { type: "host_cmd_finished" } | DataPacket | AckPacket;
  * Gets called when a packet is received, returns a tuple of new state and an array of
  */
 export const collatePackets: StateF<DataView, PacketHandlingState, Packet> = (state, event) => {
-  // TODO: This whole function could maybe just use a bit more comments
   if (!Bacon.hasValue(event)) {
-    console.debug("No Event Value");
     return [state, []];
   }
 
   let currentPacket = state.currentPacket;
   const data = new Uint8Array(event.value.buffer);
 
-  console.debug("INCOMING RAW PACKET: ", data.toString());
-
   // Return if packet is empty
   if (data.length <= PACKET_PREAMBLE_SIZE) {
-    console.debug("Empty Packet");
     return [state, []];
   }
   const cmd = data[0];
   const byte_len = data[1];
 
-  if (cmd & PACKET_FLAG_DEVICE_INFO) {
-    // This is a response to RequestDeviceInfo. Since any application can send this,
-    // we ignore the packet if we didn't request it, since it might be requested
-    // for a different program.
-    // TODO: Handle this? Not sure there's anything to handle here tbh
-    console.debug("Found Packet Flag Device Info");
-  }
-
   if (PACKET_PREAMBLE_SIZE + byte_len > data.length) {
-    // TODO: Can this even happen???
     console.warn("Communication Error: Oversized Packet (ignored)");
     return [state, []];
   }
