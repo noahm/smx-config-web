@@ -1,7 +1,7 @@
 import * as Bacon from "baconjs";
 import { collatePackets, type AckPacket, type DataPacket } from "./state-machines/collate-packets";
 import { API_COMMAND, PanelTestMode, char2byte } from "./api";
-import { SMXConfig, type ConfigShape, type Decoded } from "./commands/config";
+import { SMXConfig, type ConfigShape } from "./commands/config";
 import { SMXDeviceInfo } from "./commands/data_info";
 import { StageInputs } from "./commands/inputs";
 import { HID_REPORT_INPUT, HID_REPORT_INPUT_STATE, send_data } from "./packet";
@@ -48,30 +48,33 @@ class SMXEvents {
     );
     this.ackReports$ = report$.filter((e) => e.type === "ack") as Bacon.EventStream<AckPacket>;
 
-    const finishedCommand$ = report$
-      .filter((e) => e.type === "host_cmd_finished")
-      .map((e) => e.type === "host_cmd_finished");
-
-    const okSend$ = finishedCommand$.startWith(true);
+    const finishedCommand$ = report$.filter((e) => e.type === "host_cmd_finished");
 
     // Main USB Output
     this.output$ = new Bacon.Bus<Uint8Array>();
 
+    const isConfigWrite = (e: Uint8Array) => e[0] === API_COMMAND.WRITE_CONFIG || e[0] === API_COMMAND.WRITE_CONFIG_V5;
+
     // Config writes should only happen at most once per second.
-    const configOutput$ = this.output$
-      .filter((e) => {
-        return e[0] === API_COMMAND.WRITE_CONFIG || e[0] === API_COMMAND.WRITE_CONFIG_V5;
-      })
-      .throttle(1000);
+    const configOutput$ = this.output$.filter(isConfigWrite).throttle(1000);
 
     // All other writes are passed through unchanged
-    const otherOutput$ = this.output$.filter((e) => {
-      return e[0] !== API_COMMAND.WRITE_CONFIG && e[0] !== API_COMMAND.WRITE_CONFIG_V5;
-    });
+    const otherOutput$ = this.output$.filter((e) => !isConfigWrite(e));
+
+    const pendingOutput$ = configOutput$.merge(otherOutput$);
+
+    // If the device doesn't respond with host_cmd_finished within 5 seconds,
+    // recover by allowing the next command to be sent anyway. This prevents
+    // the output pipeline from stalling permanently if a response is missed.
+    const CMD_TIMEOUT_MS = 5000;
+    const timeoutRecovery$ = pendingOutput$.flatMap(() =>
+      Bacon.later(CMD_TIMEOUT_MS, true).takeUntil(finishedCommand$),
+    );
+    const okSend$ = finishedCommand$.merge(timeoutRecovery$).startWith(true);
 
     // combine together the throttled and unthrottled writes
     // and only emit one per each "ok" signal we get back following each previous output
-    this.eventsToSend$ = configOutput$.merge(otherOutput$).zip(okSend$, (nextToSend) => nextToSend);
+    this.eventsToSend$ = pendingOutput$.zip(okSend$, (nextToSend) => nextToSend);
   }
 }
 
@@ -81,16 +84,13 @@ const TEST_DATA_REQUEST_RATE = 100;
 export class SMXStage implements StageLike {
   private dev: HIDDevice;
   private readonly events: SMXEvents;
-  private debug = true;
-  private _config: SMXConfig | null = null;
+  private debug: boolean;
 
+  public info: SMXDeviceInfo | null = null;
+  private _config: SMXConfig | null = null;
   public get config() {
     return this._config?.config || null;
   }
-  public info: SMXDeviceInfo | null = null;
-  public test: SMXSensorTestData | null = null;
-  // todo make public???
-  private inputs: Array<boolean> | null = null;
 
   public readonly inputState$: Bacon.EventStream<boolean[]>;
   private readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
@@ -100,8 +100,9 @@ export class SMXStage implements StageLike {
   public readonly sensorTareData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
   public readonly engagePanelTestMode$: Bacon.EventStream<void>;
 
-  constructor(dev: HIDDevice) {
+  constructor(dev: HIDDevice, debug = false) {
     this.dev = dev;
+    this.debug = debug;
     this.events = new SMXEvents(this.dev);
 
     // write outgoing events to the device
@@ -111,34 +112,62 @@ export class SMXStage implements StageLike {
     });
 
     // Set the device info handler
+    // note: the map/doAction below only run when there are listeners subscribed
     this.deviceInfo$ = this.events.otherReports$
       .filter((e) => e[0] === char2byte("I")) // We send 'i' but for some reason we get back 'I'
-      .map((value) => this.handleDeviceInfo(value));
-    // note that the above map function only runs when there are listeners
-    // subscribed to `this.deviceInfo$`, otherwise nothing happens!
+      .map((data) => new SMXDeviceInfo(data))
+      .doAction((info) => {
+        this.info = info;
+        this.debug && console.debug("Got Info: ", info);
+      });
 
     // Set the config request handler
+    // note: the map/doAction below only run when there are listeners subscribed
     this.configResponse$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_CONFIG || e[0] === API_COMMAND.GET_CONFIG_V5)
-      .map((value) => this.handleConfig(value).config);
-    // note that the above map function only runs when there are listeners
-    // subscribed to `this.configResponse$`, otherwise nothing happens!
+      .map((data) => {
+        // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
+        this._config = new SMXConfig(data, this.info!.firmware_version);
+
+        if (this.debug) {
+          // Confirm that decoding and encoding gives us back the same data
+          const encoded_config = this._config.encode();
+          if (encoded_config) {
+            const origData = data.slice(2, -1).toString();
+            const reEncodedData = encoded_config.toString();
+            const encodingMatch = origData === reEncodedData;
+            console.debug("Config Encodes Correctly: ", encodingMatch);
+            if (!encodingMatch) {
+              console.debug("ORIGINAL:", data.slice(2, -1));
+              console.debug("ENCODED CONFIG:", encoded_config);
+            }
+          }
+          console.info("Got Config: ", this._config.config);
+        }
+
+        return this._config.config;
+      });
 
     const sensorTestReports$ = this.events.otherReports$
       .filter((e) => e[0] === API_COMMAND.GET_SENSOR_TEST_DATA)
-      .map((value) => this.handleTestData(value));
+      .map((data) => {
+        // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
+        const testData = new SMXSensorTestData(data, this.config!.flags.PlatformFlags_FSR);
+        this.debug && console.debug("Got Test: ", testData);
+        return testData;
+      });
 
     const sensorTestObservable = (forType: SensorTestMode, updateRateMs: number) =>
       Bacon.fromBinder<readonly SMXPanelTestData[]>((sink) => {
-        const stopInterval = Bacon.interval(updateRateMs, null).subscribe(() => {
-          this.events.output$.push(Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType));
-        });
+        const unplugInterval = this.events.output$.plug(
+          Bacon.interval(updateRateMs, Uint8Array.of(API_COMMAND.GET_SENSOR_TEST_DATA, forType)),
+        );
         const endMainSub = sensorTestReports$
           .filter((r) => r.mode === forType)
           .map((t) => t.panels)
           .subscribe(sink);
         return () => {
-          stopInterval();
+          unplugInterval?.();
           endMainSub();
         };
       });
@@ -158,18 +187,18 @@ export class SMXStage implements StageLike {
        */
       this.events.output$.push(Uint8Array.of(API_COMMAND.SET_LIGHTS_OLD, ...padData([], 108, 0), char2byte("\n")));
 
-      // Send the Panel Test Mode command
-      const setTestMode = () =>
-        this.events.output$.push(
-          Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.PressureTest, char2byte("\n")),
-        );
-      setTestMode();
+      const testModeCmd = Uint8Array.of(
+        API_COMMAND.SET_PANEL_TEST_MODE,
+        char2byte(" "),
+        PanelTestMode.PressureTest,
+        char2byte("\n"),
+      );
       // The Panel Test Mode command needs to be resent approximately every second, or else the stage will
       // auto time out and turn off Panel Test Mode itself
-      const cancelTestModeInterval = Bacon.interval(1000, null).subscribe(setTestMode);
+      const unplugTestModeInterval = this.events.output$.plug(Bacon.interval(1000, testModeCmd).startWith(testModeCmd));
 
       return () => {
-        cancelTestModeInterval();
+        unplugTestModeInterval?.();
         this.events.output$.push(
           Uint8Array.of(API_COMMAND.SET_PANEL_TEST_MODE, char2byte(" "), PanelTestMode.Off, char2byte("\n")),
         );
@@ -177,7 +206,17 @@ export class SMXStage implements StageLike {
     });
 
     // Set the inputs data request handler
-    this.inputState$ = this.events.inputState$.map((value) => this.handleInputs(value));
+    this.inputState$ = this.events.inputState$.map((data) => [
+      data.up_left,
+      data.up,
+      data.up_right,
+      data.left,
+      data.center,
+      data.right,
+      data.down_left,
+      data.down,
+      data.down_right,
+    ]);
   }
 
   public async init(): Promise<void> {
@@ -214,7 +253,7 @@ export class SMXStage implements StageLike {
 
     const command = info.firmware_version < 5 ? API_COMMAND.WRITE_CONFIG : API_COMMAND.WRITE_CONFIG_V5;
     const encoded_config = config.encode();
-    this.events.output$.push(new Uint8Array([command, encoded_config.length, ...encoded_config]));
+    this.events.output$.push(Uint8Array.of(command, encoded_config.length, ...encoded_config));
 
     await this.events.ackReports$.firstToPromise();
     // request a fresh config response back from the stage
@@ -275,61 +314,5 @@ export class SMXStage implements StageLike {
     const command = info.firmware_version < 5 ? API_COMMAND.GET_CONFIG : API_COMMAND.GET_CONFIG_V5;
     this.events.output$.push(Uint8Array.of(command));
     return this.configResponse$.firstToPromise();
-  }
-
-  private handleConfig(data: Uint8Array): SMXConfig {
-    // biome-ignore lint/style/noNonNullAssertion: info should very much be defined here
-    this._config = new SMXConfig(data, this.info!.firmware_version);
-
-    if (this.debug) {
-      // Right now I just want to confirm that decoding and encoding gives us back the same data
-      const encoded_config = this._config.encode();
-      if (encoded_config) {
-        const origData = data.slice(2, -1).toString();
-        const reEncodedData = encoded_config.toString();
-        const encodingMatch = origData === reEncodedData;
-        console.debug("Config Encodes Correctly: ", encodingMatch);
-        if (!encodingMatch) {
-          console.debug("ORIGINAL:", data.slice(2, -1));
-          console.debug("ENCODED CONFIG:", encoded_config);
-        }
-      }
-      console.info("Got Config: ", this.config);
-    }
-
-    return this._config;
-  }
-
-  private handleTestData(data: Uint8Array): SMXSensorTestData {
-    // biome-ignore lint/style/noNonNullAssertion: config should very much be defined here
-    this.test = new SMXSensorTestData(data, this.config!.flags.PlatformFlags_FSR);
-
-    this.debug && console.debug("Got Test: ", this.test);
-
-    return this.test;
-  }
-
-  private handleDeviceInfo(data: Uint8Array): SMXDeviceInfo {
-    this.info = new SMXDeviceInfo(data);
-
-    this.debug && console.debug("Got Info: ", this.info);
-
-    return this.info;
-  }
-
-  private handleInputs(data: Decoded<typeof StageInputs>): Array<boolean> {
-    this.inputs = [
-      data.up_left,
-      data.up,
-      data.up_right,
-      data.left,
-      data.center,
-      data.right,
-      data.down_left,
-      data.down,
-      data.down_right,
-    ];
-
-    return this.inputs;
   }
 }
