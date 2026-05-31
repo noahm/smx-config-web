@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { type SMXPanelTestData, SensorTestMode } from "../../sdk";
 import type { StageLike } from "../../sdk/interface";
 
@@ -31,18 +31,10 @@ export function useTestData(
 }
 
 export function useConfig(stage: StageLike | undefined) {
-  const stageRef = useRef(stage);
   const [configData, setConfig] = useState(stage?.config);
 
   useEffect(() => {
-    if (stageRef.current !== stage) {
-      // detected the stage has changed, so keep the config in sync
-      setConfig(stage?.config);
-      stageRef.current = stage;
-    }
-  }, [stage]);
-
-  useEffect(() => {
+    setConfig(stage?.config); // sync immediately on stage change
     return stage?.configResponse$.onValue(setConfig);
   }, [stage]);
 

@@ -15,7 +15,7 @@ export interface StageInfo {
  **/
 export interface StageLike {
   readonly config: ConfigShape | null;
-  info: StageInfo | null;
+  readonly info: StageInfo | null;
   readonly inputState$: Observable<boolean[]>;
   readonly configResponse$: Observable<ConfigShape>;
   readonly rawSensorData$: Observable<readonly SMXPanelTestData[]>;
