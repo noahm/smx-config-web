@@ -42,7 +42,17 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
 
   // FSR stages support per-sensor independent thresholds; load cell must always share one value.
+  // Default to linked if the panel's initial thresholds already match across all 4 sensors.
   const [isLinked, setIsLinked] = useState(false);
+  const isLinkedInitialized = useRef(false);
+  useEffect(() => {
+    if (isLinkedInitialized.current || !levels) return;
+    isLinkedInitialized.current = true;
+    setIsLinked(
+      levels.highs.every((high) => high === levels.highs[0]) && levels.lows.every((low) => low === levels.lows[0]),
+    );
+  }, [levels]);
+
   const effectivelyLinked = isLinked || !isFsr;
   const effectivelyLinkedRef = useRef(effectivelyLinked);
   effectivelyLinkedRef.current = effectivelyLinked;
