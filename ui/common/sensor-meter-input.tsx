@@ -189,7 +189,11 @@ export function SensorMeterInput({
                 <IconArrowsVertical size={10} stroke={3} />
               </div>
               <span className={classes.handleLabel}>
-                {releaseThreshold}-{activationThreshold}
+                {activationThreshold !== undefined &&
+                releaseThreshold !== undefined &&
+                activationThreshold - releaseThreshold === 1
+                  ? activationThreshold
+                  : `${releaseThreshold}-${activationThreshold}`}
               </span>
             </div>
           </div>
