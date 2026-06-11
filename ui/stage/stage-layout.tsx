@@ -34,6 +34,7 @@ export function StageLayout({ stage, onClose }: Props) {
       key={idx}
       type={config?.flags.PlatformFlags_FSR ? "fsr" : "loadcell"}
       disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
+      enabledSensors={config?.enabledSensors[idx]}
       active={inputState?.[idx]}
       index={idx}
       testData={testData?.[idx]}

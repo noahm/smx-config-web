@@ -11,6 +11,8 @@ interface EnabledProps {
   active: boolean | undefined;
   /** are all 4 sensors disabled? */
   disabled: boolean | undefined;
+  /** per-sensor enabled state, indexed the same as testData's sensor arrays */
+  enabledSensors: readonly boolean[] | undefined;
   index: number;
   /** required for use as a popover target */
   onClick?(index: number): void;
@@ -18,7 +20,7 @@ interface EnabledProps {
 }
 
 export const StagePanel = forwardRef<HTMLDivElement, EnabledProps>(
-  ({ testData, active, disabled, index, onClick, className, type }, ref) => {
+  ({ testData, active, disabled, enabledSensors, index, onClick, className, type }, ref) => {
     const handleClick = useCallback(() => onClick?.(index), [index, onClick]);
     const handleKeydown = useCallback(
       (e: React.KeyboardEvent) => {
@@ -58,14 +60,25 @@ export const StagePanel = forwardRef<HTMLDivElement, EnabledProps>(
           [styles.active]: active,
         })}
       >
-        {testData && (type === "fsr" ? <FsrReadings testData={testData} /> : <LoadCellReadings testData={testData} />)}
+        {testData &&
+          (type === "fsr" ? (
+            <FsrReadings testData={testData} enabledSensors={enabledSensors} />
+          ) : (
+            <LoadCellReadings testData={testData} enabledSensors={enabledSensors} />
+          ))}
         {warningIcon}
       </div>
     );
   },
 );
 
-function FsrReadings({ testData }: { testData: SMXPanelTestData }) {
+function FsrReadings({
+  testData,
+  enabledSensors,
+}: {
+  testData: SMXPanelTestData;
+  enabledSensors: readonly boolean[] | undefined;
+}) {
   return (
     <>
       <SensorReading
@@ -73,30 +86,40 @@ function FsrReadings({ testData }: { testData: SMXPanelTestData }) {
         badSensor={testData.bad_sensor_input[FsrSensor.Top]}
         badJumper={testData.bad_jumper[FsrSensor.Top]}
         value={testData.sensor_level[FsrSensor.Top]}
+        enabled={enabledSensors?.[FsrSensor.Top]}
       />
       <SensorReading
         className={cn(styles.right, styles.vert)}
         badSensor={testData.bad_sensor_input[FsrSensor.Right]}
         badJumper={testData.bad_jumper[FsrSensor.Right]}
         value={testData.sensor_level[FsrSensor.Right]}
+        enabled={enabledSensors?.[FsrSensor.Right]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.horiz)}
         badSensor={testData.bad_sensor_input[FsrSensor.Bottom]}
         badJumper={testData.bad_jumper[FsrSensor.Bottom]}
         value={testData.sensor_level[FsrSensor.Bottom]}
+        enabled={enabledSensors?.[FsrSensor.Bottom]}
       />
       <SensorReading
         className={cn(styles.left, styles.vert)}
         badSensor={testData.bad_sensor_input[FsrSensor.Left]}
         badJumper={testData.bad_jumper[FsrSensor.Left]}
         value={testData.sensor_level[FsrSensor.Left]}
+        enabled={enabledSensors?.[FsrSensor.Left]}
       />
     </>
   );
 }
 
-function LoadCellReadings({ testData }: { testData: SMXPanelTestData }) {
+function LoadCellReadings({
+  testData,
+  enabledSensors,
+}: {
+  testData: SMXPanelTestData;
+  enabledSensors: readonly boolean[] | undefined;
+}) {
   return (
     <>
       <SensorReading
@@ -104,24 +127,28 @@ function LoadCellReadings({ testData }: { testData: SMXPanelTestData }) {
         badSensor={testData.bad_sensor_input[0]}
         badJumper={testData.bad_jumper[0]}
         value={testData?.sensor_level[0]}
+        enabled={enabledSensors?.[0]}
       />
       <SensorReading
         className={cn(styles.top, styles.right)}
         badSensor={testData.bad_sensor_input[1]}
         badJumper={testData.bad_jumper[1]}
         value={testData?.sensor_level[1]}
+        enabled={enabledSensors?.[1]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.left)}
         badSensor={testData.bad_sensor_input[2]}
         badJumper={testData.bad_jumper[2]}
         value={testData?.sensor_level[2]}
+        enabled={enabledSensors?.[2]}
       />
       <SensorReading
         className={cn(styles.bottom, styles.right)}
         badSensor={testData.bad_sensor_input[3]}
         badJumper={testData.bad_jumper[3]}
         value={testData?.sensor_level[3]}
+        enabled={enabledSensors?.[3]}
       />
     </>
   );
@@ -132,14 +159,16 @@ function SensorReading({
   badSensor,
   badJumper,
   value,
+  enabled,
 }: {
   className?: string;
   badSensor?: boolean;
   badJumper?: boolean;
   value?: number;
+  enabled?: boolean;
 }) {
   return (
-    <div className={cn(styles.fsr, className)}>
+    <div className={cn(styles.fsr, className, { [styles.sensorDisabled]: enabled === false })}>
       {badJumper && <IconAlertHexagonFilled color="var(--mantine-color-red-6)" />}
       {badSensor && <IconAlertCircleFilled color="var(--mantine-color-red-6)" />}
       {!badJumper && !badSensor && value}

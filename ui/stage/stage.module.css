@@ -82,6 +82,10 @@
   font-family: monospace;
 }
 
+.sensorDisabled {
+  color: var(--mantine-color-gray-5);
+}
+
 .top {
   top: 0;
 }
