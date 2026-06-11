@@ -2,12 +2,21 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import classes from "./sensor-meter-input.module.css";
 import classNames from "classnames";
 import { FsrSensor } from "../../sdk";
-import { IconAlertCircleFilled, IconAlertHexagonFilled } from "@tabler/icons-react";
+import {
+  IconAlertCircleFilled,
+  IconAlertHexagonFilled,
+  IconArrowDown,
+  IconArrowUp,
+  IconArrowsVertical,
+} from "@tabler/icons-react";
 // import { Checkbox } from "@mantine/core";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
+
+const METER_HEIGHT_PX = 256;
+const HANDLE_SIZE_PX = 16;
 
 interface SensorProps {
   id: number;
@@ -15,10 +24,11 @@ interface SensorProps {
   activationThreshold?: number;
   releaseThreshold?: number;
   maxValue: number;
-  updateThreshold?: (id: number, type: "activation" | "release", value: number) => void;
+  updateThreshold?: (id: number, type: "activation" | "release" | "both", value: number) => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
   showControls?: boolean;
+  simpleMode?: boolean;
   forFsr?: boolean;
   disabled?: boolean;
   badJumper: boolean;
@@ -52,6 +62,7 @@ export function SensorMeterInput({
   onDragStart,
   onDragEnd,
   showControls,
+  simpleMode,
   forFsr,
   disabled,
   badJumper,
@@ -63,14 +74,19 @@ export function SensorMeterInput({
   const valuePct = (100 * (value || 0)) / maxValue;
   const releaseThresholdPct = (100 * (releaseThreshold || 0)) / maxValue;
   const activationThresholdPct = (100 * (activationThreshold || 0)) / maxValue;
-  const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | null>(null);
+  const [currentDraggingHandle, setIsDragging] = useState<"activation" | "release" | "both" | null>(null);
   const isActive = useSensorActive(value || 0, activationThreshold || 0, releaseThreshold || 0);
   const meterRef = useRef<HTMLDivElement>(null);
 
   const onDragEndRef = useRef(onDragEnd);
   onDragEndRef.current = onDragEnd;
 
-  const handleMouseDown = (type: "activation" | "release") => {
+  const activationThresholdRef = useRef(activationThreshold);
+  activationThresholdRef.current = activationThreshold;
+  const releaseThresholdRef = useRef(releaseThreshold);
+  releaseThresholdRef.current = releaseThreshold;
+
+  const handleMouseDown = (type: "activation" | "release" | "both") => {
     setIsDragging(type);
     onDragStart?.();
   };
@@ -83,7 +99,17 @@ export function SensorMeterInput({
       const rect = meterRef.current.getBoundingClientRect();
       const height = rect.height;
       const y = ("touches" in e ? e.touches[0].clientY : e.clientY) - rect.top;
-      const percentage = clamp(maxValue - (y / height) * maxValue, 0, maxValue);
+      let percentage = maxValue - (y / height) * maxValue;
+
+      if (currentDraggingHandle === "activation") {
+        const minAllowed = (releaseThresholdRef.current ?? 0) + 1;
+        percentage = clamp(percentage, minAllowed, maxValue);
+      } else if (currentDraggingHandle === "release") {
+        const maxAllowed = (activationThresholdRef.current ?? maxValue) - 1;
+        percentage = clamp(percentage, 0, maxAllowed);
+      } else {
+        percentage = clamp(percentage, 0, maxValue - 1);
+      }
 
       updateThreshold?.(id, currentDraggingHandle, Math.round(percentage));
     },
@@ -115,6 +141,9 @@ export function SensorMeterInput({
     return () => controller.abort();
   }, [currentDraggingHandle, handleMouseMove]);
 
+  const thresholdGapPx = (Math.abs(activationThresholdPct - releaseThresholdPct) / 100) * METER_HEIGHT_PX;
+  const handlesOverlap = thresholdGapPx < HANDLE_SIZE_PX;
+
   return (
     <div className={classes.root}>
       <div className={classes.control}>
@@ -136,7 +165,30 @@ export function SensorMeterInput({
             />
           )}
         </div>
-        {showControls && (
+        {showControls && simpleMode && (
+          <div ref={meterRef} className={classes.controlsContainer}>
+            <div
+              className={classes.dragHandleContainer}
+              style={{ bottom: `calc(${(activationThresholdPct + releaseThresholdPct) / 2}% - 8px)` }}
+            >
+              <div
+                role="slider"
+                tabIndex={0}
+                aria-valuenow={releaseThreshold}
+                aria-valuetext={`${releaseThreshold} to ${activationThreshold}`}
+                className={classNames(classes.dragHandle, classes.bothColorBg)}
+                onMouseDown={() => handleMouseDown("both")}
+                onTouchStart={() => handleMouseDown("both")}
+              >
+                <IconArrowsVertical size={10} stroke={3} />
+              </div>
+              <span className={classes.handleLabel}>
+                {releaseThreshold}-{activationThreshold}
+              </span>
+            </div>
+          </div>
+        )}
+        {showControls && !simpleMode && (
           <div ref={meterRef} className={classes.controlsContainer}>
             <div className={classes.dragHandleContainer} style={{ bottom: `calc(${activationThresholdPct}% - 8px)` }}>
               <div
@@ -146,10 +198,15 @@ export function SensorMeterInput({
                 className={classNames(classes.dragHandle, classes.atkColorBg)}
                 onMouseDown={() => handleMouseDown("activation")}
                 onTouchStart={() => handleMouseDown("activation")}
-              />
+              >
+                <IconArrowUp size={10} stroke={3} />
+              </div>
               <span className={classNames(classes.handleLabel, classes.atkColorFg)}>{activationThreshold}</span>
             </div>
-            <div className={classes.dragHandleContainer} style={{ bottom: `calc(${releaseThresholdPct}% - 8px)` }}>
+            <div
+              className={classNames(classes.dragHandleContainer, { [classes.dragHandleOffset]: handlesOverlap })}
+              style={{ bottom: `calc(${releaseThresholdPct}% - 8px)` }}
+            >
               <div
                 role="slider"
                 tabIndex={0}
@@ -157,7 +214,9 @@ export function SensorMeterInput({
                 className={classNames(classes.dragHandle, classes.rlsColorBg)}
                 onMouseDown={() => handleMouseDown("release")}
                 onTouchStart={() => handleMouseDown("release")}
-              />
+              >
+                <IconArrowDown size={10} stroke={3} />
+              </div>
               <span className={classNames(classes.handleLabel, classes.rlsColorFg)}>{releaseThreshold}</span>
             </div>
           </div>

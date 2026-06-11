@@ -45,8 +45,11 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const effectivelyLinkedRef = useRef(effectivelyLinked);
   effectivelyLinkedRef.current = effectivelyLinked;
 
+  // FSR defaults to a single combined handle (high = low + 1); advanced mode exposes both independently.
+  const [simpleMode, setSimpleMode] = useState(true);
+
   type OptimisticUpdate =
-    | { op: "threshold"; sensorIdx: number; type: "activation" | "release"; value: number; linked: boolean }
+    | { op: "threshold"; sensorIdx: number; type: "activation" | "release" | "both"; value: number; linked: boolean }
     | { op: "snap"; high: number; low: number };
 
   const [optimisticLevels, setOptimisticLevels] = useOptimistic(levels, (current, update: OptimisticUpdate) => {
@@ -56,7 +59,17 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
     }
     const highs = [...current.highs];
     const lows = [...current.lows];
-    if (update.type === "activation") {
+    if (update.type === "both") {
+      const low = update.value;
+      const high = Math.min(update.value + 1, 255);
+      if (update.linked) {
+        highs.fill(high);
+        lows.fill(low);
+      } else {
+        highs[update.sensorIdx] = high;
+        lows[update.sensorIdx] = low;
+      }
+    } else if (update.type === "activation") {
       if (update.linked) highs.fill(update.value);
       else highs[update.sensorIdx] = update.value;
     } else {
@@ -69,13 +82,28 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const [, startTransition] = useTransition();
 
   const updateThreshold = useCallback(
-    (sensorIdx: number, type: "activation" | "release", value: number) => {
+    (sensorIdx: number, type: "activation" | "release" | "both", value: number) => {
       if (!stage.config) return;
       const linked = effectivelyLinkedRef.current;
       const panel = stage.config.panelSettings[panelIdx];
       startTransition(async () => {
         setOptimisticLevels({ op: "threshold", sensorIdx, type, value, linked });
-        if (type === "activation") {
+        if (type === "both") {
+          const low = value;
+          const high = Math.min(value + 1, 255);
+          if (linked && isFsr) {
+            for (let i = 0; i < 4; i++) {
+              panel.fsrHighThreshold[i] = high;
+              panel.fsrLowThreshold[i] = low;
+            }
+          } else if (isFsr) {
+            panel.fsrHighThreshold[sensorIdx] = high;
+            panel.fsrLowThreshold[sensorIdx] = low;
+          } else {
+            panel.loadCellHighThreshold = high;
+            panel.loadCellLowThreshold = low;
+          }
+        } else if (type === "activation") {
           if (linked && isFsr) for (let i = 0; i < 4; i++) panel.fsrHighThreshold[i] = value;
           else if (isFsr) panel.fsrHighThreshold[sensorIdx] = value;
           else panel.loadCellHighThreshold = value;
@@ -151,12 +179,20 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
         <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
       </div> */}
       {isFsr && (
-        <Switch
-          label="Link all sensors"
-          size="sm"
-          checked={isLinked}
-          onChange={(e) => handleToggleLinked(e.currentTarget.checked)}
-        />
+        <Group>
+          <Switch
+            label="Link all sensors"
+            size="sm"
+            checked={isLinked}
+            onChange={(e) => handleToggleLinked(e.currentTarget.checked)}
+          />
+          <Switch
+            label="Advanced mode"
+            size="sm"
+            checked={!simpleMode}
+            onChange={(e) => setSimpleMode(!e.currentTarget.checked)}
+          />
+        </Group>
       )}
       <Group justify="center" align="flex-start" gap="xl">
         {orderedSensorLevel.map((sensorIdx, renderIdx) => (
@@ -169,6 +205,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             maxValue={255}
             updateThreshold={updateThreshold}
             showControls={!effectivelyLinked || renderIdx === orderedSensorLevel.length - 1}
+            simpleMode={isFsr ? simpleMode : false}
             forFsr={isFsr}
             disabled={!config?.enabledSensors[panelIdx][sensorIdx]}
             badSensor={!!panelData?.bad_sensor_input[sensorIdx]}

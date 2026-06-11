@@ -59,7 +59,7 @@
 .controlsContainer {
   position: relative;
   margin-left: 8px;
-  width: 16px;
+  width: 40px;
   height: 256px;
 }
 
@@ -67,6 +67,11 @@
   position: absolute;
   display: flex;
   place-items: center;
+  left: 0;
+}
+
+.dragHandleOffset {
+  left: 24px;
 }
 
 .dragHandle {
@@ -75,6 +80,14 @@
   border-radius: 100%;
   cursor: ns-resize;
   touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.bothColorBg {
+  background-color: var(--mantine-color-violet-5);
 }
 
 .handleLabel {
