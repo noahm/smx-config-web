@@ -122,3 +122,7 @@
   font-weight: 600;
   text-wrap: nowrap;
 }
+
+.enableSwitch {
+  margin-top: 0.4em;
+}

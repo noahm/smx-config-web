@@ -9,7 +9,7 @@ import {
   IconArrowUp,
   IconArrowsVertical,
 } from "@tabler/icons-react";
-// import { Checkbox } from "@mantine/core";
+import { Switch } from "@mantine/core";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -33,6 +33,7 @@ interface SensorProps {
   simpleMode?: boolean;
   forFsr?: boolean;
   disabled?: boolean;
+  onToggleEnabled?: (id: number, enabled: boolean) => void;
   badJumper: boolean;
   badSensor: boolean;
 }
@@ -69,6 +70,7 @@ export function SensorMeterInput({
   simpleMode,
   forFsr,
   disabled,
+  onToggleEnabled,
   badJumper,
   badSensor,
 }: SensorProps) {
@@ -245,7 +247,15 @@ export function SensorMeterInput({
             <IconAlertCircleFilled size={18} /> Sensor
           </p>
         )}
-        {/* <Checkbox label="Enabled" defaultChecked={!disabled} /> */}
+        {onToggleEnabled && (
+          <Switch
+            label="Enabled"
+            size="sm"
+            className={classes.enableSwitch}
+            checked={!disabled}
+            onChange={(e) => onToggleEnabled(id, e.currentTarget.checked)}
+          />
+        )}
       </div>
     </div>
   );

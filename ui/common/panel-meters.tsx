@@ -138,6 +138,18 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
     [stage, panelIdx, isFsr, setOptimisticLevels],
   );
 
+  const toggleSensorEnabled = useCallback(
+    (sensorIdx: number, enabled: boolean) => {
+      if (!stage.config) return;
+      const panel = stage.config.enabledSensors[panelIdx];
+      startTransition(async () => {
+        panel[sensorIdx] = enabled;
+        await stage.writeConfig();
+      });
+    },
+    [stage, panelIdx],
+  );
+
   const handleToggleLinked = useCallback(
     (newLinked: boolean) => {
       setIsLinked(newLinked);
@@ -230,6 +242,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             simpleMode={isFsr ? simpleMode : false}
             forFsr={isFsr}
             disabled={!config?.enabledSensors[panelIdx][sensorIdx]}
+            onToggleEnabled={toggleSensorEnabled}
             badSensor={!!panelData?.bad_sensor_input[sensorIdx]}
             badJumper={!!panelData?.bad_jumper[sensorIdx]}
           />
