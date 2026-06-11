@@ -95,9 +95,9 @@ export class SMXStage implements StageLike {
   public readonly inputState$: Bacon.EventStream<boolean[]>;
   private readonly deviceInfo$: Bacon.EventStream<SMXDeviceInfo>;
   public readonly configResponse$: Bacon.EventStream<ConfigShape>;
-  public readonly calibratedSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
-  public readonly rawSensorData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
-  public readonly sensorTareData$: Bacon.EventStream<readonly SMXPanelTestData[]>;
+  public readonly calibratedSensorData$: Bacon.Property<readonly SMXPanelTestData[]>;
+  public readonly rawSensorData$: Bacon.Property<readonly SMXPanelTestData[]>;
+  public readonly sensorTareData$: Bacon.Property<readonly SMXPanelTestData[]>;
   public readonly engagePanelTestMode$: Bacon.EventStream<void>;
 
   constructor(dev: HIDDevice, debug = false) {
@@ -172,10 +172,15 @@ export class SMXStage implements StageLike {
         };
       });
 
-    this.rawSensorData$ = sensorTestObservable(SensorTestMode.UncalibratedValues, TEST_DATA_REQUEST_RATE);
-    this.calibratedSensorData$ = sensorTestObservable(SensorTestMode.CalibratedValues, TEST_DATA_REQUEST_RATE);
+    // .toProperty() so late subscribers (e.g. a newly-opened panel detail view)
+    // immediately get the last known value instead of waiting for the next poll
+    this.rawSensorData$ = sensorTestObservable(SensorTestMode.UncalibratedValues, TEST_DATA_REQUEST_RATE).toProperty();
+    this.calibratedSensorData$ = sensorTestObservable(
+      SensorTestMode.CalibratedValues,
+      TEST_DATA_REQUEST_RATE,
+    ).toProperty();
     // slower update rate for tare values
-    this.sensorTareData$ = sensorTestObservable(SensorTestMode.Tare, 5_000);
+    this.sensorTareData$ = sensorTestObservable(SensorTestMode.Tare, 5_000).toProperty();
 
     this.engagePanelTestMode$ = Bacon.fromBinder(() => {
       /**
