@@ -163,6 +163,9 @@ export function SensorMeterInput({
 function FsrIndicator({ index }: { index: number }) {
   const side = FsrSensor[index];
   return (
-    <div className={classes.fsrIndicator} style={{ [`border${side}`]: "4px solid var(--mantine-color-gray-7)" }} />
+    <div
+      className={classes.fsrIndicator}
+      style={{ [`border${side}`]: "4px solid light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5))" }}
+    />
   );
 }

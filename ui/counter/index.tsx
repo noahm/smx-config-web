@@ -17,7 +17,7 @@ Bacon.fromEvent(document, "DOMContentLoaded").onValue(async () => {
   const reactRoot = createRoot(rootEl);
   reactRoot.render(
     <Provider store={uiState}>
-      <MantineProvider theme={theme}>
+      <MantineProvider theme={theme} defaultColorScheme="auto">
         <ModalsProvider>
           <Notifications position="top-right" />
           <CounterPage />

@@ -15,7 +15,7 @@
   position: relative;
   width: var(--meter-width);
   height: 256px;
-  background-color: var(--mantine-color-gray-2);
+  background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-8));
   border-radius: 5px;
   overflow: hidden;
 }
@@ -27,7 +27,7 @@
   /* transition: all;
   transition-duration: 300ms;
   transition-timing-function: ease-in-out; */
-  background-color: var(--mantine-color-gray-5);
+  background-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
 }
 
 .meterValueFillActive {
@@ -97,7 +97,7 @@
   align-self: center;
   height: 2em;
   width: 2em;
-  border: 1px solid var(--mantine-color-gray-7);
+  border: 1px solid light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
 }
 
 .bad {
