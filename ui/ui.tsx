@@ -49,11 +49,11 @@ function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void 
             Click a panel to view live <em>calibrated</em> sensor meter readings and error details
           </li>
           <li>Save the standard High/Normal/Low sensitivity profiles directly to a stage</li>
+          <li>Set custom sensitivity thresholds on individual sensors</li>
+          <li>Enable and disable individual sensors</li>
         </Text>
         <Text fw={600}>What we're still working on:</Text>
         <Text component="ul" pl="md" m={0}>
-          <li>Set custom sensitivity thresholds on individual sensors</li>
-          <li>Enable and disable individual sensors</li>
           <li>Upload idle/pressed animated GIFs to the stage</li>
         </Text>
         <Text fw={600}>Want to get involved?</Text>
