@@ -1,4 +1,4 @@
-import { useCallback, useOptimistic, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
 import { Alert, Group, Stack, Switch, Text } from "@mantine/core";
@@ -45,8 +45,16 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const effectivelyLinkedRef = useRef(effectivelyLinked);
   effectivelyLinkedRef.current = effectivelyLinked;
 
-  // FSR defaults to a single combined handle (high = low + 1); advanced mode exposes both independently.
-  const [simpleMode, setSimpleMode] = useState(true);
+  // FSR defaults to a single combined handle (high = low + 1) only if the panel's
+  // initial thresholds are already exactly 1 apart on every sensor; otherwise it
+  // starts in advanced mode so existing wider gaps remain visible.
+  const [simpleMode, setSimpleMode] = useState(false);
+  const simpleModeInitialized = useRef(false);
+  useEffect(() => {
+    if (simpleModeInitialized.current || !levels) return;
+    simpleModeInitialized.current = true;
+    setSimpleMode(levels.highs.every((high, i) => high - levels.lows[i] === 1));
+  }, [levels]);
 
   type OptimisticUpdate =
     | { op: "threshold"; sensorIdx: number; type: "activation" | "release" | "both"; value: number; linked: boolean }
