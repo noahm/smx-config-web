@@ -207,7 +207,7 @@ export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; pan
             onChange={(e) => handleToggleLinked(e.currentTarget.checked)}
           />
           <Switch
-            label="Advanced mode"
+            label="Separate thresholds"
             size="sm"
             checked={!simpleMode}
             onChange={(e) => setSimpleMode(!e.currentTarget.checked)}
