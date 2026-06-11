@@ -55,9 +55,7 @@ export function StageLayout({ stage, onClose }: Props) {
           arrowOffset={75}
         >
           <Popover.Target>{p}</Popover.Target>
-          <Popover.Dropdown>
-            <PanelMeters stage={stage} panelIdx={idx} />
-          </Popover.Dropdown>
+          <Popover.Dropdown>{config && <PanelMeters stage={stage} panelIdx={idx} config={config} />}</Popover.Dropdown>
         </Popover>
       );
     });

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
-import { useConfig, useTestData } from "../stage/hooks";
+import { useCallback, useOptimistic, useRef, useState, useTransition } from "react";
+import { useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
 import { Alert, Group, Stack, Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
+import type { ConfigShape } from "../../sdk/commands/config";
 import { sensitivityLevelsForPanel } from "../stage/util";
 import { FsrSensor, SensorTestMode } from "../../sdk";
 import { IconAlertCircle, IconAlertHexagon, IconAlertTriangle } from "@tabler/icons-react";
@@ -29,29 +30,22 @@ function DipSwitchDisplay({ value, mismatch }: { value: number | undefined; mism
   );
 }
 
-export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: number }) {
+export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; panelIdx: number; config: ConfigShape }) {
   const testData = useTestData(stage, SensorTestMode.CalibratedValues);
   const rawTestData = useTestData(stage, SensorTestMode.UncalibratedValues);
   const tareTestData = useTestData(stage, SensorTestMode.Tare);
-  const config = useConfig(stage);
   const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
   const rawPanelData = panelIdx === undefined ? null : rawTestData?.[panelIdx];
   const tarePanelData = panelIdx === undefined ? null : tareTestData?.[panelIdx];
-  const isFsr = stage?.config?.flags.PlatformFlags_FSR;
+  const isFsr = config.flags.PlatformFlags_FSR;
 
-  const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
+  const levels = sensitivityLevelsForPanel(config, panelIdx);
 
   // FSR stages support per-sensor independent thresholds; load cell must always share one value.
   // Default to linked if the panel's initial thresholds already match across all 4 sensors.
-  const [isLinked, setIsLinked] = useState(false);
-  const isLinkedInitialized = useRef(false);
-  useEffect(() => {
-    if (isLinkedInitialized.current || !levels) return;
-    isLinkedInitialized.current = true;
-    setIsLinked(
-      levels.highs.every((high) => high === levels.highs[0]) && levels.lows.every((low) => low === levels.lows[0]),
-    );
-  }, [levels]);
+  const [isLinked, setIsLinked] = useState(
+    () => levels.highs.every((high) => high === levels.highs[0]) && levels.lows.every((low) => low === levels.lows[0]),
+  );
 
   const effectivelyLinked = isLinked || !isFsr;
   const effectivelyLinkedRef = useRef(effectivelyLinked);
@@ -60,13 +54,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   // FSR defaults to a single combined handle (high = low + 1) only if the panel's
   // initial thresholds are already exactly 1 apart on every sensor; otherwise it
   // starts in advanced mode so existing wider gaps remain visible.
-  const [simpleMode, setSimpleMode] = useState(false);
-  const simpleModeInitialized = useRef(false);
-  useEffect(() => {
-    if (simpleModeInitialized.current || !levels) return;
-    simpleModeInitialized.current = true;
-    setSimpleMode(levels.highs.every((high, i) => high - levels.lows[i] === 1));
-  }, [levels]);
+  const [simpleMode, setSimpleMode] = useState(() => levels.highs.every((high, i) => high - levels.lows[i] === 1));
 
   type OptimisticUpdate =
     | { op: "threshold"; sensorIdx: number; type: "activation" | "release" | "both"; value: number; linked: boolean }
@@ -175,7 +163,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
   const dipExpected = panelIdx;
   const dipMismatch = dipCurrent !== undefined && dipCurrent >= 0 && dipCurrent !== dipExpected;
   const anyBadJumper = panelData?.bad_jumper.some((b) => b) ?? false;
-  const anyBadSensorReading = panelData?.bad_sensor_input.some((b, idx) => b && config?.enabledSensors[panelIdx][idx]);
+  const anyBadSensorReading = panelData?.bad_sensor_input.some((b, idx) => b && config.enabledSensors[panelIdx][idx]);
   const showBadJumperWarning = anyBadJumper && !anyBadSensorReading;
 
   return (
@@ -241,7 +229,7 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
             showControls={!effectivelyLinked || renderIdx === orderedSensorLevel.length - 1}
             simpleMode={isFsr ? simpleMode : false}
             forFsr={isFsr}
-            disabled={!config?.enabledSensors[panelIdx][sensorIdx]}
+            disabled={!config.enabledSensors[panelIdx][sensorIdx]}
             onToggleEnabled={toggleSensorEnabled}
             badSensor={!!panelData?.bad_sensor_input[sensorIdx]}
             badJumper={!!panelData?.bad_jumper[sensorIdx]}
