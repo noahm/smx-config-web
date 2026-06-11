@@ -106,6 +106,10 @@
   margin: 0.4em 0;
 }
 
+.valueRow {
+  margin: 0.15em 0;
+}
+
 .fsrIndicator {
   align-self: center;
   height: 2em;

@@ -21,6 +21,8 @@ const HANDLE_SIZE_PX = 16;
 interface SensorProps {
   id: number;
   value?: number | undefined;
+  rawValue?: number | undefined;
+  tareValue?: number | undefined;
   activationThreshold?: number;
   releaseThreshold?: number;
   maxValue: number;
@@ -55,6 +57,8 @@ function useSensorActive(value: number, atk: number, rls: number) {
 export function SensorMeterInput({
   id,
   value,
+  rawValue,
+  tareValue,
   maxValue,
   releaseThreshold,
   activationThreshold,
@@ -224,7 +228,13 @@ export function SensorMeterInput({
       </div>
       <div className={classes.bottomLabel}>
         {forFsr && <FsrIndicator index={id} />}
-        {!badJumper && !(badSensor && !disabled) && <p>Value: {value === undefined || disabled ? "--" : value}</p>}
+        {!badJumper && !(badSensor && !disabled) && (
+          <>
+            <p className={classes.valueRow}>Raw: {rawValue === undefined || disabled ? "--" : rawValue}</p>
+            <p className={classes.valueRow}>Tare: {tareValue === undefined || disabled ? "--" : tareValue}</p>
+            <p className={classes.valueRow}>Cal: {value === undefined || disabled ? "--" : value}</p>
+          </>
+        )}
         {badJumper && (
           <p className={classes.bad} title="Incorrect jumper set for this sensor">
             <IconAlertHexagonFilled size={18} /> Jumper

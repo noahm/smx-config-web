@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { useConfig, useTestData } from "../stage/hooks";
 import { SensorMeterInput } from "./sensor-meter-input";
-import { Alert, Group, Stack, Switch, Text } from "@mantine/core";
+import { Alert, Group, Stack, Switch } from "@mantine/core";
 import classes from "./panel-meters.module.css";
 import type { StageLike } from "../../sdk/interface";
 import { sensitivityLevelsForPanel } from "../stage/util";
@@ -31,11 +31,13 @@ function DipSwitchDisplay({ value, mismatch }: { value: number | undefined; mism
 
 export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: number }) {
   const testData = useTestData(stage, SensorTestMode.CalibratedValues);
+  const rawTestData = useTestData(stage, SensorTestMode.UncalibratedValues);
+  const tareTestData = useTestData(stage, SensorTestMode.Tare);
   const config = useConfig(stage);
   const panelData = panelIdx === undefined ? null : testData?.[panelIdx];
+  const rawPanelData = panelIdx === undefined ? null : rawTestData?.[panelIdx];
+  const tarePanelData = panelIdx === undefined ? null : tareTestData?.[panelIdx];
   const isFsr = stage?.config?.flags.PlatformFlags_FSR;
-  // has at least one enabled sensor
-  const panelIsEnabled = config?.enabledSensors[panelIdx].some((p) => p);
 
   const levels = config ? sensitivityLevelsForPanel(config, panelIdx) : null;
 
@@ -207,6 +209,8 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
           <SensorMeterInput
             key={sensorIdx}
             value={panelData?.sensor_level[sensorIdx]}
+            rawValue={rawPanelData?.sensor_level[sensorIdx]}
+            tareValue={tarePanelData?.sensor_level[sensorIdx]}
             id={sensorIdx}
             activationThreshold={optimisticLevels?.highs[sensorIdx]}
             releaseThreshold={optimisticLevels?.lows[sensorIdx]}
@@ -221,11 +225,6 @@ export function PanelMeters({ stage, panelIdx }: { stage: StageLike; panelIdx: n
           />
         ))}
       </Group>
-      {panelIsEnabled && (
-        <Text fz={14} ta="center">
-          using <b>Calibrated</b> (Raw - Tare) readings here
-        </Text>
-      )}
     </Stack>
   );
 }
