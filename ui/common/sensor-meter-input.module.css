@@ -31,7 +31,7 @@
 }
 
 .meterValueFillActive {
-  background-color: var(--mantine-color-green-5);
+  background-color: light-dark(var(--mantine-color-green-5), var(--mantine-color-green-6));
 }
 
 .meterThresholdLine {
