@@ -231,6 +231,7 @@ export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; pan
             forFsr={isFsr}
             disabled={!config.enabledSensors[panelIdx][sensorIdx]}
             onToggleEnabled={toggleSensorEnabled}
+            showLabels={renderIdx === 0}
             badSensor={!!panelData?.bad_sensor_input[sensorIdx]}
             badJumper={!!panelData?.bad_jumper[sensorIdx]}
           />

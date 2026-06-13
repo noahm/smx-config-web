@@ -34,6 +34,8 @@ interface SensorProps {
   forFsr?: boolean;
   disabled?: boolean;
   onToggleEnabled?: (id: number, enabled: boolean) => void;
+  /** show row labels (Raw/Tare/Cal/Enabled) for this column; only the leftmost column needs them */
+  showLabels?: boolean;
   badJumper: boolean;
   badSensor: boolean;
 }
@@ -71,6 +73,7 @@ export function SensorMeterInput({
   forFsr,
   disabled,
   onToggleEnabled,
+  showLabels,
   badJumper,
   badSensor,
 }: SensorProps) {
@@ -236,9 +239,18 @@ export function SensorMeterInput({
         {forFsr && <FsrIndicator index={id} />}
         {!badJumper && !(badSensor && !disabled) && (
           <>
-            <p className={classes.valueRow}>Raw: {rawValue === undefined || disabled ? "--" : rawValue}</p>
-            <p className={classes.valueRow}>Tare: {tareValue === undefined || disabled ? "--" : tareValue}</p>
-            <p className={classes.valueRow}>Cal: {value === undefined || disabled ? "--" : value}</p>
+            <p className={classes.valueRow}>
+              {showLabels && "Raw: "}
+              {rawValue === undefined || disabled ? "--" : rawValue}
+            </p>
+            <p className={classes.valueRow}>
+              {showLabels && "Tare: "}
+              {tareValue === undefined || disabled ? "--" : tareValue}
+            </p>
+            <p className={classes.valueRow}>
+              {showLabels && "Cal: "}
+              {value === undefined || disabled ? "--" : value}
+            </p>
           </>
         )}
         {badJumper && (
@@ -253,7 +265,7 @@ export function SensorMeterInput({
         )}
         {onToggleEnabled && (
           <Switch
-            label="Enabled"
+            label={showLabels ? "Enabled" : undefined}
             size="sm"
             className={classes.enableSwitch}
             checked={!disabled}
