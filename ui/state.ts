@@ -9,3 +9,5 @@ export const uiState = createStore();
 export const activeLeftStage$ = atom<StageLike | null>(null);
 
 export const activeRightStage$ = atom<StageLike | null>(null);
+
+export const unsupportedOpen$ = atom(!browserSupported);

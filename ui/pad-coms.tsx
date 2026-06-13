@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { uiState, activeLeftStage$, activeRightStage$ } from "./state";
+import { uiState, activeLeftStage$, activeRightStage$, browserSupported, unsupportedOpen$ } from "./state";
 import { notifications } from "@mantine/notifications";
 
 export function useHidDevices() {
@@ -46,6 +46,10 @@ export function useHidDevices() {
 const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
 export async function promptSelectDevice(): Promise<SMXStage | null> {
+  if (!browserSupported) {
+    uiState.set(unsupportedOpen$, true);
+    return null;
+  }
   const devices = await navigator.hid.requestDevice({
     filters: [{ vendorId: SMX_USB_VENDOR_ID, productId: SMX_USB_PRODUCT_ID }],
   });

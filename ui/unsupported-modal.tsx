@@ -1,12 +1,12 @@
 import { Group, Button, Modal } from "@mantine/core";
-import { browserSupported } from "./state";
-import { useDisclosure } from "@mantine/hooks";
+import { useAtom } from "jotai";
+import { unsupportedOpen$ } from "./state";
 
-export function UnsupportedModal({ openAbout }: { openAbout: () => void }) {
-  const [opened, { close }] = useDisclosure(!browserSupported);
+export function UnsupportedModal({ openAbout }: { openAbout(): void }) {
+  const [opened, setOpened] = useAtom(unsupportedOpen$);
   return (
     <Modal
-      onClose={close}
+      onClose={() => setOpened(false)}
       opened={opened}
       title={<strong>Browser unsupported</strong>}
       centered
@@ -17,7 +17,7 @@ export function UnsupportedModal({ openAbout }: { openAbout: () => void }) {
         <Button
           onClick={() => {
             openAbout();
-            close();
+            setOpened(false);
           }}
         >
           Learn More

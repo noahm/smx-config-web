@@ -11,6 +11,7 @@ import {
 } from "@tabler/icons-react";
 import directoryData from "./directory.json";
 import { UnsupportedModal } from "./unsupported-modal.tsx";
+import { browserSupported } from "./state.ts";
 
 function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   return (
