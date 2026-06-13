@@ -9,7 +9,7 @@ import {
   IconArrowUp,
   IconArrowsVertical,
 } from "@tabler/icons-react";
-import { Switch } from "@mantine/core";
+import { Stack, Switch, Text } from "@mantine/core";
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -174,7 +174,7 @@ export function SensorMeterInput({
   );
 
   const thresholdGapPx = (Math.abs(activationThresholdPct - releaseThresholdPct) / 100) * METER_HEIGHT_PX;
-  const handlesOverlap = thresholdGapPx < HANDLE_SIZE_PX;
+  const handlesOverlap = thresholdGapPx < HANDLE_SIZE_PX + 4;
 
   return (
     <div className={classes.root}>
@@ -185,14 +185,11 @@ export function SensorMeterInput({
             style={{ height: `${valuePct}%` }}
           />
           {!disabled && activationThreshold !== undefined && (
-            <div
-              className={classNames(classes.meterThresholdLine, classes.atkColorBg)}
-              style={{ bottom: `${activationThresholdPct}%` }}
-            />
+            <div className={classNames(classes.meterThresholdLine)} style={{ bottom: `${activationThresholdPct}%` }} />
           )}
           {!disabled && releaseThreshold !== undefined && (
             <div
-              className={classNames(classes.meterThresholdLine, classes.rlsColorBg)}
+              className={classNames(classes.meterThresholdLine, classes.rlsColor)}
               style={{ bottom: `${releaseThresholdPct}%` }}
             />
           )}
@@ -202,17 +199,15 @@ export function SensorMeterInput({
             <div
               className={classes.dragHandleContainer}
               style={{ bottom: `calc(${(activationThresholdPct + releaseThresholdPct) / 2}% - 8px)` }}
+              role="slider"
+              tabIndex={0}
+              aria-valuenow={releaseThreshold}
+              aria-valuetext={`${releaseThreshold} to ${activationThreshold}`}
+              onMouseDown={() => handleMouseDown("both")}
+              onTouchStart={() => handleMouseDown("both")}
+              onKeyDown={(e) => handleKeyDown(e, "both")}
             >
-              <div
-                role="slider"
-                tabIndex={0}
-                aria-valuenow={releaseThreshold}
-                aria-valuetext={`${releaseThreshold} to ${activationThreshold}`}
-                className={classNames(classes.dragHandle, classes.bothColorBg)}
-                onMouseDown={() => handleMouseDown("both")}
-                onTouchStart={() => handleMouseDown("both")}
-                onKeyDown={(e) => handleKeyDown(e, "both")}
-              >
+              <div className={classes.dragHandle}>
                 <IconArrowsVertical size={10} stroke={3} />
               </div>
               <span className={classes.handleLabel}>
@@ -227,57 +222,77 @@ export function SensorMeterInput({
         )}
         {showControls && !simpleMode && (
           <div ref={meterRef} className={classes.controlsContainer}>
-            <div className={classes.dragHandleContainer} style={{ bottom: `calc(${activationThresholdPct}% - 8px)` }}>
-              <div
-                role="slider"
-                tabIndex={0}
-                aria-valuenow={activationThreshold}
-                className={classNames(classes.dragHandle, classes.atkColorBg)}
-                onMouseDown={() => handleMouseDown("activation")}
-                onTouchStart={() => handleMouseDown("activation")}
-                onKeyDown={(e) => handleKeyDown(e, "activation")}
-              >
+            <div
+              className={classNames(classes.dragHandleContainer, { [classes.dragHandleOffset]: handlesOverlap })}
+              style={{ top: `calc(${100 - activationThresholdPct}% - 8px)` }}
+              onMouseDown={() => handleMouseDown("activation")}
+              onTouchStart={() => handleMouseDown("activation")}
+              onKeyDown={(e) => handleKeyDown(e, "activation")}
+              role="slider"
+              aria-valuenow={activationThreshold}
+              tabIndex={0}
+            >
+              <div className={classes.dragHandle}>
                 <IconArrowUp size={10} stroke={3} />
               </div>
-              <span className={classNames(classes.handleLabel, classes.atkColorFg)}>{activationThreshold}</span>
+              <span className={classes.handleLabel}>{activationThreshold}</span>
             </div>
             <div
               className={classNames(classes.dragHandleContainer, { [classes.dragHandleOffset]: handlesOverlap })}
-              style={{ bottom: `calc(${releaseThresholdPct}% - 8px)` }}
+              style={{ top: `calc(${100 - releaseThresholdPct}% - 8px)` }}
+              role="slider"
+              tabIndex={0}
+              aria-valuenow={releaseThreshold}
+              onMouseDown={() => handleMouseDown("release")}
+              onTouchStart={() => handleMouseDown("release")}
+              onKeyDown={(e) => handleKeyDown(e, "release")}
             >
-              <div
-                role="slider"
-                tabIndex={0}
-                aria-valuenow={releaseThreshold}
-                className={classNames(classes.dragHandle, classes.rlsColorBg)}
-                onMouseDown={() => handleMouseDown("release")}
-                onTouchStart={() => handleMouseDown("release")}
-                onKeyDown={(e) => handleKeyDown(e, "release")}
-              >
+              <div className={classNames(classes.dragHandle, classes.rlsColor)}>
                 <IconArrowDown size={10} stroke={3} />
               </div>
-              <span className={classNames(classes.handleLabel, classes.rlsColorFg)}>{releaseThreshold}</span>
+              <span className={classNames(classes.handleLabel, classes.rlsColor)}>{releaseThreshold}</span>
             </div>
           </div>
         )}
       </div>
-      <div className={classes.bottomLabel}>
+      <Stack className={classes.bottomControls} gap="xs" align="center">
         {forFsr && <FsrIndicator index={id} />}
-        {!badJumper && !(badSensor && !disabled) && (
-          <>
-            <p className={classes.valueRow}>
-              {showLabels && "Raw: "}
+        {showLabels && (
+          <Stack className={classes.labelFloat} gap="0">
+            <Text>Enable Sensor</Text>
+            <Stack gap={0}>
+              <Text ff="monospace" span>
+                &nbsp;&nbsp;Raw
+              </Text>
+              <Text ff="monospace" span>
+                -&nbsp;Tare
+              </Text>
+              <Text ff="monospace" span>
+                =&nbsp;Calibrated
+              </Text>
+            </Stack>
+          </Stack>
+        )}
+        {onToggleEnabled && (
+          <Switch
+            size="sm"
+            className={classes.enableSwitch}
+            checked={!disabled}
+            onChange={(e) => onToggleEnabled(id, e.currentTarget.checked)}
+          />
+        )}
+        {!(badSensor && !disabled) && (
+          <Stack gap={0}>
+            <Text ff="monospace" ta="right" span>
               {rawValue === undefined || disabled ? "--" : rawValue}
-            </p>
-            <p className={classes.valueRow}>
-              {showLabels && "Tare: "}
-              {tareValue === undefined || disabled ? "--" : tareValue}
-            </p>
-            <p className={classes.valueRow}>
-              {showLabels && "Cal: "}
+            </Text>
+            <Text ff="monospace" ta="right" span>
+              {tareValue === undefined || disabled ? "--" : tareValue * -1}
+            </Text>
+            <Text ff="monospace" ta="right" span>
               {value === undefined || disabled ? "--" : value}
-            </p>
-          </>
+            </Text>
+          </Stack>
         )}
         {badJumper && (
           <p className={classes.bad} title="Incorrect jumper set for this sensor">
@@ -289,16 +304,7 @@ export function SensorMeterInput({
             <IconAlertCircleFilled size={18} /> Sensor
           </p>
         )}
-        {onToggleEnabled && (
-          <Switch
-            label={showLabels ? "Enabled" : undefined}
-            size="sm"
-            className={classes.enableSwitch}
-            checked={!disabled}
-            onChange={(e) => onToggleEnabled(id, e.currentTarget.checked)}
-          />
-        )}
-      </div>
+      </Stack>
     </div>
   );
 }

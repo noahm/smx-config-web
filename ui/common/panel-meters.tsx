@@ -168,6 +168,16 @@ export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; pan
 
   return (
     <Stack p="sm">
+      {anyBadSensorReading && (
+        <Alert color="red" icon={<IconAlertCircle size={20} />} p="sm">
+          Bad sensor readings detected by this panel
+        </Alert>
+      )}
+      {showBadJumperWarning && (
+        <Alert color="red" icon={<IconAlertHexagon size={20} />} p="sm">
+          Incorrect sensor jumper(s) detected on this panel
+        </Alert>
+      )}
       {dipMismatch && (
         <>
           <Alert color="orange" icon={<IconAlertTriangle size={20} />} p="sm">
@@ -185,19 +195,6 @@ export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; pan
           </Group>
         </>
       )}
-      {anyBadSensorReading && (
-        <Alert color="red" icon={<IconAlertCircle size={20} />} p="sm">
-          Bad sensor readings detected by this panel
-        </Alert>
-      )}
-      {showBadJumperWarning && (
-        <Alert color="red" icon={<IconAlertHexagon size={20} />} p="sm">
-          Incorrect sensor jumper(s) detected on this panel
-        </Alert>
-      )}
-      {/* <div className={classes.switchWrapper}>
-        <Switch defaultChecked={panelIsEnabled} label="Enable Panel" />
-      </div> */}
       {isFsr && (
         <Group>
           <Switch
@@ -231,7 +228,7 @@ export function PanelMeters({ stage, panelIdx, config }: { stage: StageLike; pan
             forFsr={isFsr}
             disabled={!config.enabledSensors[panelIdx][sensorIdx]}
             onToggleEnabled={toggleSensorEnabled}
-            showLabels={renderIdx === 0}
+            showLabels={renderIdx === 3}
             badSensor={!!panelData?.bad_sensor_input[sensorIdx]}
             badJumper={!!panelData?.bad_jumper[sensorIdx]}
           />
