@@ -4,7 +4,6 @@ import type { StageInfo, StageLike } from "./interface";
 import { mockFsrSensorValue, mockLoadCellSensorValue } from "./mocks/test-data";
 import { fsrConfig, loadCellConfig } from "./mocks/config";
 import { times } from "../ui/stage/util";
-import type { SMXPanelTestData } from "./commands/sensor_test";
 
 export class FsrStageMock implements StageLike {
   public inputState$ = repeatedly(1000, [1, 3, 4, 5, 7]).map((idxPressed) => {
