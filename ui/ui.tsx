@@ -3,7 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { StagePair } from "./stage-pair.tsx";
 import { GlobalControls } from "./global-controls.tsx";
 import { IconBrandDiscordFilled, IconBrandGithubFilled, IconHelp, IconMenu2 } from "@tabler/icons-react";
-import directoryData from "../public/directory.json";
+import directoryData from "./directory.json";
 
 function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   return (
