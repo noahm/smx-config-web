@@ -34,6 +34,7 @@ export function StageLayout({ stage, onClose }: Props) {
       key={idx}
       type={config?.flags.PlatformFlags_FSR ? "fsr" : "loadcell"}
       disabled={config?.enabledSensors[idx].every((enabled) => !enabled)}
+      enabledSensors={config?.enabledSensors[idx]}
       active={inputState?.[idx]}
       index={idx}
       testData={testData?.[idx]}
@@ -54,9 +55,7 @@ export function StageLayout({ stage, onClose }: Props) {
           arrowOffset={75}
         >
           <Popover.Target>{p}</Popover.Target>
-          <Popover.Dropdown>
-            <PanelMeters stage={stage} panelIdx={idx} />
-          </Popover.Dropdown>
+          <Popover.Dropdown>{config && <PanelMeters stage={stage} panelIdx={idx} config={config} />}</Popover.Dropdown>
         </Popover>
       );
     });

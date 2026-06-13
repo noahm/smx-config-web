@@ -38,7 +38,8 @@
 }
 
 .panel {
-  outline: 2px solid light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+  box-sizing: border-box;
+  border: 2px solid light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
   background-color: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
   position: relative;
   cursor: pointer;
@@ -47,7 +48,7 @@
   justify-content: center;
 }
 .panel.disabled {
-  outline-style: dashed;
+  border-style: dashed;
   background-image: repeating-linear-gradient(
     -45deg,
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5)),
@@ -58,28 +59,37 @@
 }
 .panel.disabled:hover {
   background-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
-  outline-color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  border-color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
 }
 .panel:not(.disabled):hover {
   background-color: light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-5));
-  outline-color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
+  border-color: light-dark(var(--mantine-color-gray-6), var(--mantine-color-dark-2));
 }
 .panel.active {
   background-color: light-dark(var(--mantine-color-green-2), var(--mantine-color-green-9));
-  outline-color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-4));
+  border-color: light-dark(var(--mantine-color-green-7), var(--mantine-color-green-4));
 }
 .panel.active:hover {
   background-color: light-dark(var(--mantine-color-green-4), var(--mantine-color-green-8));
-  outline-color: light-dark(var(--mantine-color-green-6), var(--mantine-color-green-3));
+  border-color: light-dark(var(--mantine-color-green-6), var(--mantine-color-green-3));
 }
 .panel.commErr {
   background-color: var(--mantine-color-error);
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 1px;
 }
 
 .fsr,
 .loadCell {
   position: absolute;
   font-family: monospace;
+}
+
+.sensorDisabled {
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
 }
 
 .top {

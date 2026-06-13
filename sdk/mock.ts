@@ -4,7 +4,6 @@ import type { StageInfo, StageLike } from "./interface";
 import { mockFsrSensorValue, mockLoadCellSensorValue } from "./mocks/test-data";
 import { fsrConfig, loadCellConfig } from "./mocks/config";
 import { times } from "../ui/stage/util";
-import type { SMXPanelTestData } from "./commands/sensor_test";
 
 export class FsrStageMock implements StageLike {
   public inputState$ = repeatedly(1000, [1, 3, 4, 5, 7]).map((idxPressed) => {
@@ -12,15 +11,21 @@ export class FsrStageMock implements StageLike {
     out[idxPressed] = true;
     return out;
   });
-  public calibratedSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
-    return panels.map((pressed) => mockFsrSensorValue(pressed ? 230 : 0));
-  });
-  public rawSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
-    return panels.map((pressed) => mockFsrSensorValue(pressed ? 235 : 5));
-  });
-  public sensorTareData$ = interval(30_000, null).map((_n) => {
-    return times(9, () => mockFsrSensorValue(4, 2));
-  });
+  public calibratedSensorData$ = interval(50, null)
+    .withLatestFrom(this.inputState$, (_n, panels) => {
+      return panels.map((pressed) => mockFsrSensorValue(pressed ? 230 : 0));
+    })
+    .toProperty();
+  public rawSensorData$ = interval(50, null)
+    .withLatestFrom(this.inputState$, (_n, panels) => {
+      return panels.map((pressed) => mockFsrSensorValue(pressed ? 235 : 5));
+    })
+    .toProperty();
+  public sensorTareData$ = interval(30_000, null)
+    .map((_n) => {
+      return times(9, () => mockFsrSensorValue(4, 2));
+    })
+    .toProperty();
   public engagePanelTestMode$ = constant(undefined);
   public configResponse$: Observable<ConfigShape>;
   private _config = structuredClone(fsrConfig);
@@ -56,15 +61,21 @@ export class LoadCellStageMock implements StageLike {
     out[idxPressed] = true;
     return out;
   });
-  public calibratedSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
-    return panels.map((pressed) => mockLoadCellSensorValue(pressed ? 60 : 0));
-  });
-  public rawSensorData$ = interval(50, null).withLatestFrom(this.inputState$, (_n, panels) => {
-    return panels.map((pressed) => mockLoadCellSensorValue(pressed ? 75 : 15));
-  });
-  public sensorTareData$ = interval(30_000, null).map((_n) => {
-    return times(9, () => mockLoadCellSensorValue(8, 4));
-  });
+  public calibratedSensorData$ = interval(50, null)
+    .withLatestFrom(this.inputState$, (_n, panels) => {
+      return panels.map((pressed) => mockLoadCellSensorValue(pressed ? 60 : 0));
+    })
+    .toProperty();
+  public rawSensorData$ = interval(50, null)
+    .withLatestFrom(this.inputState$, (_n, panels) => {
+      return panels.map((pressed) => mockLoadCellSensorValue(pressed ? 75 : 15));
+    })
+    .toProperty();
+  public sensorTareData$ = interval(30_000, null)
+    .map((_n) => {
+      return times(9, () => mockLoadCellSensorValue(8, 4));
+    })
+    .toProperty();
   public engagePanelTestMode$ = constant(undefined);
   public configResponse$: Observable<ConfigShape>;
   private _config = structuredClone(loadCellConfig);

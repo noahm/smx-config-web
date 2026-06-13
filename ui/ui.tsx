@@ -1,20 +1,28 @@
-import { ActionIcon, Anchor, Button, Center, Drawer, Group, Modal, Stack, Text, Title } from "@mantine/core";
+import { ActionIcon, Anchor, Badge, Button, Center, Drawer, Group, Modal, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { StagePair } from "./stage-pair.tsx";
 import { GlobalControls } from "./global-controls.tsx";
-import { IconBrandDiscordFilled, IconBrandGithubFilled, IconHelp, IconMenu2 } from "@tabler/icons-react";
-import directoryData from "../public/directory.json";
+import {
+  IconBrandDiscordFilled,
+  IconBrandGithubFilled,
+  IconHelp,
+  IconMenu2,
+  IconSparklesFilled,
+} from "@tabler/icons-react";
+import directoryData from "./directory.json";
+import { UnsupportedModal } from "./unsupported-modal.tsx";
+import { browserSupported } from "./state.ts";
 
 function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void }) {
   return (
     <Modal opened={opened} onClose={onClose} title={<strong>About SMX Web Config</strong>} size="lg">
       <Stack gap="sm">
         <Text>
-          This is an unofficial, browser-based configuration tool for{" "}
+          This is an <em>unofficial</em> configuration tool for{" "}
           <Anchor href="https://stepmaniax.com" target="_blank">
             StepManiaX
           </Anchor>{" "}
-          dance stages. It lets you view real-time sensor readings and manage stage settings by using the{" "}
+          dance stages. It provides real-time sensor readings and stage settings management using the{" "}
           <Anchor href="https://developer.mozilla.org/en-US/docs/Web/API/WebHID_API" target="_blank">
             WebHID API
           </Anchor>
@@ -27,17 +35,7 @@ function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void 
           </Anchor>{" "}
           before this tool will work.
         </Text>
-        <Text>
-          This is a project by{" "}
-          <Anchor href="https://github.com/noahm" target="_blank">
-            Cathadan
-          </Anchor>{" "}
-          and{" "}
-          <Anchor href="https://github.com/fchorney" target="_blank">
-            SenPi
-          </Anchor>
-          . It is unofficial and not affiliated with Step Revolution, <em>and</em> under active development!
-        </Text>
+
         <Text fw={600}>What you can do already:</Text>
         <Text component="ul" pl="md" m={0}>
           <li>Pair up to two SMX stages and configure them side by side</li>
@@ -49,14 +47,31 @@ function AboutModal({ opened, onClose }: { opened: boolean; onClose: () => void 
             Click a panel to view live <em>calibrated</em> sensor meter readings and error details
           </li>
           <li>Save the standard High/Normal/Low sensitivity profiles directly to a stage</li>
-        </Text>
-        <Text fw={600}>What we're still working on:</Text>
-        <Text component="ul" pl="md" m={0}>
-          <li>Set custom sensitivity thresholds on individual sensors</li>
-          <li>Enable and disable individual sensors</li>
-          <li>Upload idle/pressed animated GIFs to the stage</li>
+          <li>
+            Enable and disable individual sensors{" "}
+            <Badge>
+              <IconSparklesFilled size={16} /> New!
+            </Badge>
+          </li>
+          <li>
+            Set custom sensitivity thresholds on individual sensors{" "}
+            <Badge>
+              <IconSparklesFilled size={16} /> New!
+            </Badge>
+          </li>
         </Text>
         <Text fw={600}>Want to get involved?</Text>
+        <Text>
+          This is an open-source project under active development by{" "}
+          <Anchor href="https://github.com/noahm" target="_blank">
+            Cathadan
+          </Anchor>{" "}
+          and{" "}
+          <Anchor href="https://github.com/fchorney" target="_blank">
+            SenPi
+          </Anchor>
+          . Contributions are welcome!
+        </Text>
         <Group justify="center">
           <Button
             component="a"
@@ -127,6 +142,7 @@ export function UI() {
 
   return (
     <>
+      <UnsupportedModal openAbout={openAbout} />
       <AboutModal opened={aboutOpened} onClose={closeAbout} />
       <DirectoryDrawer opened={directoryOpened} onClose={closeDirectory} />
       <ActionIcon

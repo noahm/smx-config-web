@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { SMX_USB_PRODUCT_ID, SMX_USB_VENDOR_ID, SMXStage } from "../sdk";
-import { uiState, activeLeftStage$, activeRightStage$ } from "./state";
+import { uiState, activeLeftStage$, activeRightStage$, browserSupported, unsupportedOpen$ } from "./state";
 import { notifications } from "@mantine/notifications";
-import { modals } from "@mantine/modals";
 
 export function useHidDevices() {
   useEffect(() => {
@@ -40,13 +39,6 @@ export function useHidDevices() {
         { signal: ac.signal },
       );
       return () => ac.abort();
-    } else {
-      modals.open({
-        centered: true,
-        title: <strong>Browser unsupported</strong>,
-        children: "Your browser does not support WebHID. Try with a desktop version of Chrome, Vivaldi, Brave, etc.",
-        closeOnClickOutside: false,
-      });
     }
   }, []);
 }
@@ -54,6 +46,10 @@ export function useHidDevices() {
 const devToStage = new WeakMap<HIDDevice, SMXStage>();
 
 export async function promptSelectDevice(): Promise<SMXStage | null> {
+  if (!browserSupported) {
+    uiState.set(unsupportedOpen$, true);
+    return null;
+  }
   const devices = await navigator.hid.requestDevice({
     filters: [{ vendorId: SMX_USB_VENDOR_ID, productId: SMX_USB_PRODUCT_ID }],
   });

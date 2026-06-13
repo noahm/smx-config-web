@@ -3,6 +3,15 @@
   flex-direction: column;
   place-items: left;
   --meter-width: 64px;
+  --handle-color: var(--mantine-primary-color-filled);
+}
+
+.root:has(.labelFloat) {
+  width: 10rem; /* space out the flyout for the labels outside the layout. switch to grid layout to fix this */
+}
+
+.rlsColor {
+  --handle-color: var(--mantine-color-red-5);
 }
 
 .control {
@@ -38,28 +47,13 @@
   position: absolute;
   inset-inline: 0;
   height: 2px;
-}
-
-.atkColorFg {
-  color: var(--mantine-color-blue-5);
-}
-
-.atkColorBg {
-  background-color: var(--mantine-color-blue-5);
-}
-
-.rlsColorFg {
-  color: var(--mantine-color-red-5);
-}
-
-.rlsColorBg {
-  background-color: var(--mantine-color-red-5);
+  background-color: var(--handle-color);
 }
 
 .controlsContainer {
   position: relative;
   margin-left: 8px;
-  width: 16px;
+  width: 40px;
   height: 256px;
 }
 
@@ -67,30 +61,62 @@
   position: absolute;
   display: flex;
   place-items: center;
+  left: 0;
+  gap: var(--mantine-spacing-xs);
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.dragHandleOffset {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.dragHandleOffset:nth-child(2) {
+  left: 24px;
 }
 
 .dragHandle {
   width: 16px;
   height: 16px;
   border-radius: 100%;
-  cursor: ns-resize;
-  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background-color: var(--handle-color);
+}
+
+.dragHandleContainer:focus .dragHandle {
+  outline: 2px solid var(--handle-color);
+  outline-offset: 2px;
 }
 
 .handleLabel {
-  margin-left: 8px;
   font-size: 70%;
+  color: var(--handle-color);
 }
 
-.bottomLabel {
-  display: flex;
-  flex-direction: column;
+.bottomControls {
   width: var(--meter-width);
   font-size: 80%;
 }
 
-.bottomLabel p {
+.bottomControls p {
   margin: 0.4em 0;
+}
+
+.bottomControls .valueRow {
+  margin: 0 0;
+  line-height: 1.3;
+}
+
+.labelFloat {
+  height: 0;
+  position: relative;
+  left: 5rem;
+  margin-top: calc(-1 * var(--mantine-spacing-xs));
 }
 
 .fsrIndicator {
