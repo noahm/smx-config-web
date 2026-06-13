@@ -11,7 +11,7 @@
 }
 
 .rlsColor {
-  --handle-color: var(--mantine-color-red-5);
+  --handle-color: var(--mantine-color-red-6);
 }
 
 .control {
@@ -62,7 +62,7 @@
   display: flex;
   place-items: center;
   left: 0;
-  gap: var(--mantine-spacing-xs);
+  gap: 6px;
   cursor: ns-resize;
   touch-action: none;
 }
@@ -70,7 +70,7 @@
 .dragHandleOffset {
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 6px;
 }
 
 .dragHandleOffset:nth-child(2) {
@@ -95,7 +95,10 @@
 
 .handleLabel {
   font-size: 70%;
-  color: var(--handle-color);
+  color: white;
+  background-color: var(--handle-color);
+  border-radius: var(--mantine-radius-xs);
+  padding: 1px 2px;
 }
 
 .bottomControls {
