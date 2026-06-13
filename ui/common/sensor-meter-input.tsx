@@ -150,6 +150,29 @@ export function SensorMeterInput({
     return () => controller.abort();
   }, [currentDraggingHandle, handleMouseMove]);
 
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, type: "activation" | "release" | "both") => {
+      let delta = 0;
+      if (e.key === "ArrowUp") delta = e.shiftKey ? 10 : 1;
+      else if (e.key === "ArrowDown") delta = e.shiftKey ? -10 : -1;
+      else return;
+      e.preventDefault();
+
+      let next: number;
+      if (type === "activation") {
+        const minAllowed = (releaseThresholdRef.current ?? 0) + 1;
+        next = clamp((activationThreshold ?? 0) + delta, minAllowed, maxValue);
+      } else if (type === "release") {
+        const maxAllowed = (activationThresholdRef.current ?? maxValue) - 1;
+        next = clamp((releaseThreshold ?? 0) + delta, 0, maxAllowed);
+      } else {
+        next = clamp((releaseThreshold ?? 0) + delta, 0, maxValue - 1);
+      }
+      updateThreshold?.(id, type, next);
+    },
+    [id, activationThreshold, releaseThreshold, maxValue, updateThreshold],
+  );
+
   const thresholdGapPx = (Math.abs(activationThresholdPct - releaseThresholdPct) / 100) * METER_HEIGHT_PX;
   const handlesOverlap = thresholdGapPx < HANDLE_SIZE_PX;
 
@@ -188,6 +211,7 @@ export function SensorMeterInput({
                 className={classNames(classes.dragHandle, classes.bothColorBg)}
                 onMouseDown={() => handleMouseDown("both")}
                 onTouchStart={() => handleMouseDown("both")}
+                onKeyDown={(e) => handleKeyDown(e, "both")}
               >
                 <IconArrowsVertical size={10} stroke={3} />
               </div>
@@ -211,6 +235,7 @@ export function SensorMeterInput({
                 className={classNames(classes.dragHandle, classes.atkColorBg)}
                 onMouseDown={() => handleMouseDown("activation")}
                 onTouchStart={() => handleMouseDown("activation")}
+                onKeyDown={(e) => handleKeyDown(e, "activation")}
               >
                 <IconArrowUp size={10} stroke={3} />
               </div>
@@ -227,6 +252,7 @@ export function SensorMeterInput({
                 className={classNames(classes.dragHandle, classes.rlsColorBg)}
                 onMouseDown={() => handleMouseDown("release")}
                 onTouchStart={() => handleMouseDown("release")}
+                onKeyDown={(e) => handleKeyDown(e, "release")}
               >
                 <IconArrowDown size={10} stroke={3} />
               </div>

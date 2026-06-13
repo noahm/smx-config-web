@@ -86,6 +86,12 @@
   color: white;
 }
 
+.dragHandle:focus-visible {
+  outline: 2px solid var(--mantine-color-dark-9);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px white;
+}
+
 .bothColorBg {
   background-color: var(--mantine-color-violet-5);
 }
