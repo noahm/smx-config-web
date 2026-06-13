@@ -206,6 +206,7 @@ export function SensorMeterInput({
               onMouseDown={() => handleMouseDown("both")}
               onTouchStart={() => handleMouseDown("both")}
               onKeyDown={(e) => handleKeyDown(e, "both")}
+              title="Press/release threshold"
             >
               <div className={classes.dragHandle}>
                 <IconArrowsVertical size={10} stroke={3} />
@@ -231,9 +232,10 @@ export function SensorMeterInput({
               role="slider"
               aria-valuenow={activationThreshold}
               tabIndex={0}
+              title="Press Threshold"
             >
               <div className={classes.dragHandle}>
-                <IconArrowUp size={10} stroke={3} />
+                <IconArrowDown size={10} stroke={3} />
               </div>
               <span className={classes.handleLabel}>{activationThreshold}</span>
             </div>
@@ -246,9 +248,10 @@ export function SensorMeterInput({
               onMouseDown={() => handleMouseDown("release")}
               onTouchStart={() => handleMouseDown("release")}
               onKeyDown={(e) => handleKeyDown(e, "release")}
+              title="Release Threshold"
             >
               <div className={classNames(classes.dragHandle, classes.rlsColor)}>
-                <IconArrowDown size={10} stroke={3} />
+                <IconArrowUp size={10} stroke={3} />
               </div>
               <span className={classNames(classes.handleLabel, classes.rlsColor)}>{releaseThreshold}</span>
             </div>
@@ -312,6 +315,9 @@ export function SensorMeterInput({
 function FsrIndicator({ index }: { index: number }) {
   const side = FsrSensor[index];
   return (
-    <div className={classes.fsrIndicator} style={{ [`border${side}`]: "4px solid var(--mantine-color-gray-7)" }} />
+    <div
+      className={classes.fsrIndicator}
+      style={{ [`border${side}`]: "4px solid light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5))" }}
+    />
   );
 }

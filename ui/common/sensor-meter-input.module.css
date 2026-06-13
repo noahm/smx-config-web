@@ -11,7 +11,7 @@
 }
 
 .rlsColor {
-  --handle-color: var(--mantine-color-red-5);
+  --handle-color: var(--mantine-color-red-6);
 }
 
 .control {
@@ -24,7 +24,7 @@
   position: relative;
   width: var(--meter-width);
   height: 256px;
-  background-color: var(--mantine-color-gray-2);
+  background-color: light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-8));
   border-radius: 5px;
   overflow: hidden;
 }
@@ -36,11 +36,11 @@
   /* transition: all;
   transition-duration: 300ms;
   transition-timing-function: ease-in-out; */
-  background-color: var(--mantine-color-gray-5);
+  background-color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
 }
 
 .meterValueFillActive {
-  background-color: var(--mantine-color-green-5);
+  background-color: light-dark(var(--mantine-color-green-5), var(--mantine-color-green-6));
 }
 
 .meterThresholdLine {
@@ -62,7 +62,7 @@
   display: flex;
   place-items: center;
   left: 0;
-  gap: var(--mantine-spacing-xs);
+  gap: 6px;
   cursor: ns-resize;
   touch-action: none;
 }
@@ -70,7 +70,7 @@
 .dragHandleOffset {
   flex-direction: column;
   align-items: center;
-  gap: 0;
+  gap: 6px;
 }
 
 .dragHandleOffset:nth-child(2) {
@@ -95,7 +95,10 @@
 
 .handleLabel {
   font-size: 70%;
-  color: var(--handle-color);
+  color: white;
+  background-color: var(--handle-color);
+  border-radius: var(--mantine-radius-xs);
+  padding: 1px 2px;
 }
 
 .bottomControls {
@@ -123,7 +126,7 @@
   align-self: center;
   height: 2em;
   width: 2em;
-  border: 1px solid var(--mantine-color-gray-7);
+  border: 1px solid light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-5));
 }
 
 .bad {
