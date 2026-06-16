@@ -43,10 +43,26 @@ const decodedData = [
 
 const encodedData = "0f 0f ff 0f 00";
 
+test("size", () => {
+  expect(enabledSensors_t.byteLength).toBe(5);
+});
+
 test("decode", () => {
   expect(enabledSensors_t.decode(sbytes(encodedData))).toEqual(decodedData);
 });
 
 test("encode", () => {
   expect(sview(enabledSensors_t.encode(decodedData))).toEqual(encodedData);
+});
+
+describe("nested once", () => {
+  test("length", () => {
+    expect(enabledSensors_t[3].byteLength).toBe(15);
+  });
+  test("decode", () => {
+    expect(enabledSensors_t[2].decode(sbytes(encodedData + encodedData))).toEqual([decodedData, decodedData]);
+  });
+  test("encode", () => {
+    expect(sview(enabledSensors_t[2].encode([decodedData, decodedData]))).toEqual(encodedData + " " + encodedData);
+  });
 });

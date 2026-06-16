@@ -1,5 +1,7 @@
-import { Inject, bits, uint8_t } from "@nmann/struct-buffer";
+import { bits, createDataView, makeDataView, uint8_t } from "@nmann/struct-buffer";
 import { SENSOR_COUNT, FsrSensor } from "../api";
+import type { LikeBuffer_t, IDecodeOptions, IBufferLike, IEncodeOptions } from "@nmann/struct-buffer/dist/interfaces";
+import { TypeDeep } from "@nmann/struct-buffer/dist/base/type-deep";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -41,25 +43,61 @@ function joinTwoSensors(
 
 const BYTE_LENGTH = 5;
 
-/** very simple custom type that conveniently packs and unpacks 9 panels worth of four booleans each into 5 bytes */
-export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<boolean>>>(
-  // decode
-  (view, offset) => {
-    const decoded = twoEnabledSensors_t[BYTE_LENGTH].decode(view, { offset }).flatMap<Array<boolean>>(splitTwoSensors);
+class Decorator<RawD, RawE, RichD, RichE>
+  extends TypeDeep<IBufferLike<RichD[], RichE[]>>
+  implements IBufferLike<RichD, RichE>
+{
+  constructor(
+    protected src: IBufferLike<RawD, RawE>,
+    protected transformD: (raw: RawD) => RichD,
+    protected transformE: (rich: RichE) => RawE,
+  ) {
+    super();
+  }
 
-    // decoded now has a trailing entry for the 4 bits of padding on the end of data
-    // so we slice to just the desired data
-    const value = decoded.slice(0, 9);
+  get byteLength() {
+    return this.src.byteLength * this.length;
+  }
 
-    return {
-      size: BYTE_LENGTH,
-      value,
-    };
-  },
-  // encode
-  (values) => {
+  decode(view: LikeBuffer_t, options?: IDecodeOptions | undefined): RichD {
+    const littleEndian = options?.littleEndian,
+      _view = makeDataView(view);
+
+    let offset = options?.offset ?? 0;
+
+    return this.resultEach([], () => {
+      const raw = this.src.decode(_view, { littleEndian, offset });
+      offset += this.src.byteLength;
+      return this.transformD(raw);
+    });
+  }
+
+  encode(obj: RichE, options?: IEncodeOptions): DataView {
+    let view = createDataView(this.byteLength, options?.view),
+      offset = options?.offset ?? 0;
+    const postTransformed = this.deepTransform(obj, this.deeps.length);
+    this.each(postTransformed, (raw) => {
+      console.log(raw);
+      view = this.src.encode(raw, { view, offset, littleEndian: options?.littleEndian });
+      offset += this.src.byteLength;
+    });
+    return view;
+  }
+  deepTransform(objList: RichE, depth: number): unknown {
+    if (!depth) return this.transformE(objList);
+    return (objList as RichE[]).map((obj) => this.deepTransform(obj, depth - 1));
+  }
+}
+
+export const enabledSensors_t = new Decorator(
+  twoEnabledSensors_t[5],
+  // decoding is just a matter of splitting each byte into
+  // each panel's group of 4 sensors, and then slicing off
+  // the non-existent tenth panel's zeros
+  (raw) => raw.flatMap(splitTwoSensors).slice(0, 9),
+  (values: boolean[][]) => {
     if (values.length !== 9) {
-      throw new TypeError("DisabledSensors only encodes sets of 9");
+      throw new TypeError(`DisabledSensors only encodes sets of 9, given ${values.length}`);
     }
     const joined: Array<Decoded<typeof twoEnabledSensors_t>> = [];
     for (let i = 0; i < BYTE_LENGTH; i++) {
@@ -67,6 +105,6 @@ export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<bo
       const bIdx = aIdx + 1;
       joined.push(joinTwoSensors(values[aIdx], bIdx < values.length ? values[bIdx] : undefined));
     }
-    return twoEnabledSensors_t[BYTE_LENGTH].encode(joined);
+    return joined;
   },
 );
