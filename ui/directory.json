@@ -31,6 +31,11 @@
       "label": "Personal Score Tracker",
       "description": "A mobile-friendly way to track your own high scores",
       "href": "https://smx.flag.sh/"
+    },
+    {
+      "label": "SMX Events",
+      "description": "Database of SMX tournament results",
+      "href": "https://smx.events/"
     }
   ]
 }
