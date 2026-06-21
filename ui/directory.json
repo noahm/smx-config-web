@@ -28,6 +28,16 @@
       "href": "https://smx.573.no/browser"
     },
     {
+      "label": "Unplayed Tracker",
+      "description": "Live-updating list of charts you haven't played yet",
+      "href": "https://smx-unplayed.val.run/"
+    },
+    {
+      "label": "SMX Stats Lookup",
+      "description": "Get a nice overview of your SMX profile with a super cute theme",
+      "href": "https://jacquelinett.com/smx-lookup"
+    },
+    {
       "label": "Personal Score Tracker",
       "description": "A mobile-friendly way to track your own high scores",
       "href": "https://smx.flag.sh/"
