@@ -279,10 +279,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nmann/struct-buffer@npm:^6.0.0-beta.1":
-  version: 6.0.1
-  resolution: "@nmann/struct-buffer@npm:6.0.1"
-  checksum: 10c0/afb68b888a9f4fa71ef3b672678d8329a5b9d94e558b5aa285c8772a1574817359121770998ebc8fc83dc7ea7c3f29e0dc297f2748cd6361ab1e714cd7524bed
+"@nmann/struct-buffer@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@nmann/struct-buffer@npm:6.1.1"
+  checksum: 10c0/657b6e549bd799e4428b9bb5efd3488fd5bcf1b91f9a9d9f56335c94041e3b10dc6d5288e0b0fe7cb42790f40e08d59663f17a719b935a8a2be770105833afd9
   languageName: node
   linkType: hard
 
@@ -1685,7 +1685,7 @@ __metadata:
     "@mantine/hooks": "npm:^9.0.0-alpha.3"
     "@mantine/modals": "npm:^9.0.0-alpha.3"
     "@mantine/notifications": "npm:^9.0.0-alpha.3"
-    "@nmann/struct-buffer": "npm:^6.0.0-beta.1"
+    "@nmann/struct-buffer": "npm:^6.1.1"
     "@tabler/icons-react": "npm:^3.40.0"
     "@types/node": "npm:^24.0.0"
     "@types/react": "npm:^19.2.0"
