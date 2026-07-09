@@ -1,7 +1,5 @@
-import { bits, createDataView, makeDataView, uint8_t } from "@nmann/struct-buffer";
+import { bits, Reshape, uint8_t } from "@nmann/struct-buffer";
 import { SENSOR_COUNT, FsrSensor } from "../api";
-import type { LikeBuffer_t, IDecodeOptions, IBufferLike, IEncodeOptions } from "@nmann/struct-buffer/dist/interfaces";
-import { TypeDeep } from "@nmann/struct-buffer/dist/base/type-deep";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
 
@@ -43,59 +41,12 @@ function joinTwoSensors(
 
 const BYTE_LENGTH = 5;
 
-class Decorator<RawD, RawE, RichD, RichE>
-  extends TypeDeep<IBufferLike<RichD[], RichE[]>>
-  implements IBufferLike<RichD, RichE>
-{
-  constructor(
-    protected src: IBufferLike<RawD, RawE>,
-    protected transformD: (raw: RawD) => RichD,
-    protected transformE: (rich: RichE) => RawE,
-  ) {
-    super();
-  }
-
-  get byteLength() {
-    return this.src.byteLength * this.length;
-  }
-
-  decode(view: LikeBuffer_t, options?: IDecodeOptions | undefined): RichD {
-    const littleEndian = options?.littleEndian,
-      _view = makeDataView(view);
-
-    let offset = options?.offset ?? 0;
-
-    return this.resultEach([], () => {
-      const raw = this.src.decode(_view, { littleEndian, offset });
-      offset += this.src.byteLength;
-      return this.transformD(raw);
-    });
-  }
-
-  encode(obj: RichE, options?: IEncodeOptions): DataView {
-    let view = createDataView(this.byteLength, options?.view),
-      offset = options?.offset ?? 0;
-    const postTransformed = this.deepTransform(obj, this.deeps.length);
-    this.each(postTransformed, (raw) => {
-      console.log(raw);
-      view = this.src.encode(raw, { view, offset, littleEndian: options?.littleEndian });
-      offset += this.src.byteLength;
-    });
-    return view;
-  }
-  deepTransform(objList: RichE, depth: number): unknown {
-    if (!depth) return this.transformE(objList);
-    return (objList as RichE[]).map((obj) => this.deepTransform(obj, depth - 1));
-  }
-}
-
-export const enabledSensors_t = new Decorator(
-  twoEnabledSensors_t[5],
+export const enabledSensors_t = new Reshape(twoEnabledSensors_t[5], {
   // decoding is just a matter of splitting each byte into
   // each panel's group of 4 sensors, and then slicing off
   // the non-existent tenth panel's zeros
-  (raw) => raw.flatMap(splitTwoSensors).slice(0, 9),
-  (values: boolean[][]) => {
+  decode: (raw) => raw.flatMap(splitTwoSensors).slice(0, 9),
+  encode: (values: boolean[][]) => {
     if (values.length !== 9) {
       throw new TypeError(`DisabledSensors only encodes sets of 9, given ${values.length}`);
     }
@@ -107,4 +58,4 @@ export const enabledSensors_t = new Decorator(
     }
     return joined;
   },
-);
+});
