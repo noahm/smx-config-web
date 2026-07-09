@@ -41,6 +41,10 @@ function joinTwoSensors(
 
 const BYTE_LENGTH = 5;
 
+/**
+ * simple custom type that packs and unpacks all 9 panels
+ * worth of four-lenth tuples of booleans from the source 5 bytes
+ **/
 export const enabledSensors_t = new Reshape(twoEnabledSensors_t[5], {
   // decoding is just a matter of splitting each byte into
   // each panel's group of 4 sensors, and then slicing off
