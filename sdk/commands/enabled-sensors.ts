@@ -1,4 +1,4 @@
-import { Inject, bits, uint8_t } from "@nmann/struct-buffer";
+import { bits, Reshape, uint8_t } from "@nmann/struct-buffer";
 import { SENSOR_COUNT, FsrSensor } from "../api";
 
 type Decoded<Struct extends { decode(...args: unknown[]): unknown }> = ReturnType<Struct["decode"]>;
@@ -41,25 +41,18 @@ function joinTwoSensors(
 
 const BYTE_LENGTH = 5;
 
-/** very simple custom type that conveniently packs and unpacks 9 panels worth of four booleans each into 5 bytes */
-export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<boolean>>>(
-  // decode
-  (view, offset) => {
-    const decoded = twoEnabledSensors_t[BYTE_LENGTH].decode(view, { offset }).flatMap<Array<boolean>>(splitTwoSensors);
-
-    // decoded now has a trailing entry for the 4 bits of padding on the end of data
-    // so we slice to just the desired data
-    const value = decoded.slice(0, 9);
-
-    return {
-      size: BYTE_LENGTH,
-      value,
-    };
-  },
-  // encode
-  (values) => {
+/**
+ * simple custom type that packs and unpacks all 9 panels
+ * worth of four-lenth tuples of booleans from the source 5 bytes
+ **/
+export const enabledSensors_t = new Reshape(twoEnabledSensors_t[5], {
+  // decoding is just a matter of splitting each byte into
+  // each panel's group of 4 sensors, and then slicing off
+  // the non-existent tenth panel's zeros
+  decode: (raw) => raw.flatMap(splitTwoSensors).slice(0, 9),
+  encode: (values: boolean[][]) => {
     if (values.length !== 9) {
-      throw new TypeError("DisabledSensors only encodes sets of 9");
+      throw new TypeError(`DisabledSensors only encodes sets of 9, given ${values.length}`);
     }
     const joined: Array<Decoded<typeof twoEnabledSensors_t>> = [];
     for (let i = 0; i < BYTE_LENGTH; i++) {
@@ -67,6 +60,6 @@ export const enabledSensors_t = new Inject<Array<Array<boolean>>, Array<Array<bo
       const bIdx = aIdx + 1;
       joined.push(joinTwoSensors(values[aIdx], bIdx < values.length ? values[bIdx] : undefined));
     }
-    return twoEnabledSensors_t[BYTE_LENGTH].encode(joined);
+    return joined;
   },
-);
+});
