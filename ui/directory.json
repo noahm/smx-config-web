@@ -30,7 +30,7 @@
     {
       "label": "Unplayed Tracker",
       "description": "Live-updating list of charts you haven't played yet",
-      "href": "https://smx-unplayed.val.run/"
+      "href": "https://unplayed.smx.tools/"
     },
     {
       "label": "SMX Stats Lookup",
