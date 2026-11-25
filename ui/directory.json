@@ -46,6 +46,11 @@
       "label": "SMX Events",
       "description": "Database of SMX tournament results",
       "href": "https://smx.events/"
+    },
+    {
+      "label": "SMX Chart Picker",
+      "description": "Find charts you're likely to improve your score on",
+      "href": "https://pick.smx.tools/"
     }
   ]
 }
